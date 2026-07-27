@@ -1,0 +1,71 @@
+@startuml diagrama-despliegue-aliflow
+
+skinparam nodeStyle rectangle
+left to right direction
+
+node "Dispositivo del Estudiante\n(navegador web)" as DEV_EST
+node "Dispositivo del Operador\n(tablet / móvil)" as DEV_OP
+node "Dispositivo del Proveedor /\nAdministrador (navegador web)" as DEV_PROV
+
+node "Vercel (Edge / CDN)" as VERCEL {
+  artifact "Aliflow Web\n(Next.js)" as WEB_ART
+}
+
+node "Servidor de Aplicación\n(Render / Fly.io / Railway / AWS)" as APPSERVER {
+  artifact "Aliflow API\n(FastAPI)" as API_ART
+  artifact "Worker de Sincronización\n(Celery)" as WORKER_ART
+}
+
+node "Redis administrado\n(Upstash / Redis Cloud)" as REDIS_NODE
+
+node "Base de datos administrada\n(Supabase Postgres / AWS RDS)" as DBNODE {
+  database "PostgreSQL" as DB
+}
+
+node "VPS piloto — Odoo Community\n(self-hosted, Docker — ya validado en demo)" as ODOO_VPS {
+  artifact "Odoo 17 Community" as ODOO_ART
+  database "PostgreSQL (Odoo)" as ODOO_DB
+}
+
+node "Servidor local de Barú\n(Alpwin, on-premise)" as ALPWIN_NODE
+
+node "Servidores de Google" as GOOGLE_NODE
+node "Servidores de la Pasarela de Pagos\n(Kushki / PayPhone / Stripe)" as PAY_NODE
+
+DEV_EST --> VERCEL : HTTPS
+DEV_OP --> VERCEL : HTTPS
+DEV_PROV --> VERCEL : HTTPS
+
+VERCEL --> APPSERVER : HTTPS / REST
+
+API_ART --> DB : TCP / SQL
+WORKER_ART --> DB : TCP / SQL
+
+API_ART --> REDIS_NODE : TCP (publica eventos)
+WORKER_ART --> REDIS_NODE : TCP (consume eventos)
+
+API_ART --> GOOGLE_NODE : HTTPS (OAuth 2.0 / OIDC)
+API_ART --> PAY_NODE : HTTPS
+
+WORKER_ART --> ODOO_ART : HTTPS / JSON-RPC
+ODOO_ART --> ODOO_DB : TCP / SQL (local al VPS)
+
+WORKER_ART ..> ALPWIN_NODE : archivos / BD puente\n(sin API pública)
+
+note bottom of ODOO_VPS
+  Infraestructura ya levantada y probada
+  en el demo técnico (Fase 0, presupuesto
+  $0) — ver Hallazgos-Ingenieria-API-Generica.md
+  sección 4.2. Un VPS de ~$5-10 USD/mes
+  es suficiente.
+end note
+
+note bottom of ALPWIN_NODE
+  Caso real confirmado: Barú usa Alpwin
+  on-premise, sin API pública. Ver
+  Hallazgos-Ingenieria-API-Generica.md
+  sección 4.3 — pendiente contactar a
+  Syscompsa antes de asumir esta vía.
+end note
+
+@enduml
