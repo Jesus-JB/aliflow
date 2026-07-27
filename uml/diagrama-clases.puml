@@ -1,0 +1,243 @@
+@startuml diagrama-clases-aliflow
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide empty members
+
+package "Usuarios" {
+  abstract class Usuario {
+    # id: UUID
+    # nombreCompleto: String
+    # email: String
+    # fechaRegistro: DateTime
+    # activo: boolean
+    + autenticar(): Sesion
+  }
+
+  class Estudiante extends Usuario {
+    - dominioInstitucional: String
+    - codigoInstitucional: String
+    + consultarSaldo(proveedor: Proveedor): Money
+  }
+
+  class Administrador extends Usuario {
+    + darDeAltaProveedor(datos: DatosProveedor): Proveedor
+    + gestionarUsuarios(): void
+  }
+
+  abstract class UsuarioProveedor extends Usuario {
+    # proveedor: Proveedor
+  }
+
+  class Propietario extends UsuarioProveedor {
+    + administrarMenu(): void
+    + consultarMetricas(): MetricasProveedor
+  }
+
+  class Cajero extends UsuarioProveedor {
+    - puntoDeEntrega: PuntoDeEntrega
+    + buscarOrden(codigo: String): Orden
+    + confirmarEntrega(orden: Orden): void
+  }
+}
+
+package "Proveedor y Menú" {
+  class Proveedor {
+    - id: UUID
+    - nombreComercial: String
+    - ruc: String
+    - fechaAlta: DateTime
+    - activo: boolean
+  }
+
+  class PuntoDeEntrega {
+    - id: UUID
+    - nombre: String
+    - ubicacion: String
+  }
+
+  class Plato {
+    - id: UUID
+    - nombre: String
+    - descripcion: String
+    - precio: Money
+    - stockDisponible: int
+    - activo: boolean
+    + hayStock(cantidad: int): boolean
+  }
+
+  Proveedor "1" *-- "0..*" UsuarioProveedor : personal autorizado
+  Proveedor "1" *-- "0..*" PuntoDeEntrega
+  Proveedor "1" *-- "0..*" Plato : menú
+  Cajero "0..*" --> "1" PuntoDeEntrega : trabaja en
+}
+
+package "Wallet y Pagos" {
+  class TarjetaVirtual {
+    - id: UUID
+    + saldoTotal(): Money
+  }
+
+  class SaldoProveedor {
+    - monto: Money
+    + descontar(cantidad: Money): void
+    + acreditar(cantidad: Money): void
+  }
+
+  class Recarga {
+    - id: UUID
+    - montoTotal: Money
+    - fechaHora: DateTime
+    + distribuir(): List<SaldoProveedor>
+  }
+
+  interface EstrategiaDistribucionRecarga {
+    + distribuir(monto: Money, tarjeta: TarjetaVirtual): List<SaldoProveedor>
+  }
+
+  class RecargaDirectaPorProveedor implements EstrategiaDistribucionRecarga
+  class RecargaDistribuidaAutomaticamente implements EstrategiaDistribucionRecarga
+
+  class ComprobanteRecarga {
+    - id: UUID
+    - fechaEmision: DateTime
+    - sinValidezTributaria: boolean = true
+  }
+
+  enum EstadoPago {
+    APROBADO
+    PENDIENTE
+    RECHAZADO
+  }
+
+  class Pago {
+    - id: UUID
+    - monto: Money
+    - metodoPago: String
+    - estado: EstadoPago
+    - fechaHora: DateTime
+  }
+
+  Estudiante "1" *-- "1" TarjetaVirtual
+  TarjetaVirtual "1" *-- "0..*" SaldoProveedor
+  SaldoProveedor "0..*" --> "1" Proveedor
+  TarjetaVirtual "1" *-- "0..*" Recarga
+  Recarga "1" ..> "1" EstrategiaDistribucionRecarga : usa
+  Recarga "1" *-- "1" ComprobanteRecarga
+  Pago "1" --> "0..1" Recarga : genera
+}
+
+package "Órdenes" {
+  enum EstadoOrden {
+    COMPRADO
+    ENTREGADO
+    EXPIRADO
+  }
+
+  class Orden {
+    - id: UUID
+    - fechaHora: DateTime
+    - estado: EstadoOrden
+    + confirmarCompra(): void
+    + marcarEntregado(cajero: Cajero): void
+    + expirar(): void
+  }
+
+  class OrdenDetalle {
+    - cantidad: int
+    - precioUnitario: Money
+  }
+
+  class CodigoRetiro {
+    - valor: String
+    - fechaExpiracion: DateTime
+    - usado: boolean
+    + validar(): boolean
+    + invalidar(): void
+  }
+
+  class ComprobanteCompra {
+    - id: UUID
+    - fechaEmision: DateTime
+    - montoTotal: Money
+    - sinValidezTributaria: boolean = true
+  }
+
+  Estudiante "1" --> "0..*" Orden : realiza
+  Orden "1" *-- "1..*" OrdenDetalle
+  OrdenDetalle "0..*" --> "1" Plato
+  Orden "1" *-- "1" CodigoRetiro
+  Orden "1" *-- "0..1" ComprobanteCompra
+  Orden "0..*" --> "0..1" Cajero : entregada por
+}
+
+package "Integración con ERP externo" {
+  interface IInventoryProvider {
+    + getMenu(tenantId: UUID): List<CanonicalProduct>
+    + getStock(tenantId: UUID, itemId: UUID): int
+    + updateStock(tenantId: UUID, itemId: UUID, delta: int): Result
+    + notifySale(tenantId: UUID, orden: Orden): Result
+    + getSyncStatus(tenantId: UUID): SyncStatus
+  }
+
+  class OdooAdapter implements IInventoryProvider
+  class ContificoAdapter implements IInventoryProvider
+  class AlpwinAdapter implements IInventoryProvider {
+    + notifySale(tenantId: UUID, orden: Orden): Result
+    .. nota: sin API pública, implementación\npor archivos/BD puente (ver Hallazgos-Ingenieria-API-Generica.md) ..
+  }
+
+  class ProviderAdapterFactory {
+    + crearAdaptador(proveedor: Proveedor): IInventoryProvider
+  }
+
+  enum TipoERP {
+    ODOO
+    CONTIFICO
+    ALPWIN
+  }
+
+  class IntegracionERP {
+    - id: UUID
+    - tipoERP: TipoERP
+    - credencialesCifradas: String
+    - endpoint: String
+    - ultimaSincronizacionExitosa: DateTime
+  }
+
+  enum TipoEvento {
+    ACTUALIZAR_STOCK
+    NOTIFICAR_VENTA
+  }
+
+  enum EstadoEvento {
+    PENDIENTE
+    PROCESADO
+    FALLIDO
+  }
+
+  class EventoSincronizacion {
+    - id: UUID
+    - tipoEvento: TipoEvento
+    - payload: String
+    - estado: EstadoEvento
+    - intentos: int
+    - fechaCreacion: DateTime
+    + reintentar(): void
+  }
+
+  class SincronizacionWorker {
+    + procesarCola(): void
+    - ejecutarEvento(evento: EventoSincronizacion): void
+  }
+
+  Proveedor "1" *-- "1" IntegracionERP
+  Proveedor "1" *-- "0..*" EventoSincronizacion
+  ProviderAdapterFactory ..> IInventoryProvider : crea
+  ProviderAdapterFactory ..> IntegracionERP : lee tipoERP
+  SincronizacionWorker ..> ProviderAdapterFactory : usa
+  SincronizacionWorker "1" ..> "0..*" EventoSincronizacion : procesa
+  Orden ..> IInventoryProvider : notifica venta (vía Worker)
+}
+
+@enduml
