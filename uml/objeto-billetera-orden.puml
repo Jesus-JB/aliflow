@@ -1,0 +1,77 @@
+@startuml objeto-billetera-orden-aliflow
+
+skinparam packageStyle rectangle
+
+object "baru : Proveedor" as baru {
+  nombreComercial = "Barú"
+  ruc = "0991234567001"
+  activo = true
+}
+
+object "plato1 : Plato" as plato1 {
+  nombre = "Seco de pollo con arroz"
+  precio = 3.50
+  stockDisponible = 13
+  activo = true
+}
+
+object "ana : Estudiante" as ana {
+  nombreCompleto = "Ana Torres"
+  email = "ana.torres@uees.edu.ec"
+  dominioInstitucional = "uees.edu.ec"
+}
+
+object "tv1 : TarjetaVirtual" as tv1 {
+  id = "TV-0001"
+}
+
+object "sp1 : SaldoProveedor" as sp1 {
+  monto = 8.50
+}
+
+object "orden1 : Orden" as orden1 {
+  id = "ORD-2026-000482"
+  fechaHora = "2026-07-27 12:15"
+  estado = "COMPRADO"
+}
+
+object "det1 : OrdenDetalle" as det1 {
+  cantidad = 1
+  precioUnitario = 3.50
+}
+
+object "codigo1 : CodigoRetiro" as codigo1 {
+  valor = "a93f2c11-6e4d-4b7a-9c2e-1f0d8b3a55e7"
+  fechaExpiracion = "2026-07-27 14:00"
+  usado = false
+}
+
+ana *-- tv1
+tv1 *-- sp1
+sp1 --> baru : proveedor
+ana --> orden1 : realiza
+orden1 *-- det1
+det1 --> plato1
+plato1 --> baru : menú
+orden1 *-- codigo1
+
+note bottom of sp1
+  Ilustra la decisión de negocio ya
+  confirmada: el saldo es independiente
+  por proveedor (no una sola bolsa de
+  dinero). Ana podría tener otro
+  SaldoProveedor distinto con otro
+  proveedor, en cero.
+end note
+
+note bottom of orden1
+  El estudiante ya compró (estado
+  COMPRADO), tiene su código de retiro
+  vigente (usado=false). Cuando el
+  Cajero lo valide, orden1.estado
+  pasará a ENTREGADO y codigo1.usado
+  a true (ver diagrama de estados,
+  entregable pendiente).
+end note
+
+@enduml

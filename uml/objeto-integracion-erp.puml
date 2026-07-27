@@ -1,0 +1,50 @@
+@startuml objeto-integracion-erp-aliflow
+
+skinparam packageStyle rectangle
+
+object "baru : Proveedor" as baru {
+  nombreComercial = "Barú"
+  ruc = "0991234567001"
+  activo = true
+}
+
+object "integ1 : IntegracionERP" as integ1 {
+  tipoERP = "ALPWIN"
+  endpoint = "(sin API pública conocida)"
+  ultimaSincronizacionExitosa = "2026-07-20 09:12"
+}
+
+object "factory : ProviderAdapterFactory" as factory
+
+object "adapter1 : AlpwinAdapter" as adapter1
+
+object "worker : SincronizacionWorker" as worker
+
+object "evento1 : EventoSincronizacion" as evento1 {
+  tipoEvento = "NOTIFICAR_VENTA"
+  payload = "ORD-2026-000482"
+  estado = "FALLIDO"
+  intentos = 3
+  fechaCreacion = "2026-07-27 12:15"
+}
+
+baru *-- integ1
+baru *-- evento1
+factory ..> integ1 : lee tipoERP
+factory ..> adapter1 : crea
+worker ..> factory : usa
+worker ..> evento1 : procesa
+worker ..> adapter1 : invoca notifySale()
+
+note bottom of evento1
+  Snapshot del hallazgo crítico
+  (Hallazgos-Ingenieria-API-Generica.md,
+  sección 4.3): Barú usa Alpwin, que no
+  tiene API pública. Este evento ya
+  agotó 3 reintentos y queda FALLIDO —
+  visible en el panel del proveedor
+  (UC10) para reconciliación manual,
+  en vez de perder la venta.
+end note
+
+@enduml
