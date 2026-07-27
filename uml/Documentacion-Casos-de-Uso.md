@@ -1,6 +1,8 @@
 # Documentación de Casos de Uso — Aliflow
 
-**Diagrama fuente:** `casos-de-uso.puml` (mismo directorio). Para visualizarlo: extensión "PlantUML" de VS Code, o pegar el contenido en https://www.plantuml.com/plantuml/uml/.
+![Diagrama de casos de uso de Aliflow](casos-de-uso.svg)
+
+**Diagrama fuente:** `casos-de-uso.puml` (mismo directorio) — es la fuente editable; `casos-de-uso.svg` es la imagen renderizada que se muestra arriba (generada con el servidor público de PlantUML). Si editas el `.puml`, regenera el SVG para que la imagen quede sincronizada — instrucciones en `README-diagramas.md`.
 
 **Referencia:** cada caso de uso indica el paso correspondiente de `Flujos-Aliflow-Revision.html` (formato `{rol}-{número}`, ver nota en `Hallazgos-Ingenieria-API-Generica.md` sección 5) del que se derivó.
 
