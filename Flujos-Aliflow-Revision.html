@@ -1,0 +1,1336 @@
+﻿<title>AliFlow — Revisión de Flujos por Rol</title>
+<style>
+  @font-face {
+    font-family: 'Fraunces';
+    src: local('Fraunces');
+    font-weight: 300 700;
+  }
+
+  :root {
+    --bg: #f6f4ee;
+    --bg-raised: #ffffff;
+    --ink: #21261f;
+    --ink-soft: #565d51;
+    --ink-faint: #8b9285;
+    --line: #dcd8c9;
+    --line-soft: #ebe8dd;
+    --accent: #2f6b4f;
+    --accent-soft: #e4ede6;
+    --accent-ink: #1d4433;
+
+    --student: #2f6b4f;
+    --student-soft: #e4ede6;
+    --provider: #7a5a1e;
+    --provider-soft: #f2e8d4;
+    --operator: #315b8c;
+    --operator-soft: #e3ebf5;
+
+    --comment-bg: #fdf6e3;
+    --comment-line: #e8d9a0;
+    --comment-ink: #6b5a12;
+
+    --shadow: 0 1px 2px rgba(33, 38, 31, 0.06), 0 8px 24px rgba(33, 38, 31, 0.06);
+    --radius: 10px;
+
+    --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1e19;
+      --bg-raised: #23271f;
+      --ink: #e8e6dc;
+      --ink-soft: #b3b2a4;
+      --ink-faint: #7c8074;
+      --line: #363b30;
+      --line-soft: #2b2f26;
+      --accent: #5fae84;
+      --accent-soft: #223229;
+      --accent-ink: #a9dcbf;
+
+      --student: #5fae84;
+      --student-soft: #223229;
+      --provider: #d8ab5a;
+      --provider-soft: #33291a;
+      --operator: #7fa8db;
+      --operator-soft: #1e2733;
+
+      --comment-bg: #2a2716;
+      --comment-line: #4a4324;
+      --comment-ink: #e0c878;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1b1e19;
+    --bg-raised: #23271f;
+    --ink: #e8e6dc;
+    --ink-soft: #b3b2a4;
+    --ink-faint: #7c8074;
+    --line: #363b30;
+    --line-soft: #2b2f26;
+    --accent: #5fae84;
+    --accent-soft: #223229;
+    --accent-ink: #a9dcbf;
+    --student: #5fae84;
+    --student-soft: #223229;
+    --provider: #d8ab5a;
+    --provider-soft: #33291a;
+    --operator: #7fa8db;
+    --operator-soft: #1e2733;
+    --comment-bg: #2a2716;
+    --comment-line: #4a4324;
+    --comment-ink: #e0c878;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f6f4ee;
+    --bg-raised: #ffffff;
+    --ink: #21261f;
+    --ink-soft: #565d51;
+    --ink-faint: #8b9285;
+    --line: #dcd8c9;
+    --line-soft: #ebe8dd;
+    --accent: #2f6b4f;
+    --accent-soft: #e4ede6;
+    --accent-ink: #1d4433;
+    --student: #2f6b4f;
+    --student-soft: #e4ede6;
+    --provider: #7a5a1e;
+    --provider-soft: #f2e8d4;
+    --operator: #315b8c;
+    --operator-soft: #e3ebf5;
+    --comment-bg: #fdf6e3;
+    --comment-line: #e8d9a0;
+    --comment-ink: #6b5a12;
+    --shadow: 0 1px 2px rgba(33, 38, 31, 0.06), 0 8px 24px rgba(33, 38, 31, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* ---------- Header ---------- */
+  header.top {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 0.9rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .brand-mark {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .brand-mark span { color: var(--accent); }
+
+  .brand-sub {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.02em;
+  }
+
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .count-pill {
+    font-size: 0.78rem;
+    color: var(--comment-ink);
+    background: var(--comment-bg);
+    border: 1px solid var(--comment-line);
+    padding: 0.3rem 0.65rem;
+    border-radius: 100px;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .count-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--comment-ink);
+    display: inline-block;
+  }
+
+  button.btn {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+    color: var(--ink);
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  button.btn:hover { border-color: var(--ink-faint); }
+  button.btn:active { transform: translateY(1px); }
+  button.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  button.btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fdfcf8;
+  }
+  button.btn.primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+
+  /* ---------- Tabs ---------- */
+  nav.tabs {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.85rem 1.5rem 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+  }
+
+  .tab {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    top: 1px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tab .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .tab[data-role="estudiante"] .dot { background: var(--student); }
+  .tab[data-role="proveedor"] .dot { background: var(--provider); }
+  .tab[data-role="operador"] .dot { background: var(--operator); }
+
+  .tab:hover { color: var(--ink); background: var(--line-soft); }
+  .tab.active {
+    color: var(--ink);
+    background: var(--bg-raised);
+    border-color: var(--line);
+    box-shadow: 0 -1px 0 var(--bg-raised) inset;
+  }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .tab .tab-count {
+    font-size: 0.72rem;
+    background: var(--line-soft);
+    color: var(--ink-faint);
+    border-radius: 100px;
+    padding: 0.05rem 0.45rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .tab.active .tab-count { background: var(--accent-soft); color: var(--accent-ink); }
+
+  /* ---------- Layout ---------- */
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    min-height: 0;
+  }
+
+  .flow-pane {
+    padding: 2rem clamp(1.25rem, 3vw, 3rem);
+    overflow-y: auto;
+    max-width: 900px;
+  }
+
+  .role-panel { display: none; }
+  .role-panel.active { display: block; animation: fadein 0.25s ease; }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .role-intro {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .role-intro h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    font-weight: 600;
+    margin: 0 0 0.4rem;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .role-intro .goal {
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    line-height: 1.5;
+  }
+
+  .role-intro .precond {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+
+  /* ---------- User journey route ---------- */
+  .journey-route {
+    margin: -0.35rem 0 1.9rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--bg-raised), var(--role-soft, var(--accent-soft)));
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .journey-route-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 0.85rem;
+  }
+
+  .journey-route-kicker {
+    margin: 0 0 0.25rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--role-ink, var(--accent-ink));
+    font-weight: 700;
+  }
+
+  .journey-route-title {
+    margin: 0;
+    font-family: var(--font-display);
+    color: var(--ink);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .journey-route-caption {
+    margin: 0.2rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
+  .journey-route-badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.3rem 0.65rem;
+    background: var(--bg-raised);
+    color: var(--ink-soft);
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  .journey-track {
+    display: grid;
+    grid-template-columns: repeat(var(--journey-count), minmax(7.2rem, 1fr));
+    gap: 0.75rem;
+    position: relative;
+    overflow-x: auto;
+    padding: 0.2rem 0.2rem 0.45rem;
+    scroll-snap-type: x proximity;
+  }
+
+  .journey-track::before {
+    content: "";
+    position: absolute;
+    left: 1.6rem;
+    right: 1.6rem;
+    top: 1.35rem;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--role-ink, var(--accent)), transparent);
+    opacity: 0.45;
+  }
+
+  .journey-node {
+    position: relative;
+    z-index: 1;
+    min-width: 7.2rem;
+    scroll-snap-align: start;
+  }
+
+  .journey-link {
+    width: 100%;
+    min-height: 6.3rem;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 0.7rem;
+    background: var(--bg-raised);
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 6px 18px rgba(33, 38, 31, 0.07);
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .journey-link:hover {
+    transform: translateY(-3px);
+    border-color: var(--role-ink, var(--accent));
+    box-shadow: 0 10px 24px rgba(33, 38, 31, 0.12);
+  }
+
+  .journey-link:focus-visible { outline: 2px solid var(--role-ink, var(--accent)); outline-offset: 3px; }
+
+  .journey-dot {
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.55rem;
+    background: var(--role-ink, var(--accent));
+    color: var(--bg-raised);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .journey-label {
+    display: block;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.82rem;
+    line-height: 1.25;
+  }
+
+  .journey-moment {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--ink-faint);
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .step.route-highlight .step-card {
+    border-color: var(--role-ink, var(--accent));
+    box-shadow: 0 0 0 4px var(--role-soft, var(--accent-soft)), var(--shadow);
+  }
+
+  /* ---------- Steps ---------- */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+
+  .step {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    gap: 0 1rem;
+    position: relative;
+  }
+
+  .step-index {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .step-num {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--role-soft, var(--accent-soft));
+    color: var(--role-ink, var(--accent-ink));
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    border: 1px solid var(--line);
+  }
+
+  .step-line {
+    width: 2px;
+    flex: 1;
+    background: var(--line);
+    margin: 0.25rem 0;
+  }
+
+  .step:last-child .step-line { display: none; }
+
+  .step-body { padding-bottom: 2rem; }
+
+  .step-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    box-shadow: var(--shadow);
+  }
+
+  .step-title {
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+
+  .step-detail { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; }
+  .step-detail ul { margin: 0.4rem 0; padding-left: 1.2rem; }
+  .step-detail li { margin-bottom: 0.25rem; }
+  .step-detail p { margin: 0.4rem 0; }
+
+  .callout {
+    margin-top: 0.65rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.83rem;
+    line-height: 1.45;
+    border: 1px solid;
+  }
+  .callout.data { background: var(--line-soft); border-color: var(--line); color: var(--ink-soft); }
+  .callout.critical { background: var(--comment-bg); border-color: var(--comment-line); color: var(--comment-ink); }
+  .callout strong { font-weight: 700; }
+
+  .step-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.7rem;
+  }
+
+  .add-comment-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--role-ink, var(--accent-ink));
+    background: transparent;
+    border: 1px dashed var(--line);
+    border-radius: 100px;
+    padding: 0.32rem 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .add-comment-btn:hover { background: var(--role-soft, var(--accent-soft)); border-color: var(--role-ink, var(--accent-ink)); border-style: solid; }
+  .add-comment-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .comment-form {
+    margin-top: 0.75rem;
+    display: none;
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+  .comment-form.open { display: flex; animation: fadein 0.15s ease; }
+
+  .comment-form textarea {
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 0.6rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    resize: vertical;
+    min-height: 4.2rem;
+    line-height: 1.4;
+  }
+  .comment-form textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .comment-form-actions { display: flex; gap: 0.5rem; align-items: center; }
+  .comment-form-actions select {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+    color: var(--ink-soft);
+  }
+
+  .step-comments { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .comment-chip {
+    background: var(--comment-bg);
+    border: 1px solid var(--comment-line);
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--comment-ink);
+    line-height: 1.45;
+    position: relative;
+  }
+  .comment-chip .chip-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.25rem;
+    opacity: 0.85;
+  }
+  .comment-chip .chip-remove {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0.1rem 0.3rem;
+  }
+  .comment-chip .chip-remove:hover { opacity: 1; }
+
+  /* ---------- Sidebar: compiled markdown ---------- */
+  aside.md-pane {
+    border-left: 1px solid var(--line);
+    background: var(--bg-raised);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .md-pane-header {
+    padding: 1rem 1.15rem 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .md-pane-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin: 0 0 0.2rem;
+    font-weight: 600;
+  }
+
+  .md-pane-header p {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .md-preview {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .md-preview .h1 { color: var(--accent-ink); font-weight: 700; }
+  .md-preview .h2 { color: var(--ink); font-weight: 700; }
+  .md-preview .empty-state {
+    color: var(--ink-faint);
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.85rem;
+  }
+
+  .md-pane-footer {
+    padding: 0.9rem 1.15rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 0.55rem;
+  }
+  .md-pane-footer button.btn { flex: 1; justify-content: center; }
+
+  /* toast */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 0.85rem;
+    padding: 0.65rem 1.1rem;
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 50;
+    box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 880px) {
+    .workspace { grid-template-columns: 1fr; }
+    aside.md-pane {
+      border-left: none;
+      border-top: 1px solid var(--line);
+      max-height: 46vh;
+    }
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 100px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
+</style>
+
+<header class="top">
+  <div class="brand">
+    <span class="brand-mark">Ali<span>flow</span></span>
+    <span class="brand-sub">Revisión de flujos técnicos · para Ingeniería</span>
+  </div>
+  <div class="top-actions">
+    <span class="count-pill"><span id="comment-count">0</span> comentarios</span>
+    <button class="btn" id="clear-btn" title="Borrar todos los comentarios">Limpiar</button>
+    <button class="btn primary" id="export-btn">Exportar Markdown</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Roles de Aliflow">
+  <button class="tab active" data-role="estudiante" role="tab" aria-selected="true">
+    <span class="dot"></span> Estudiante <span class="tab-count" data-role-count="estudiante">0</span>
+  </button>
+  <button class="tab" data-role="proveedor" role="tab" aria-selected="false">
+    <span class="dot"></span> Proveedor <span class="tab-count" data-role-count="proveedor">0</span>
+  </button>
+  <button class="tab" data-role="operador" role="tab" aria-selected="false">
+    <span class="dot"></span> Operador <span class="tab-count" data-role-count="operador">0</span>
+  </button>
+</nav>
+
+<div class="workspace">
+  <main class="flow-pane" id="flow-pane">
+    <!-- role panels injected by JS -->
+  </main>
+
+  <aside class="md-pane">
+    <div class="md-pane-header">
+      <h2>Markdown compilado</h2>
+      <p>Se arma en vivo con cada comentario, agrupado por rol y por sección del flujo.</p>
+    </div>
+    <div class="md-preview" id="md-preview">
+      <span class="empty-state">Aún no hay comentarios. Añade uno desde cualquier paso del flujo para verlo aquí.</span>
+    </div>
+    <div class="md-pane-footer">
+      <button class="btn" id="copy-btn">Copiar</button>
+      <button class="btn primary" id="export-btn-2">Exportar .md</button>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- Data model: the three role flows ---------------- */
+  const FLOWS = {
+    estudiante: {
+      label: "Estudiante",
+      goal: "Recargar saldo, consultar el menú del día, comprar un almuerzo y retirarlo validando la entrega.",
+      precond: "El usuario debe existir como registro institucional válido (correo institucional habilitado en el dominio autorizado).",
+      steps: [
+        {
+          id: "est-1", title: "Autenticación",
+          html: `<ol>
+            <li>El estudiante accede al aplicativo web y selecciona “Iniciar sesión con Google”.</li>
+            <li>El sistema redirige al proveedor de identidad (OAuth 2.0 / OpenID Connect) y solicita consentimiento.</li>
+            <li>Al volver, el backend valida que el dominio del correo corresponda a la institución autorizada y que el token no esté expirado.</li>
+            <li>Si es el primer ingreso, se crea el perfil del estudiante y su tarjeta virtual con saldo en cero.</li>
+            <li>Se genera una sesión autenticada (token de sesión / JWT) para las siguientes acciones.</li>
+          </ol>`,
+          callouts: [
+            { type: "critical", html: "<strong>Validación crítica:</strong> el dominio de correo debe pertenecer a la lista de dominios institucionales permitidos — de lo contrario, se rechaza el acceso." }
+          ]
+        },
+        {
+          id: "est-2", title: "Recarga de tarjeta virtual",
+          html: `<ol>
+            <li>El estudiante selecciona “Recargar saldo” e ingresa el monto (o elige un monto predefinido).</li>
+            <li>Se redirige al método de recarga definido por el negocio.</li>
+            <li>Al confirmar, el sistema recibe la confirmación, actualiza el saldo (operación atómica) y genera un <strong>comprobante de recarga sin validez tributaria</strong>.</li>
+            <li>El estudiante visualiza su nuevo saldo actualizado.</li>
+          </ol>`,
+          callouts: [
+            { type: "data", html: "<strong>Pendiente de Ingeniería:</strong> método(s) de recarga soportado en v1. Recomendación de Negocios: transferencia bancaria y/o pasarela de pago; se descarta efectivo en punto físico." },
+            { type: "critical", html: "<strong>Decisión pendiente (marco de negocio, 2026-07-13):</strong> cada tenant/proveedor mantiene saldo independiente. Falta definir si el estudiante recarga específicamente por proveedor, o si hace una única recarga que Aliflow distribuye internamente." }
+          ]
+        },
+        {
+          id: "est-3", title: "Consulta del menú del día",
+          html: `<ol>
+            <li>El estudiante accede a “Menú del día”.</li>
+            <li>El sistema consulta al proveedor (vía la API genérica de integración) o una base local sincronizada: platos disponibles, precio, stock restante.</li>
+            <li>Se muestra el menú con disponibilidad actualizada.</li>
+          </ol>`,
+          callouts: [
+            { type: "critical", html: "<strong>Dependencia crítica:</strong> requiere sincronización (tiempo real o por lotes) entre el sistema del proveedor y Aliflow. Si no hay inventario en tiempo real, debe manejarse el caso “vendido antes de confirmar”." }
+          ]
+        },
+        {
+          id: "est-4", title: "Compra del almuerzo",
+          html: `<ol>
+            <li>El estudiante selecciona un plato y confirma la compra.</li>
+            <li>El sistema valida saldo suficiente y disponibilidad del plato (revalidación de stock justo antes de confirmar).</li>
+            <li>Si ambas validaciones pasan: se descuenta el saldo (atómico), se crea la orden en estado <strong>“Comprado”</strong>, se genera el comprobante de compra (sin validez tributaria) y se notifica al proveedor vía API genérica.</li>
+            <li>Si falla alguna validación, se muestra el error y no se ejecuta ningún descuento.</li>
+          </ol>`,
+          callouts: [
+            { type: "data", html: "<strong>Comprobante de compra:</strong> no tiene validez tributaria por sí mismo — Aliflow no está regulado como emisor fiscal. Sirve de respaldo para que el proveedor re-emita la factura real en su propio sistema contable." },
+            { type: "critical", html: "<strong>Concurrencia:</strong> dos estudiantes no deben poder comprar la última unidad del mismo plato simultáneamente — requiere bloqueo/transacción atómica al descontar stock." }
+          ]
+        },
+        {
+          id: "est-5", title: "Actualización de inventario",
+          html: `<ol>
+            <li>Tras la compra, el sistema envía la información de la venta a través de la API genérica de integración.</li>
+            <li>El ERP del proveedor (Alpwin, Contífico u otro) recibe la actualización y descuenta el ítem vendido.</li>
+            <li>Si la propagación falla, queda registrada para reconciliación posterior — la venta no debe quedar huérfana.</li>
+          </ol>`,
+          callouts: []
+        },
+        {
+          id: "est-6", title: "Retiro del almuerzo (Comprado → Entregado)",
+          html: `<ol>
+            <li>El estudiante se acerca al punto de entrega con su código de validación, generado al momento de la compra.</li>
+            <li>El Operador captura el código en su interfaz.</li>
+            <li>El sistema valida que el código exista y que la orden esté en estado “Comprado” (no ya “Entregado”).</li>
+            <li>Si es válido, el estado cambia a <strong>“Entregado”</strong> y se registra el momento de la entrega.</li>
+          </ol>`,
+          callouts: [
+            { type: "data", html: "<strong>Pendiente de Ingeniería:</strong> formato del código — QR, numérico, o ambos. Sin recomendación previa de Negocios." },
+            { type: "critical", html: "<strong>Seguridad:</strong> el código debe ser de un solo uso — se invalida tras marcar “Entregado” para prevenir reutilización (p. ej. reenvío de una captura del QR)." }
+          ]
+        }
+      ]
+    },
+    proveedor: {
+      label: "Proveedor",
+      goal: "Administrar el menú, el inventario, visualizar métricas de operación, y mantener sincronizado su sistema externo (ERP/inventario) con Aliflow.",
+      precond: "El proveedor debe estar dado de alta en Aliflow con su(s) sistema(s) de inventario/facturación ya identificado(s) (Alpwin, Contífico, u otro ERP).",
+      steps: [
+        {
+          id: "prov-1", title: "Autenticación y acceso",
+          html: `<ol>
+            <li>El proveedor (o personal autorizado) inicia sesión con credenciales propias del rol Proveedor — distinto del flujo OAuth institucional del estudiante.</li>
+            <li>El sistema valida el rol y da acceso al panel de administración de proveedor.</li>
+          </ol>`,
+          callouts: []
+        },
+        {
+          id: "prov-2", title: "Configuración de integración con su sistema externo",
+          html: `<ol>
+            <li>El proveedor, junto con Ingeniería, configura la conexión entre su ERP y la <strong>API genérica de integración</strong>.</li>
+            <li>Se especifica: endpoint/mecanismo de conexión, mapeo de datos (productos, precios, stock) al modelo estándar de Aliflow, y credenciales de ese ERP.</li>
+            <li>La API genérica actúa como capa de abstracción (patrón adaptador) — Aliflow no depende de si es Alpwin o Contífico.</li>
+          </ol>`,
+          callouts: [
+            { type: "critical", html: "<strong>Reto técnico principal (según acta):</strong> la API genérica debe soportar múltiples adaptadores sin que el resto de Aliflow dependa de la implementación específica de cada ERP. Investigación pendiente por Ingeniería." }
+          ]
+        },
+        {
+          id: "prov-3", title: "Administración del menú",
+          html: `<ol>
+            <li>El proveedor define el menú del día: plato, descripción, precio, stock inicial.</li>
+            <li>Puede cargarse manualmente en Aliflow o sincronizarse automáticamente desde el ERP vía la API genérica.</li>
+            <li>El sistema valida datos mínimos (precio > 0, nombre no vacío, stock ≥ 0) antes de publicar.</li>
+          </ol>`,
+          callouts: []
+        },
+        {
+          id: "prov-4", title: "Gestión de inventario en tiempo real",
+          html: `<ol>
+            <li>Cada compra de un estudiante dispara un evento: se descuenta la unidad del stock en Aliflow.</li>
+            <li>Esa actualización se propaga al ERP del proveedor vía la API genérica.</li>
+            <li>Si la propagación falla, el evento queda en cola de reintentos o registro de reconciliación.</li>
+            <li>El proveedor ve en su panel el estado de sincronización (última comunicación exitosa con su ERP).</li>
+          </ol>`,
+          callouts: [
+            { type: "critical", html: "<strong>Consistencia:</strong> si el proveedor vende el mismo producto por otro canal fuera de Aliflow, debe existir un mecanismo que refleje ese descuento también en Aliflow, para no vender de más." }
+          ]
+        },
+        {
+          id: "prov-5", title: "Visualización de métricas y operación",
+          html: `<ol>
+            <li>Panel con: almuerzos vendidos por día/semana, ingresos generados, platos más vendidos, órdenes “Comprado” pendientes de “Entregado”.</li>
+            <li>Se calculan desde el histórico de órdenes en Aliflow (fuente de verdad de las transacciones de la plataforma).</li>
+          </ol>`,
+          callouts: [
+            { type: "data", html: "<strong>Pendiente de definir:</strong> modelo de cobro de Aliflow al tenant por el uso de la plataforma (comisión por transacción, suscripción, u otro esquema). Aliflow factura solamente sus propios servicios, nunca la venta de almuerzos." }
+          ]
+        },
+        {
+          id: "prov-6", title: "Re-emisión de comprobante tributario",
+          html: `<ol>
+            <li>Aliflow emite un comprobante de compra al momento de la transacción, <strong>sin validez tributaria</strong> (Aliflow no está regulado como emisor fiscal).</li>
+            <li>Ese comprobante sirve de respaldo interno (monto, plato, estudiante, fecha/hora).</li>
+            <li>El proveedor <strong>re-emite la factura válida en su propio sistema contable/ERP</strong>, usando el comprobante de Aliflow como fuente de datos.</li>
+            <li>Aliflow debe permitir descargar/consultar ese detalle de venta — idealmente automatizado vía la misma API genérica.</li>
+          </ol>`,
+          callouts: [
+            { type: "data", html: "<strong>Confirmado con Negocios (2026-06-25):</strong> el modelo de facturación es re-emisión por parte del proveedor, no emisión directa de Aliflow." },
+            { type: "critical", html: "<strong>Marco de negocio adoptado (2026-07-13):</strong> el tenant es vendedor, acreedor del saldo y receptor del dinero — Aliflow es solo la plataforma tecnológica (ledger, pasarela, comunicación con el sistema de facturación). Aliflow nunca presenta su constancia como factura. No hay transferencias de saldo entre usuarios/tenants ni retiro en efectivo." }
+          ]
+        }
+      ]
+    },
+    operador: {
+      label: "Operador",
+      goal: "Validar las compras realizadas por los estudiantes y marcar la entrega física del almuerzo.",
+      precond: "El operador debe tener una cuenta con rol “Operador” asignada, típicamente vinculada a un punto de entrega físico específico.",
+      steps: [
+        {
+          id: "op-1", title: "Autenticación",
+          html: `<ol>
+            <li>El operador inicia sesión con sus credenciales (rol operativo, no OAuth institucional).</li>
+            <li>El sistema presenta una interfaz simplificada, optimizada para uso rápido y repetitivo en horario de almuerzo (móvil o tablet).</li>
+          </ol>`,
+          callouts: []
+        },
+        {
+          id: "op-2", title: "Recepción del estudiante en el punto de entrega",
+          html: `<ol>
+            <li>El estudiante se presenta con su código de validación generado al momento de la compra.</li>
+            <li>El operador captura el código en su interfaz (formato exacto a definir por Ingeniería).</li>
+            <li>Si el estudiante no cuenta con el código disponible, el operador usa <strong>búsqueda manual por nombre o ID institucional</strong> para ubicar la orden.</li>
+          </ol>`,
+          callouts: [
+            { type: "data", html: "<strong>Confirmado con Negocios (2026-06-25):</strong> sin código disponible → búsqueda manual por nombre/ID institucional." }
+          ]
+        },
+        {
+          id: "op-3", title: "Validación de la orden",
+          html: `<ol>
+            <li>El sistema busca la orden asociada al código y verifica que exista y corresponda a una orden real.</li>
+            <li>Verifica que el estado actual sea <strong>“Comprado”</strong> — si ya está “Entregado”, rechaza y alerta de posible duplicado.</li>
+            <li>Opcionalmente valida que la orden corresponda al día/turno correcto.</li>
+            <li>Muestra al operador el detalle: nombre del estudiante, plato comprado, para confirmación visual.</li>
+          </ol>`,
+          callouts: []
+        },
+        {
+          id: "op-4", title: "Confirmación de entrega",
+          html: `<ol>
+            <li>El operador entrega físicamente el almuerzo.</li>
+            <li>Confirma la entrega en el sistema (“Confirmar entrega”).</li>
+            <li>El sistema cambia el estado a <strong>“Entregado”</strong>, registra timestamp y operador, e invalida el código (uso único).</li>
+          </ol>`,
+          callouts: []
+        },
+        {
+          id: "op-5", title: "Manejo de excepciones",
+          html: `<ol>
+            <li><strong>Código inválido o ya usado:</strong> mensaje claro de error (p. ej. “Esta orden ya fue entregada a las 12:35”) para gestionar el reclamo manualmente.</li>
+            <li><strong>Estudiante sin código:</strong> resuelto vía búsqueda manual (paso 2).</li>
+            <li><strong>Fallo de conexión:</strong> la v1 asume conectividad constante — sin modo offline. Si falla la conexión, la validación queda bloqueada hasta restablecerse.</li>
+          </ol>`,
+          callouts: [
+            { type: "data", html: "<strong>Confirmado con Negocios (2026-06-25):</strong> conectividad constante en v1, sin modo offline. Requiere infraestructura de red confiable en el punto de entrega." }
+          ]
+        }
+      ]
+    }
+  };
+
+  const ROLE_ORDER = ["estudiante", "proveedor", "operador"];
+
+  /* ---------------- State ---------------- */
+  // comments[stepId] = [{ text, kind, ts }]
+  let comments = {};
+
+  /* ---------------- Render flow panels ---------------- */
+  const flowPane = document.getElementById("flow-pane");
+
+
+  function renderJourneyRoute(roleKey) {
+    const role = FLOWS[roleKey];
+    const roleVarPrefix = roleKey === "estudiante" ? "student" : roleKey === "proveedor" ? "provider" : "operator";
+    const route = document.createElement("div");
+    route.className = "journey-route";
+    route.style.setProperty("--role-soft", `var(--${roleVarPrefix}-soft)`);
+    route.style.setProperty("--role-ink", `var(--${roleVarPrefix})`);
+    route.style.setProperty("--journey-count", role.steps.length);
+
+    const nodesHtml = role.steps.map((step, idx) => {
+      const moment = step.title.includes("→") ? "Cambio de estado" : idx === 0 ? "Entrada al sistema" : idx === role.steps.length - 1 ? "Cierre del viaje" : "Momento clave";
+      return `<div class="journey-node">
+        <button class="journey-link" type="button" data-jump-to="${step.id}">
+          <span class="journey-dot">${idx + 1}</span>
+          <span class="journey-label">${step.title}</span>
+          <span class="journey-moment">${moment}</span>
+        </button>
+      </div>`;
+    }).join("");
+
+    route.innerHTML = `<div class="journey-route-header">
+      <div>
+        <p class="journey-route-kicker">Ruta del usuario</p>
+        <h2 class="journey-route-title">Viaje dinámico de ${role.label}</h2>
+        <p class="journey-route-caption">Una vista lineal del recorrido: cada tarjeta salta al detalle técnico del paso.</p>
+      </div>
+      <span class="journey-route-badge">${role.steps.length} etapas</span>
+    </div>
+    <div class="journey-track" aria-label="Ruta del usuario ${role.label}">${nodesHtml}</div>`;
+
+    route.querySelectorAll("[data-jump-to]").forEach(button => {
+      button.addEventListener("click", () => {
+        const target = document.getElementById(button.dataset.jumpTo);
+        if (!target) return;
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        target.classList.add("route-highlight");
+        window.setTimeout(() => target.classList.remove("route-highlight"), 900);
+      });
+    });
+
+    return route;
+  }
+  function renderRolePanel(roleKey) {
+    const role = FLOWS[roleKey];
+    const panel = document.createElement("section");
+    panel.className = "role-panel";
+    panel.id = "panel-" + roleKey;
+    panel.setAttribute("role", "tabpanel");
+
+    const intro = document.createElement("div");
+    intro.className = "role-intro";
+    intro.innerHTML = `<h1>Flujo — ${role.label}</h1>
+      <p class="goal">${role.goal}</p>
+      <p class="precond">Precondición: ${role.precond}</p>`;
+    panel.appendChild(intro);
+
+    panel.appendChild(renderJourneyRoute(roleKey));
+
+    const stepsWrap = document.createElement("div");
+    stepsWrap.className = "steps";
+    stepsWrap.style.setProperty("--role-soft", `var(--${roleKey === "estudiante" ? "student" : roleKey === "proveedor" ? "provider" : "operator"}-soft)`);
+
+    role.steps.forEach((step, idx) => {
+      const roleVarPrefix = roleKey === "estudiante" ? "student" : roleKey === "proveedor" ? "provider" : "operator";
+      const stepEl = document.createElement("div");
+      stepEl.className = "step";
+      stepEl.id = step.id;
+      stepEl.style.setProperty("--role-soft", `var(--${roleVarPrefix}-soft)`);
+      stepEl.style.setProperty("--role-ink", `var(--${roleVarPrefix})`);
+
+      const calloutsHtml = step.callouts.map(c => `<div class="callout ${c.type}">${c.html}</div>`).join("");
+
+      stepEl.innerHTML = `
+        <div class="step-index">
+          <div class="step-num">${idx + 1}</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-card">
+            <h3 class="step-title">${step.title}</h3>
+            <div class="step-detail">${step.html}${calloutsHtml}</div>
+            <div class="step-comments" data-comments-for="${step.id}"></div>
+            <div class="comment-form" data-form-for="${step.id}">
+              <textarea placeholder="Escribe tu pregunta o comentario para Ingeniería sobre este paso…" data-textarea-for="${step.id}"></textarea>
+              <div class="comment-form-actions">
+                <select data-kind-for="${step.id}">
+                  <option value="Comentario">Comentario</option>
+                  <option value="Pregunta">Pregunta</option>
+                  <option value="Riesgo">Riesgo</option>
+                </select>
+                <button class="btn primary" data-save-for="${step.id}">Guardar</button>
+                <button class="btn" data-cancel-for="${step.id}">Cancelar</button>
+              </div>
+            </div>
+            <div class="step-foot">
+              <button class="add-comment-btn" data-toggle-for="${step.id}">+ Añadir comentario</button>
+            </div>
+          </div>
+        </div>`;
+      stepsWrap.appendChild(stepEl);
+    });
+
+    panel.appendChild(stepsWrap);
+    flowPane.appendChild(panel);
+  }
+
+  ROLE_ORDER.forEach(renderRolePanel);
+  document.getElementById("panel-estudiante").classList.add("active");
+
+  /* ---------------- Tabs ---------------- */
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const role = tab.dataset.role;
+      tabs.forEach(t => { t.classList.remove("active"); t.setAttribute("aria-selected", "false"); });
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
+      document.querySelectorAll(".role-panel").forEach(p => p.classList.remove("active"));
+      document.getElementById("panel-" + role).classList.add("active");
+    });
+  });
+
+  /* ---------------- Comment form interactions (event delegation) ---------------- */
+  flowPane.addEventListener("click", (e) => {
+    const toggleBtn = e.target.closest("[data-toggle-for]");
+    if (toggleBtn) {
+      const id = toggleBtn.dataset.toggleFor;
+      const form = flowPane.querySelector(`[data-form-for="${id}"]`);
+      const opening = !form.classList.contains("open");
+      form.classList.toggle("open");
+      toggleBtn.textContent = opening ? "− Cerrar" : "+ Añadir comentario";
+      if (opening) form.querySelector("textarea").focus();
+      return;
+    }
+
+    const cancelBtn = e.target.closest("[data-cancel-for]");
+    if (cancelBtn) {
+      const id = cancelBtn.dataset.cancelFor;
+      const form = flowPane.querySelector(`[data-form-for="${id}"]`);
+      form.classList.remove("open");
+      form.querySelector("textarea").value = "";
+      const toggleBtn2 = flowPane.querySelector(`[data-toggle-for="${id}"]`);
+      toggleBtn2.textContent = "+ Añadir comentario";
+      return;
+    }
+
+    const saveBtn = e.target.closest("[data-save-for]");
+    if (saveBtn) {
+      const id = saveBtn.dataset.saveFor;
+      const textarea = flowPane.querySelector(`[data-textarea-for="${id}"]`);
+      const kindSelect = flowPane.querySelector(`[data-kind-for="${id}"]`);
+      const text = textarea.value.trim();
+      if (!text) { textarea.focus(); return; }
+
+      if (!comments[id]) comments[id] = [];
+      comments[id].push({ text, kind: kindSelect.value, ts: Date.now() });
+
+      textarea.value = "";
+      const form = flowPane.querySelector(`[data-form-for="${id}"]`);
+      form.classList.remove("open");
+      flowPane.querySelector(`[data-toggle-for="${id}"]`).textContent = "+ Añadir comentario";
+
+      renderStepComments(id);
+      updateCompiledMarkdown();
+      updateCounts();
+      showToast("Comentario guardado");
+      return;
+    }
+
+    const removeBtn = e.target.closest("[data-remove-idx]");
+    if (removeBtn) {
+      const id = removeBtn.dataset.removeStep;
+      const idx = Number(removeBtn.dataset.removeIdx);
+      comments[id].splice(idx, 1);
+      if (comments[id].length === 0) delete comments[id];
+      renderStepComments(id);
+      updateCompiledMarkdown();
+      updateCounts();
+    }
+  });
+
+  function renderStepComments(stepId) {
+    const container = flowPane.querySelector(`[data-comments-for="${stepId}"]`);
+    const list = comments[stepId] || [];
+    container.innerHTML = list.map((c, idx) => `
+      <div class="comment-chip">
+        <div class="chip-meta">
+          <span>${c.kind}</span>
+          <button class="chip-remove" data-remove-step="${stepId}" data-remove-idx="${idx}" title="Eliminar comentario" aria-label="Eliminar comentario">✕</button>
+        </div>
+        <div>${escapeHtml(c.text)}</div>
+      </div>
+    `).join("");
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  /* ---------------- Counts ---------------- */
+  function updateCounts() {
+    let total = 0;
+    ROLE_ORDER.forEach(roleKey => {
+      const role = FLOWS[roleKey];
+      let roleCount = 0;
+      role.steps.forEach(step => { roleCount += (comments[step.id] || []).length; });
+      total += roleCount;
+      document.querySelector(`[data-role-count="${roleKey}"]`).textContent = roleCount;
+    });
+    document.getElementById("comment-count").textContent = total;
+  }
+
+  /* ---------------- Compiled Markdown ---------------- */
+  function buildMarkdown() {
+    const lines = [];
+    lines.push("# AliFlow — Comentarios de revisión de flujos");
+    lines.push("");
+    lines.push(`_Exportado: ${formatDate(new Date())}_`);
+    lines.push("");
+
+    let any = false;
+
+    ROLE_ORDER.forEach(roleKey => {
+      const role = FLOWS[roleKey];
+      const stepsWithComments = role.steps.filter(s => (comments[s.id] || []).length > 0);
+      if (stepsWithComments.length === 0) return;
+      any = true;
+
+      lines.push(`## ${role.label}`);
+      lines.push("");
+
+      stepsWithComments.forEach(step => {
+        lines.push(`### ${step.title}`);
+        lines.push("");
+        (comments[step.id] || []).forEach(c => {
+          lines.push(`- **[${c.kind}]** ${c.text}`);
+        });
+        lines.push("");
+      });
+    });
+
+    if (!any) {
+      lines.push("_(Sin comentarios aún.)_");
+    }
+
+    return lines.join("\n");
+  }
+
+  function formatDate(d) {
+    const pad = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function updateCompiledMarkdown() {
+    const md = buildMarkdown();
+    const preview = document.getElementById("md-preview");
+    const hasComments = Object.keys(comments).some(k => comments[k].length > 0);
+
+    if (!hasComments) {
+      preview.innerHTML = `<span class="empty-state">Aún no hay comentarios. Añade uno desde cualquier paso del flujo para verlo aquí.</span>`;
+      return;
+    }
+
+    const escaped = md
+      .split("\n")
+      .map(line => {
+        const esc = escapeHtml(line);
+        if (/^# /.test(line)) return `<span class="h1">${esc}</span>`;
+        if (/^## /.test(line)) return `<span class="h2">${esc}</span>`;
+        if (/^### /.test(line)) return `<span class="h2">${esc}</span>`;
+        return esc;
+      })
+      .join("\n");
+    preview.innerHTML = escaped;
+  }
+
+  /* ---------------- Export / Copy / Clear ---------------- */
+  function doExport() {
+    const md = buildMarkdown();
+    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const pad = n => String(n).padStart(2, "0");
+    const d = new Date();
+    a.href = url;
+    a.download = `aliflow-comentarios-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Markdown exportado");
+  }
+
+  document.getElementById("export-btn").addEventListener("click", doExport);
+  document.getElementById("export-btn-2").addEventListener("click", doExport);
+
+  document.getElementById("copy-btn").addEventListener("click", async () => {
+    const md = buildMarkdown();
+    try {
+      await navigator.clipboard.writeText(md);
+      showToast("Copiado al portapapeles");
+    } catch (err) {
+      showToast("No se pudo copiar automáticamente");
+    }
+  });
+
+  document.getElementById("clear-btn").addEventListener("click", () => {
+    if (Object.keys(comments).length === 0) { showToast("No hay comentarios que borrar"); return; }
+    if (!confirm("¿Borrar todos los comentarios? Esta acción no se puede deshacer.")) return;
+    comments = {};
+    ROLE_ORDER.forEach(roleKey => {
+      FLOWS[roleKey].steps.forEach(step => renderStepComments(step.id));
+    });
+    updateCompiledMarkdown();
+    updateCounts();
+    showToast("Comentarios borrados");
+  });
+
+  /* ---------------- Toast ---------------- */
+  let toastTimer = null;
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+  }
+
+  /* ---------------- Init ---------------- */
+  updateCounts();
+  updateCompiledMarkdown();
+})();
+</script>
