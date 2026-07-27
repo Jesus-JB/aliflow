@@ -4,6 +4,7 @@
 **Preparado por:** Grupo de Ingeniería
 **Referencia:** Acta de Reunión Aliflow 3 (25-jun-2026), compromiso de investigación asignado al Grupo de Ingeniería
 **Fecha de este documento:** 26-jul-2026
+**Repositorio del proyecto:** https://github.com/Jesus-JB/aliflow (público)
 **Objetivo:** presentar los hallazgos y recomendaciones de la investigación sobre arquitectura de integración, mecanismos de sincronización, y evaluación de ERPs candidatos (Contífico, Alpwin, Alegra, Odoo Community, ERPNext), para la siguiente reunión de equipo.
 
 ---
@@ -18,6 +19,7 @@
 - **ERPNext se descarta** por no tener localización fiscal de Ecuador confirmada.
 - **Alpwin** no tiene API pública — solo aplicable como caso de integración manual/por archivos si un proveedor específico ya lo usa y no puede migrar.
 - Adicionalmente, se revisó el flujo funcional documentado (`Flujos-Aliflow-Revision.html`) y se detectó una **contradicción entre el Acta y el flujo** respecto al comprobante tributario, además de varios vacíos no cubiertos aún (ver sección 5).
+- **Se construyó y validó en vivo un demo funcional** de la arquitectura propuesta usando Odoo Community (ver sección 4.2) — no es solo una propuesta teórica, ya se probó que el flujo menú → compra → descuento de stock → comprobante funciona técnicamente. Código en el repositorio del proyecto, carpeta `demo-odoo/`.
 
 ---
 
@@ -135,6 +137,24 @@ Odoo Community resuelve el problema técnico y de costo *ahora*, pero no es la r
 
 En resumen: **Odoo Community es la solución de arranque; Contífico es la recomendación de destino** una vez que el proyecto tenga presupuesto — no se trata de "cualquiera de las dos sirve", sino de una ruta de migración planeada desde ahora gracias al patrón adaptador.
 
+### 4.2 Demo técnico construido y validado (26-jul-2026)
+
+Se construyó y se corrió en vivo un demo funcional que implementa el patrón de arquitectura descrito en la sección 3, usando **Odoo Community** como primer ERP real detrás del contrato `IInventoryProvider`. Código disponible en `demo-odoo/` del repositorio del proyecto.
+
+**Componentes:**
+- `docker-compose.yml` — levanta Odoo 17 Community + PostgreSQL localmente.
+- `odoo_adapter.py` — clase `OdooAdapter`, implementación concreta de `IInventoryProvider` (`get_menu`, `get_stock`, `update_stock`, `notify_sale`) contra la API externa de Odoo.
+- `demo.py` — corre el flujo completo simulando los pasos del documento de flujos: `est-3` (consulta de menú) → `est-4` (compra) → `est-5` (descuento de stock) → `prov-6` (comprobante/factura).
+
+**Resultado de la corrida real:** producto creado en Odoo, menú consultado con stock correcto, compra simulada de 1 unidad (stock 20 → 19), y factura (`account.move`) creada exitosamente en Odoo — de punta a punta, sin intervención manual salvo la creación inicial de la base de datos (paso obligatorio de Odoo, no automatizable por API).
+
+**Dos hallazgos técnicos reales que surgieron al construirlo** (quedan documentados porque son evidencia de investigación aplicada, no solo teoría):
+
+1. **Hubo que usar JSON-RPC en vez de XML-RPC.** El método `stock.quant.action_apply_inventory` (necesario para ajustar el stock) no retorna ningún valor, y el protocolo XML-RPC no puede transmitir `None` — lanza el error `"cannot marshal None unless allow_none is enabled"` aunque la operación sí se aplique correctamente en el servidor. JSON-RPC (mismo backend, mismo endpoint que usa el propio cliente web de Odoo) no tiene esa limitación.
+2. **Odoo omite la clave `result` en la respuesta JSON** cuando el método invocado no retorna nada — la respuesta cruda es literalmente `{"jsonrpc": "2.0", "id": 0}`, sin `result` ni `error`. Hay que tratar la ausencia de esa clave como éxito implícito, no como fallo.
+
+**Pendiente aceptado a propósito para esta etapa:** la factura queda en estado borrador, sin autorización real ante el SRI (requeriría subir un certificado `.p12` real de una empresa existente) — no era necesario para demostrar que la arquitectura e integración funcionan técnicamente.
+
 ---
 
 ## 5. Revisión del flujo funcional (`Flujos-Aliflow-Revision.html`)
@@ -167,6 +187,9 @@ El flujo del rol Proveedor (paso `prov-6` — "Re-emisión de comprobante tribut
 
 ## 6. Pendientes para la siguiente reunión
 
+- [x] Investigar y comparar ERPs candidatos (Contífico, Alpwin, Alegra, Odoo Community, ERPNext).
+- [x] Construir y validar un demo técnico de la arquitectura propuesta (Odoo Community, ver sección 4.2).
+- [x] Publicar el proyecto en un repositorio público (https://github.com/Jesus-JB/aliflow).
 - [ ] Validar con Negocios la corrección de la sección 4 del acta (comprobante tributario).
 - [ ] Decidir modelo de saldo (por proveedor vs. unificado).
 - [ ] Decidir formato del código de retiro (QR/numérico).

@@ -16,3 +16,8 @@ venv/
 
 # Claude Code (config local del proyecto, no compartida)
 .claude/settings.local.json
+
+# Documentos fuente / exportados que no se publican en el repo
+Hallazgos-Ingenieria-API-Generica_1.pdf
+Hallazgos-Ingenieria-API-Generica.pdf
+Acta Reunión Aliflow 3.pdf
