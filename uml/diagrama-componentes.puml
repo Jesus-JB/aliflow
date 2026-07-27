@@ -1,0 +1,92 @@
+@startuml diagrama-componentes-aliflow
+
+skinparam componentStyle rectangle
+left to right direction
+
+actor Estudiante
+actor Proveedor
+actor Operador
+actor Administrador
+
+package "Cliente" {
+  [Aliflow Web\n(Next.js + TypeScript)] as WEB
+}
+
+package "Aliflow API (FastAPI)" {
+  [Módulo de Autenticación] as AUTH
+  [Módulo de Wallet\n(saldo, recargas, pagos)] as WALLET
+  [Módulo de Órdenes\n(compra, código de retiro)] as ORDERS
+  [Módulo de Proveedores y Menú] as PROVMOD
+  [Módulo de Administración] as ADMINMOD
+}
+
+package "Capa de Integración" {
+  interface IInventoryProvider
+  [ProviderAdapterFactory] as FACTORY
+  [OdooAdapter] as ODOOA
+  [ContificoAdapter] as CONTIFICOA
+  [AlpwinAdapter] as ALPWINA
+
+  FACTORY --> IInventoryProvider
+  ODOOA -up-( IInventoryProvider
+  CONTIFICOA -up-( IInventoryProvider
+  ALPWINA -up-( IInventoryProvider
+}
+
+package "Procesamiento asíncrono" {
+  [Cola de eventos\n(Redis)] as QUEUE
+  [Worker de Sincronización\n(Celery)] as WORKER
+}
+
+database "PostgreSQL" as DB
+
+cloud "Proveedor de Identidad\n(Google OAuth)" as IDP
+cloud "Pasarela de Pagos\n(Kushki / PayPhone / Stripe)" as PAY
+cloud "Sistema ERP del Proveedor\n(Odoo / Contífico / Alpwin)" as ERP
+
+Estudiante --> WEB
+Proveedor --> WEB
+Operador --> WEB
+Administrador --> WEB
+
+WEB --> AUTH : HTTPS/REST
+WEB --> WALLET : HTTPS/REST
+WEB --> ORDERS : HTTPS/REST
+WEB --> PROVMOD : HTTPS/REST
+WEB --> ADMINMOD : HTTPS/REST
+
+AUTH --> IDP : OAuth 2.0 / OIDC
+WALLET --> PAY : procesar pago
+
+AUTH --> DB
+WALLET --> DB
+ORDERS --> DB
+PROVMOD --> DB
+ADMINMOD --> DB
+
+ORDERS --> QUEUE : publica evento\n(venta confirmada)
+PROVMOD --> QUEUE : publica evento\n(cambio de menú/stock)
+
+WORKER --> QUEUE : consume
+WORKER --> IInventoryProvider : usa
+WORKER --> DB : actualiza estado\nde sincronización
+
+ODOOA --> ERP
+CONTIFICOA --> ERP
+ALPWINA --> ERP : archivos / BD puente\n(sin API pública)
+
+note bottom of ALPWINA
+  Caso real confirmado: Barú usa Alpwin.
+  Ver Hallazgos-Ingenieria-API-Generica.md
+  sección 4.3.
+end note
+
+note right of QUEUE
+  Redis cumple doble función: caché y
+  broker de Celery — implementa el
+  patrón Outbox ya diseñado
+  (Hallazgos-Ingenieria-API-Generica.md
+  sección 3.4).
+end note
+
+@enduml
