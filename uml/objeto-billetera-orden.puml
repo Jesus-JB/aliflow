@@ -50,6 +50,7 @@ ana *-- tv1
 tv1 *-- sp1
 sp1 --> baru : proveedor
 ana --> orden1 : realiza
+orden1 --> baru : proveedor
 orden1 *-- det1
 det1 --> plato1
 plato1 --> baru : menú
@@ -72,6 +73,13 @@ note bottom of orden1
   pasará a ENTREGADO y codigo1.usado
   a true (ver diagrama de estados,
   entregable pendiente).
+
+  orden1.proveedor = baru, igual que
+  det1.plato1.proveedor — cumple el
+  invariante agregado el 27-jul-2026
+  en diagrama-clases.puml: una orden
+  nunca mezcla platos de proveedores
+  distintos.
 end note
 
 @enduml

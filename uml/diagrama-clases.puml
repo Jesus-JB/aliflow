@@ -4,6 +4,23 @@ skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 hide empty members
 
+' Convención visual: elementos en amarillo son PROPUESTA DE INGENIERÍA
+' pendiente de validar con Negocios, no una decisión ya confirmada.
+' Ver Documentacion-Diagrama-Clases.md, sección "Supuestos y pendientes".
+skinparam class<<propuesta>> {
+  BackgroundColor #FFF3B0
+  BorderColor #8A6D00
+}
+skinparam note<<propuesta>> {
+  BackgroundColor #FFF3B0
+  BorderColor #8A6D00
+}
+
+legend top left
+  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / investigación
+endlegend
+
 package "Usuarios" {
   abstract class Usuario {
     # id: UUID
@@ -20,21 +37,21 @@ package "Usuarios" {
     + consultarSaldo(proveedor: Proveedor): Money
   }
 
-  class Administrador extends Usuario {
+  class Administrador << propuesta >> extends Usuario {
     + darDeAltaProveedor(datos: DatosProveedor): Proveedor
     + gestionarUsuarios(): void
   }
 
-  abstract class UsuarioProveedor extends Usuario {
+  abstract class UsuarioProveedor << propuesta >> extends Usuario {
     # proveedor: Proveedor
   }
 
-  class Propietario extends UsuarioProveedor {
+  class Propietario << propuesta >> extends UsuarioProveedor {
     + administrarMenu(): void
     + consultarMetricas(): MetricasProveedor
   }
 
-  class Cajero extends UsuarioProveedor {
+  class Cajero << propuesta >> extends UsuarioProveedor {
     - puntoDeEntrega: PuntoDeEntrega
     + buscarOrden(codigo: String): Orden
     + confirmarEntrega(orden: Orden): void
@@ -62,9 +79,21 @@ package "Proveedor y Menú" {
     - descripcion: String
     - precio: Money
     - stockDisponible: int
+    - version: int
     - activo: boolean
     + hayStock(cantidad: int): boolean
+    + reservarStock(cantidad: int): boolean
   }
+
+  note right of Plato
+    **version** habilita bloqueo optimista:
+    reservarStock() solo aplica el descuento
+    si version no cambió desde la lectura
+    (evita que dos compras se lleven la
+    última unidad). Detalle exacto de la
+    transacción en el diagrama de secuencia
+    (entregable pendiente).
+  end note
 
   Proveedor "1" *-- "0..*" UsuarioProveedor : personal autorizado
   Proveedor "1" *-- "0..*" PuntoDeEntrega
@@ -91,12 +120,12 @@ package "Wallet y Pagos" {
     + distribuir(): List<SaldoProveedor>
   }
 
-  interface EstrategiaDistribucionRecarga {
+  interface EstrategiaDistribucionRecarga << propuesta >> {
     + distribuir(monto: Money, tarjeta: TarjetaVirtual): List<SaldoProveedor>
   }
 
-  class RecargaDirectaPorProveedor implements EstrategiaDistribucionRecarga
-  class RecargaDistribuidaAutomaticamente implements EstrategiaDistribucionRecarga
+  class RecargaDirectaPorProveedor << propuesta >> implements EstrategiaDistribucionRecarga
+  class RecargaDistribuidaAutomaticamente << propuesta >> implements EstrategiaDistribucionRecarga
 
   class ComprobanteRecarga {
     - id: UUID
@@ -134,14 +163,33 @@ package "Órdenes" {
     EXPIRADO
   }
 
+  note right of EstadoOrden
+    <back:#FFF3B0>EXPIRADO es propuesta de Ingeniería</back>
+    (no estaba en el flujo original) para
+    cubrir el vacío de "orden nunca
+    retirada" — falta que Negocios defina
+    la regla de expiración exacta.
+  end note
+
   class Orden {
     - id: UUID
+    - proveedor: Proveedor
     - fechaHora: DateTime
     - estado: EstadoOrden
     + confirmarCompra(): void
     + marcarEntregado(cajero: Cajero): void
     + expirar(): void
   }
+
+  note bottom of Orden
+    **Invariante**: todos los OrdenDetalle
+    de una misma Orden deben referenciar
+    Platos cuyo Proveedor sea igual a
+    Orden.proveedor — una orden nunca
+    mezcla platos de proveedores distintos.
+    confirmarCompra() lo valida antes de
+    crear la orden.
+  end note
 
   class OrdenDetalle {
     - cantidad: int
@@ -163,12 +211,31 @@ package "Órdenes" {
     - sinValidezTributaria: boolean = true
   }
 
+  class RegistroAuditoria {
+    - id: UUID
+    - entidadAfectada: String
+    - accion: String
+    - detalle: String
+    - fechaHora: DateTime
+  }
+
+  note bottom of RegistroAuditoria
+    Responde al riesgo R-09 (ver
+    Gestion-de-Riesgos.md): registra
+    quién ejecutó confirmarCompra(),
+    marcarEntregado(), invalidar() y
+    distribuir() — operaciones que
+    cambian dinero o estado de una orden.
+  end note
+
   Estudiante "1" --> "0..*" Orden : realiza
+  Orden "0..*" --> "1" Proveedor
   Orden "1" *-- "1..*" OrdenDetalle
   OrdenDetalle "0..*" --> "1" Plato
   Orden "1" *-- "1" CodigoRetiro
   Orden "1" *-- "0..1" ComprobanteCompra
   Orden "0..*" --> "0..1" Cajero : entregada por
+  RegistroAuditoria "0..*" --> "1" Usuario : ejecutado por
 }
 
 package "Integración con ERP externo" {

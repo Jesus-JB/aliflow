@@ -4,6 +4,13 @@ left to right direction
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
 
+' Convención visual: amarillo = propuesta de Ingeniería, pendiente de
+' validar con Negocios. Ver Documentacion-Casos-de-Uso.md.
+legend top left
+  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional
+endlegend
+
 actor Estudiante as EST
 actor Proveedor as PROV
 actor Operador as OP
@@ -48,9 +55,9 @@ rectangle "Aliflow" {
   usecase "UC11. Consultar detalle de venta\n(soporte re-emisión de comprobante)" as UC11
 
   ' ---- Administrador (pendiente de definición detallada, ver documentación) ----
-  usecase "UC12. Dar de alta / gestionar proveedores" as UC12
-  usecase "UC13. Consultar métricas globales\nde la plataforma" as UC13
-  usecase "UC14. Gestionar usuarios y roles" as UC14
+  usecase "UC12. Dar de alta / gestionar proveedores" as UC12 #FFF3B0
+  usecase "UC13. Consultar métricas globales\nde la plataforma" as UC13 #FFF3B0
+  usecase "UC14. Gestionar usuarios y roles" as UC14 #FFF3B0
 }
 
 ' ---- Asociaciones actor - caso de uso ----

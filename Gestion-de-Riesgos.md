@@ -13,7 +13,7 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 
 | ID | Nombre | Tipo | Probabilidad | Impacto | Estrategia |
 |---|---|---|---|---|---|
-| R-01 | No contar con acceso real a la API de Contífico | Tecnológico | Alta | Grave | Evitar |
+| R-01 | No contar con acceso real a la API de Contífico *(riesgo de la fase futura — ver nota bajo la tabla)* | Tecnológico | Media | Grave | Evitar |
 | R-02 | Inconsistencia entre saldo, facturación e inventario | Tecnológico | Media | Grave | Transferir |
 | R-03 | Baja experiencia del equipo creando APIs seguras | Humano | Media | Moderado | Mitigar |
 | R-04 | Disponibilidad limitada de los integrantes | Humano | Media | Leve | Mitigar |
@@ -25,13 +25,13 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 | R-10 | Subestimación del esfuerzo de integración y pruebas | Estimación | Media | Moderado | Mitigar |
 | R-11 | *(nuevo, propuesto tras hallazgo 26-jul-2026)* Alpwin (sistema real de Barú) no tiene API pública documentada | Tecnológico | Alta | Grave | Mitigar |
 
-> **R-11 es nuevo** respecto a la matriz original: se agrega a partir del hallazgo de que Barú ya usa Alpwin (ver `Hallazgos-Ingenieria-API-Generica.md` sección 4.3), que no tenía la certeza de ser el proveedor real cuando se hizo la matriz inicial. Complementa a R-01 (que asumía Contífico como el sistema a integrar) — ambos riesgos conviven porque aún no está resuelto qué ERP es el objetivo final de integración.
+> **Actualizado 27-jul-2026:** cuando se elaboró la matriz original, no se sabía con certeza qué ERP era el objetivo real de integración, así que R-01 asumía Contífico. Con el hallazgo de que Barú ya usa **Alpwin** (`Hallazgos-Ingenieria-API-Generica.md` sección 4.3), el riesgo inmediato y de mayor probabilidad es **R-11**, no R-01. R-01 se mantiene con probabilidad reducida (Media) porque sigue siendo relevante **si más adelante se decide migrar o agregar Contífico** (ruta de Fase 1, ver `Hallazgos-Ingenieria-API-Generica.md` sección 4.1) — pero ya no es el riesgo más urgente del proyecto.
 
 ## Descripción y plan de acción por riesgo
 
-### R-01 — No contar con acceso real a la API de Contífico
-**Descripción:** Barú o el proveedor no entregan credenciales/API key para integrar facturación e inventario reales, limitando la validación con el sistema productivo.
-**Acción:** Definir desde el inicio que la integración real con Contífico depende de credenciales externas. Mantener como alcance mínimo una capa de integración desacoplada y un Mock ERP para pruebas; documentar el supuesto y no comprometer facturación real sin autorización.
+### R-01 — No contar con acceso real a la API de Contífico (riesgo de fase futura)
+**Descripción:** si en la Fase 1 (ver `Hallazgos-Ingenieria-API-Generica.md` sección 4.1) se decide migrar o agregar Contífico, Barú o el proveedor podrían no entregar credenciales/API key a tiempo, limitando la validación con el sistema productivo. **No es el riesgo activo hoy** — el objetivo inmediato de integración es Alpwin (ver R-11).
+**Acción:** Definir desde el inicio que la integración con Contífico depende de credenciales externas, y no comprometer una fecha de migración con el cliente hasta tenerlas. Mantener el mismo contrato `IInventoryProvider` (patrón Adapter) para que agregar `ContificoAdapter` no dependa de tocar el resto del sistema.
 
 ### R-02 — Inconsistencia entre saldo, facturación e inventario
 **Descripción:** Una compra podría descontar saldo en Aliflow, pero fallar al registrar la factura o el descuento de inventario en el sistema externo.
@@ -63,7 +63,7 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 
 ### R-09 — Requisitos de seguridad incompletos
 **Descripción:** No definir correctamente roles, permisos, protección de tokens, validación de códigos de retiro y auditoría puede abrir fallas de seguridad.
-**Acción:** Definir roles estudiante, cajero (Operador) y administrador; usar autenticación con tokens, contraseñas cifradas, validaciones en backend, expiración de códigos de retiro y registro de auditoría para compras y redenciones.
+**Acción:** Definir roles estudiante, cajero (Operador) y administrador; usar autenticación con tokens, contraseñas cifradas, validaciones en backend, expiración de códigos de retiro y registro de auditoría para compras y redenciones. **Ya modelado (27-jul-2026):** clase `RegistroAuditoria` agregada al diagrama de clases (`uml/diagrama-clases.puml`, paquete "Órdenes"), registrando quién ejecuta las operaciones que cambian dinero o estado de una orden.
 
 ### R-10 — Subestimación del esfuerzo de integración y pruebas
 **Descripción:** El equipo puede subestimar el trabajo necesario para probar wallet, órdenes, inventario simulado, facturación, errores y seguridad.

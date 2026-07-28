@@ -6,6 +6,8 @@
 
 **Referencia:** cada caso de uso indica el paso correspondiente de `Flujos-Aliflow-Revision.html` (formato `{rol}-{número}`, ver nota en `Hallazgos-Ingenieria-API-Generica.md` sección 5) del que se derivó.
 
+**Convención visual (revisión 27-jul-2026):** UC12, UC13 y UC14 (asociados al actor Administrador) aparecen ahora con fondo amarillo en el diagrama — marca que son propuesta de Ingeniería sin validar con Negocios, no casos de uso confirmados. Misma convención usada en `diagrama-clases.puml` y `diagrama-componentes.puml`.
+
 ## Actores
 
 | Actor | Tipo | Descripción |

@@ -6,6 +6,8 @@
 
 Este diagrama incorpora, por primera vez en la documentación formal del proyecto, el **stack tecnológico** recuperado de investigación previa del equipo (conversación revisada el 26-jul-2026): Next.js en el cliente, FastAPI en el backend, PostgreSQL como base de datos, y Redis/Celery para procesamiento asíncrono. Hasta ahora esta información solo existía en una conversación externa — queda aquí formalizada como parte del diseño.
 
+**Convención visual (revisión 27-jul-2026):** el "Módulo de Administración" aparece con fondo amarillo — misma convención que en `diagrama-clases.puml` y `casos-de-uso.puml` — porque expone los casos de uso UC12-UC14, propuesta de Ingeniería sin validar con Negocios.
+
 ## Componentes principales
 
 ### Cliente

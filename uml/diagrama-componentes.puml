@@ -3,6 +3,10 @@
 skinparam componentStyle rectangle
 left to right direction
 
+legend top left
+  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+endlegend
+
 actor Estudiante
 actor Proveedor
 actor Operador
@@ -17,7 +21,7 @@ package "Aliflow API (FastAPI)" {
   [Módulo de Wallet\n(saldo, recargas, pagos)] as WALLET
   [Módulo de Órdenes\n(compra, código de retiro)] as ORDERS
   [Módulo de Proveedores y Menú] as PROVMOD
-  [Módulo de Administración] as ADMINMOD
+  [Módulo de Administración] as ADMINMOD #FFF3B0
 }
 
 package "Capa de Integración" {
