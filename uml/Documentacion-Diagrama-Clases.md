@@ -12,19 +12,31 @@ Este diagrama modela la **lógica de negocio** del sistema (no las clases de inf
 
 ## 1. Paquete "Usuarios"
 
+**Reestructurado el 28-jul-2026 con decisiones de Negocios.** El sistema tiene **exactamente 3 roles**: Estudiante, Proveedor y Operador. El rol "Administrador" **es** el Proveedor — el gerente del local — y el super-admin de plataforma que Ingeniería había supuesto **no existe**.
+
 Jerarquía de herencia con **`Usuario`** como clase abstracta base (id, nombreCompleto, email, fechaRegistro, activo), especializada en:
 
-- **`Estudiante`** — mapea al actor "Estudiante" de los casos de uso.
-- **`Administrador`** — super-admin de la plataforma (actor confirmado como distinto de Proveedor, ver `Hallazgos-Ingenieria-API-Generica.md` y `uml/Documentacion-Casos-de-Uso.md`).
-- **`UsuarioProveedor`** (abstracta) — representa a una persona con acceso al panel de un Proveedor específico (`# proveedor: Proveedor`), resolviendo el vacío ya detectado de "personal autorizado múltiple por proveedor" (`prov-1`). Se especializa en:
-  - **`Propietario`** — mapea al actor "Proveedor" de los casos de uso (administra menú, ve métricas).
-  - **`Cajero`** — mapea al actor "Operador" de los casos de uso (equivalente al rol "cajero" mencionado en discusiones previas del equipo). Asociado a un `PuntoDeEntrega` específico, consistente con la precondición ya documentada ("vinculada a un punto de entrega físico específico").
+- **`Estudiante`** — mapea al actor "Estudiante".
+- **`UsuarioProveedor`** (abstracta) — una persona con acceso al panel de un local específico (`# proveedor: Proveedor`). Se especializa en:
+  - **`Administrador`** — mapea al actor **"Proveedor"**: administra menú, métricas, la integración con el ERP del local, y las cuentas del personal de su propio local (UC12).
+  - **`Operador`** — mapea al actor "Operador": valida las compras de los estudiantes y marca la entrega física. Asociado a un `PuntoDeEntrega` específico.
 
-> **Decisión de diseño propuesta, no validada aún con Negocios:** modelar Cajero/Propietario como subclases de un `UsuarioProveedor` común (en vez de un solo `Usuario` con un campo `rol`) resuelve de una vez el vacío de "roles múltiples por proveedor" detectado en la revisión del flujo. Si Negocios define algo distinto, solo cambia esta jerarquía — el resto del diagrama no se ve afectado.
+**Nota de vocabulario (importante para no perderse en el diagrama):** la palabra "Proveedor" designa dos cosas distintas.
+
+| En el lenguaje de Negocios | En el diagrama de clases | Qué es |
+|---|---|---|
+| Rol **"Proveedor"** (= "Administrador", el gerente) | clase `Administrador` | una **persona** con cuenta en Aliflow |
+| El **local** / proveedor de alimentación (Barú, Caramel Coffee) | clase `Proveedor` | el **negocio**: el tenant, con su menú, su ERP y su personal |
+
+Se conservó `Proveedor` como nombre de la entidad-negocio porque así se usa en el acta ("proveedores de alimentación") y en todo el resto del modelo (`SaldoProveedor`, `IntegracionERP`, `tenantId`). Renombrarla habría propagado churn a ~10 archivos sin ganar claridad real; la tabla de arriba y una nota dentro del propio diagrama resuelven la ambigüedad.
+
+**Qué se eliminó:** la clase `Administrador` que colgaba directamente de `Usuario` (el super-admin, con `darDeAltaProveedor()` y `gestionarUsuarios()`), y las clases `Propietario`/`Cajero`, renombradas a `Administrador`/`Operador` para usar el vocabulario oficial de Negocios en vez del informal del equipo.
+
+**Personal múltiple por local — confirmado, ya no es propuesta.** Negocios confirmó (28-jul-2026) que un local puede tener **varias** cuentas de Proveedor y varias de Operador. Las cardinalidades quedaron en `Proveedor "1" *-- "1..*" Administrador` (al menos un gerente) y `Proveedor "1" *-- "0..*" Operador`. Estas clases perdieron el estereotipo `<<propuesta>>` y el fondo amarillo.
 
 ## 2. Paquete "Proveedor y Menú"
 
-**`Proveedor`** (el tenant/negocio — en la práctica, Barú) agrega su personal (`UsuarioProveedor`), sus puntos de entrega físicos (`PuntoDeEntrega`) y su menú (`Plato`). `Plato.hayStock()` encapsula la validación de disponibilidad que en el flujo se menciona como "revalidación de stock justo antes de confirmar" (`est-4`).
+**`Proveedor`** (el tenant/negocio — en la práctica, cada local de comida de la universidad: Barú, Caramel Coffee, etc.) agrega su personal (`UsuarioProveedor`), sus puntos de entrega físicos (`PuntoDeEntrega`) y su menú (`Plato`). `Plato.hayStock()` encapsula la validación de disponibilidad que en el flujo se menciona como "revalidación de stock justo antes de confirmar" (`est-4`).
 
 **Control de concurrencia (agregado 27-jul-2026):** `Plato` ahora tiene un campo `version` y un método `reservarStock(cantidad)` — implementa bloqueo optimista para el riesgo ya identificado desde el flujo original ("dos estudiantes no deben poder comprar la última unidad simultáneamente"). Antes este riesgo estaba documentado en prosa pero no tenía ningún elemento correspondiente en el diagrama de clases; el detalle exacto de la transacción se completa en el diagrama de secuencia.
 
@@ -32,36 +44,53 @@ Jerarquía de herencia con **`Usuario`** como clase abstracta base (id, nombreCo
 
 ## 3. Paquete "Wallet y Pagos"
 
-Modela la decisión de negocio ya confirmada (`Hallazgos-Ingenieria-API-Generica.md`, marco de negocio 2026-07-13): **el saldo es independiente por proveedor**, no una sola bolsa de dinero. Por eso `TarjetaVirtual` no tiene un campo `saldo` directo, sino que agrega múltiples `SaldoProveedor` (uno por cada `Proveedor` con el que el estudiante ha operado).
+**Reestructurado el 28-jul-2026 con la decisión de Negocios sobre la recarga:** el estudiante hace **una única recarga** y Aliflow la distribuye internamente hacia los proveedores. Ya no hay recarga separada por local.
 
-Lo que sí sigue pendiente de decidir es el **mecanismo de recarga** (¿el estudiante recarga explícitamente por proveedor, o hace una única recarga que Aliflow distribuye internamente?). En vez de bloquear el diseño esperando esa decisión, se modela con el patrón **Strategy**:
+Consecuencia en el modelo: `TarjetaVirtual` ahora **sí** tiene un campo `saldoDisponible` — una bolsa única, gastable en cualquier local, que es lo que el estudiante ve en pantalla. Antes no lo tenía, precisamente porque el saldo vivía repartido en varios `SaldoProveedor`.
 
-- **`EstrategiaDistribucionRecarga`** (interfaz) define `distribuir(monto, tarjeta)`.
-- **`RecargaDirectaPorProveedor`** y **`RecargaDistribuidaAutomaticamente`** son dos implementaciones candidatas, una por cada alternativa que Negocios está evaluando.
+**Qué pasó con `SaldoProveedor` (y dónde está el punto abierto).** La frase "Aliflow distribuye internamente a todos los proveedores disponibles" admite dos lecturas, y la diferencia no es cosmética:
 
-Así, `Recarga` depende solo de la abstracción (`Recarga ..> EstrategiaDistribucionRecarga`), y cuando se tome la decisión, se activa la implementación correspondiente sin tocar el resto del modelo — ejemplo directo de **Open/Closed** (ver sección SOLID).
+| Lectura | Qué implicaría | Veredicto |
+|---|---|---|
+| **A — repartir al recargar**: el monto se divide entre los N locales activos en el momento de la recarga | Con 4 locales, una recarga de $20 deja $5 en cada uno: el estudiante no puede comprar un almuerzo de $6 en ninguno pese a tener $20. Y cada local nuevo obligaría a redistribuir saldo existente. | **Inviable** — Ingeniería lo descarta |
+| **B — repartir al comprar** (la que se modeló): el saldo vive en una sola bolsa; al comprar se descuenta de ahí y se acredita al libro interno del local correspondiente | El estudiante ve un solo saldo; Aliflow sabe en todo momento cuánto le debe liquidar a cada local | **Es la que está en el diagrama**, marcada `<<propuesta>>` porque es interpretación de Ingeniería, no palabra de Negocios |
+
+Bajo la lectura B, `SaldoProveedor` deja de ser "el saldo del estudiante en ese local" y pasa a ser **el libro interno de lo que Aliflow le debe a ese local** (campo renombrado de `monto` a `montoAcumulado`, y ya no tiene `descontar()`). Falta que Negocios confirme esta lectura — está registrado en `Decisiones-Pendientes-Negocios.md`, punto 4.
+
+**Qué pasó con el patrón Strategy.** Se conserva `EstrategiaDistribucionRecarga`, pero honestamente: ya no está ahí para "no bloquear una decisión pendiente" (la decisión se tomó), sino porque la **regla** de reparto todavía puede cambiar — si Negocios define una comisión de Aliflow o una retención, eso es una implementación nueva de la interfaz y no un `if` más en el módulo de wallet. `RecargaDirectaPorProveedor` quedó **descartada** y se eliminó del diagrama; `DistribucionBajoDemanda` es la implementación vigente. Sigue siendo un ejemplo válido de **Open/Closed**, con una justificación distinta a la original.
 
 `Pago` (con `EstadoPago`: APROBADO/PENDIENTE/RECHAZADO — tal como se encontró en la investigación previa del equipo sobre el flujo de pagos) genera una `Recarga` solo si es aprobado. `ComprobanteRecarga` es el comprobante interno sin validez tributaria ya documentado (`est-2`).
 
 ## 4. Paquete "Órdenes"
 
-**`Orden`** agrega una o más `OrdenDetalle` (plato + cantidad + precio unitario — generalización razonable sobre el flujo, que describe la compra de un plato a la vez, pero sin costo de diseño adicional soporta más de un ítem). Tiene un `CodigoRetiro` propio (value object: valor, fechaExpiracion, usado) que modela directamente la propuesta encontrada en la investigación previa del equipo (UUID firmado con expiración) para la decisión pendiente de formato de código (`est-6`/`op-2`).
+**`Orden`** agrega una o más `OrdenDetalle` (plato + cantidad + precio unitario — generalización razonable sobre el flujo, que describe la compra de un plato a la vez, pero sin costo de diseño adicional soporta más de un ítem). Tiene un `CodigoRetiro` propio (value object: valor, fechaExpiracion, usado).
+
+**Formato del código, cerrado el 28-jul-2026:** Negocios eligió **código numérico corto de 6 dígitos**, descartando la propuesta previa de Ingeniería (UUID firmado con expiración). La razón es operativa y es buena: el estudiante se lo dice de viva voz al Operador, que lo digita en Aliflow para marcar el retiro — un UUID de 36 caracteres es impracticable para eso. Dos consecuencias de diseño quedaron anotadas en el diagrama:
+
+1. **La unicidad se acota.** Seis dígitos son ~10⁶ combinaciones: suficientes solo si la unicidad se exige entre los códigos **vigentes de un mismo local**, no globalmente ni de forma histórica. La generación reintenta ante colisión.
+2. **El código pasa a ser adivinable.** Un UUID firmado no se puede adivinar; 6 dígitos sí. Registrado como riesgo **R-15** en `Gestion-de-Riesgos.md` con su mitigación (límite de intentos + el hecho de que el Operador ve físicamente al estudiante).
 
 `EstadoOrden` incluye **`EXPIRADO`** además de `COMPRADO`/`ENTREGADO` — esto no estaba en el flujo original; se agrega para cubrir el vacío ya detectado de "no hay estado para una orden nunca retirada" (`Hallazgos-Ingenieria-API-Generica.md`, sección 5.3). Es una propuesta de Ingeniería, marcada ahora también dentro del propio diagrama (nota amarilla junto a `EstadoOrden`), pendiente de que Negocios defina la regla exacta (después de cuánto tiempo expira, si hay reembolso, etc. — esto último sigue fuera de alcance de v1 según el acta).
 
 `ComprobanteCompra` es el comprobante interno sin validez tributaria (`est-4`/`prov-6`), distinto de la factura real que el proveedor emite en su propio ERP.
 
-**Regla de un solo proveedor por orden (corregida 27-jul-2026):** `Orden` ahora tiene una asociación directa a `Proveedor` (no solo indirecta vía `OrdenDetalle → Plato → Proveedor`), con un invariante explícito en el diagrama: todos los `OrdenDetalle` de una misma `Orden` deben pertenecer a platos del mismo proveedor. Antes de esta corrección, el modelo permitía —sin querer— una orden con platos de proveedores distintos, lo cual habría roto el resto de la arquitectura (saldo por proveedor, un solo `tenantId` por llamada a `notifySale`, un evento de sincronización por orden). `confirmarCompra()` es responsable de validar este invariante antes de crear la orden.
+**Regla de un solo local por orden (corregida 27-jul-2026):** `Orden` ahora tiene una asociación directa a `Proveedor` (no solo indirecta vía `OrdenDetalle → Plato → Proveedor`), con un invariante explícito en el diagrama: todos los `OrdenDetalle` de una misma `Orden` deben pertenecer a platos del mismo proveedor. Antes de esta corrección, el modelo permitía —sin querer— una orden con platos de proveedores distintos, lo cual habría roto el resto de la arquitectura (saldo por proveedor, un solo `tenantId` por llamada a `notifySale`, un evento de sincronización por orden). `confirmarCompra()` es responsable de validar este invariante antes de crear la orden.
 
-**Auditoría (agregada 27-jul-2026):** `RegistroAuditoria` responde al riesgo R-09 (`Gestion-de-Riesgos.md`), que pedía explícitamente registro de auditoría para compras y redenciones — antes este requisito estaba documentado como riesgo pero no tenía ninguna clase correspondiente. Registra quién ejecutó `confirmarCompra()`, `marcarEntregado()`, `invalidar()` y `distribuir()`.
+**Auditoría (agregada 27-jul-2026):** `RegistroAuditoria` responde al riesgo R-09 (`Gestion-de-Riesgos.md`), que pedía explícitamente registro de auditoría para compras y redenciones — antes este requisito estaba documentado como riesgo pero no tenía ninguna clase correspondiente. Registra quién ejecutó `confirmarCompra()`, `marcarEntregado()`, `invalidar()` y la acreditación interna al local.
 
 ## 5. Paquete "Integración con ERP externo"
 
 Materializa directamente la arquitectura ya diseñada en `Hallazgos-Ingenieria-API-Generica.md` (sección 3):
 
 - **`IInventoryProvider`** (interfaz/puerto) — el core de Aliflow (representado aquí por la dependencia `Orden ..> IInventoryProvider`) solo conoce esta abstracción, nunca un ERP concreto.
-- **`OdooAdapter`**, **`ContificoAdapter`**, **`AlpwinAdapter`** — adaptadores concretos (patrón **Adapter**). `AlpwinAdapter` lleva una nota explícita: al no tener API pública (confirmado en la investigación), su implementación real sería por archivos/BD puente, no llamadas síncronas — esto es más urgente de lo que parecía, dado que se confirmó que Barú usa Alpwin (sección 4.3 del hallazgo de Ingeniería).
+- **`ContificoAdapter`**, **`AlpwinAdapter`**, **`OdooAdapter`** — adaptadores concretos (patrón **Adapter**). `AlpwinAdapter` lleva una nota explícita: al no tener API pública, su implementación real sería por archivos/BD puente, no llamadas síncronas.
 - **`ProviderAdapterFactory`** — patrón **Factory Method**: dado un `Proveedor`, lee su `IntegracionERP.tipoERP` y devuelve la implementación concreta correspondiente. Nadie más en el sistema necesita un `switch`/`if` sobre el tipo de ERP.
+
+**Actualizado el 28-jul-2026 — este paquete dejó de ser una previsión y pasó a ser un requisito duro.** Negocios aclaró que Aliflow debe poder conectarse al ERP de **cualquier** local de la universidad, y que cada uno tiene el suyo: Barú usa **Contífico**, Caramel Coffee usa **Alpwin**, y así sucesivamente. Tres consecuencias sobre el modelo:
+
+1. **Varios adaptadores conviven en producción**, no uno. Antes se asumía un único ERP objetivo y la factory era casi decorativa; ahora es la pieza que hace funcionar el multi-tenant real. El diseño no cambió — es exactamente lo que el patrón Adapter + Factory estaba pensado para soportar — pero pasó de "buena práctica defensiva" a "sin esto el producto no existe".
+2. **La interfaz es bidireccional** y eso ahora está explícito. `getMenu()`/`getStock()` traen el inventario del local hacia Aliflow; `updateStock()`/`notifySale()` y el nuevo **`notifyPayment()`** devuelven al ERP las órdenes y los pagos, para que su inventario y su contabilidad queden sincronizados. Se agregó `TipoEvento.NOTIFICAR_PAGO` al outbox por la misma razón.
+3. **`TipoERP` cambió de contenido y de rol.** Ahora es `CONTIFICO | ALPWIN | ODOO | OTRO`, con Contífico primero por ser el del local piloto. El valor `OTRO` es deliberado: agregar un local con un ERP desconocido debe ser un valor de enum más una clase adaptadora, sin tocar el core.
 - **`EventoSincronizacion`** + **`SincronizacionWorker`** — implementan el patrón **Outbox** ya diseñado: cada venta genera un evento (`TipoEvento.NOTIFICAR_VENTA`), que el worker procesa con reintentos (`EstadoEvento`: PENDIENTE/PROCESADO/FALLIDO), evitando la "venta huérfana" ya identificada como riesgo (R-02 en `Gestion-de-Riesgos.md`).
 
 ---
@@ -72,15 +101,15 @@ Materializa directamente la arquitectura ya diseñada en `Hallazgos-Ingenieria-A
 |---|---|
 | **S — Responsabilidad única** | `Orden` gestiona su propio estado y ciclo de vida; la traducción a cada ERP vive exclusivamente en su adaptador; `SincronizacionWorker` solo orquesta reintentos, no lógica de negocio de la venta. |
 | **O — Abierto/cerrado** | Agregar un ERP nuevo = una clase `NuevoErpAdapter` nueva, cero cambios al core (`IInventoryProvider` ya definido). Igual con `EstrategiaDistribucionRecarga`: una nueva regla de negocio de recarga es una clase nueva, no un `if` más. |
-| **L — Sustitución de Liskov** | Cualquier `IInventoryProvider` (Odoo/Contífico/Alpwin) es intercambiable sin que el código que lo usa (`SincronizacionWorker`, `Orden`) se entere de la diferencia. |
-| **I — Segregación de interfaces** | `IInventoryProvider` se mantiene deliberadamente pequeña (5 métodos, todos relacionados a inventario/venta) — no se mezcla con responsabilidades de facturación fiscal, que quedan fuera de esta interfaz. |
+| **L — Sustitución de Liskov** | Cualquier `IInventoryProvider` (Contífico/Alpwin/Odoo) es intercambiable sin que el código que lo usa (`SincronizacionWorker`, `Orden`) se entere de la diferencia. Con varios locales activos a la vez, esto se ejercita de verdad en producción, no solo en teoría. |
+| **I — Segregación de interfaces** | `IInventoryProvider` se mantiene deliberadamente pequeña (6 métodos, todos relacionados a inventario/venta/pago) — no se mezcla con responsabilidades de facturación fiscal, que quedan fuera de esta interfaz. |
 | **D — Inversión de dependencias** | `ProviderAdapterFactory` y `SincronizacionWorker` dependen de la abstracción `IInventoryProvider`, nunca de `OdooAdapter`/`ContificoAdapter`/`AlpwinAdapter` directamente. |
 
 ## Patrones de diseño usados (y por qué, no solo "porque sí")
 
 - **Adapter** — resuelve directamente el reto técnico central del proyecto (integrar con ERPs heterogéneos sin acoplarse a ninguno).
 - **Factory Method** (`ProviderAdapterFactory`) — evita que la lógica de "qué adaptador usar" se disperse por el código; centraliza la decisión en un solo lugar.
-- **Strategy** (`EstrategiaDistribucionRecarga`) — permite avanzar el diseño sin bloquear en una decisión de negocio que Negocios todavía no ha tomado.
+- **Strategy** (`EstrategiaDistribucionRecarga`) — originalmente servía para no bloquear el diseño mientras Negocios decidía el mecanismo de recarga. Tomada esa decisión (28-jul-2026), se conserva porque la **regla de reparto** interno (comisiones, retenciones) sigue siendo un punto de variación real del negocio.
 - **Outbox** (arquitectural, no GoF clásico) — ya validado técnicamente en el demo con Odoo Community (`Hallazgos-Ingenieria-API-Generica.md`, sección 4.2).
 
 No se forzaron patrones adicionales (ej. Singleton, Observer) donde no había un problema real que resolver — evitar ese "mal olor" de sobre-ingeniería fue una decisión deliberada.
@@ -93,13 +122,31 @@ No se forzaron patrones adicionales (ej. Singleton, Observer) donde no había un
 
 ## Supuestos y pendientes de este diagrama (a validar con el equipo/Negocios)
 
-Todos marcados ahora con `<<propuesta>>` y fondo amarillo directamente en el diagrama:
+Todos marcados con `<<propuesta>>` y fondo amarillo directamente en el diagrama. Con las decisiones del 28-jul-2026, la lista **bajó de 5 supuestos a 3**:
 
-1. La jerarquía `Propietario`/`Cajero` bajo `UsuarioProveedor` es una propuesta de Ingeniería para resolver el vacío de "personal múltiple por proveedor" — no está confirmada en ningún acta.
-2. `Administrador` y su alcance (ver también `uml/Documentacion-Casos-de-Uso.md`, UC12-UC14) — rol confirmado como distinto de Proveedor, pero sus responsabilidades exactas son propuesta de Ingeniería.
-3. `EstadoOrden.EXPIRADO` es una adición de Ingeniería para cubrir el vacío de "orden nunca retirada" — falta que Negocios defina la regla de expiración exacta.
-4. `EstrategiaDistribucionRecarga` con dos implementaciones es una forma de no bloquear el diseño, no una decisión tomada — falta que Negocios elija una (o ambas, configurable por proveedor).
-5. Los métodos de `Usuario.autenticar()` no distinguen aún el mecanismo (OAuth institucional para Estudiante vs. credenciales propias para los demás roles) a nivel de firma — se resolvería en el diagrama de secuencia de autenticación (entregable pendiente).
+1. `SaldoProveedor` como libro interno acreditado **al momento de la compra** — es la interpretación de Ingeniería de "Aliflow distribuye internamente" (lectura B de la tabla en la sección 3). Falta que Negocios la confirme.
+2. `EstadoOrden.EXPIRADO` es una adición de Ingeniería para cubrir el vacío de "orden nunca retirada" — falta que Negocios defina la regla de expiración exacta.
+3. `Usuario.autenticar()` no distingue aún el mecanismo (OAuth institucional para Estudiante vs. credenciales propias para Proveedor y Operador) a nivel de firma — se resuelve en `uml/actividad-autenticacion.puml`.
+
+**Cerrados por Negocios el 28-jul-2026** (ya no son supuestos): la jerarquía de personal por local, el alcance del rol Administrador (que resultó ser el Proveedor mismo), el mecanismo de recarga, y el formato del código de retiro.
+
+## Cambios aplicados en la revisión del 28-jul-2026 (decisiones de Negocios)
+
+Negocios resolvió cinco de las decisiones que bloqueaban el modelo. Impacto sobre este diagrama:
+
+| # | Decisión de Negocios | Cambio en el diagrama |
+|---|---|---|
+| 1 | Aliflow se conecta al ERP de **cualquier** local; cada uno usa el suyo (Barú → Contífico, Caramel Coffee → Alpwin) y la conexión es bidireccional | `TipoERP` reordenado y con `OTRO`; `notifyPayment()` agregado a `IInventoryProvider`; `TipoEvento.NOTIFICAR_PAGO` agregado al outbox |
+| 2 | Solo 3 roles; "Administrador" = "Proveedor" = gerente del local | Eliminada la clase `Administrador` de plataforma; `Propietario`→`Administrador`, `Cajero`→`Operador`; `marcarEntregado(operador)` |
+| 3 | Un local puede tener varios Proveedores y varios Operadores | Cardinalidades `1..*` / `0..*`; la jerarquía `UsuarioProveedor` deja de ser `<<propuesta>>` |
+| 4 | Recarga única distribuida internamente | `TarjetaVirtual.saldoDisponible` agregado; `SaldoProveedor` pasa a libro interno (`montoAcumulado`); `RecargaDirectaPorProveedor` eliminada, `DistribucionBajoDemanda` vigente |
+| 6 | Código de retiro numérico corto | `CodigoRetiro.valor` documentado como 6 dígitos; nota de unicidad acotada por local; riesgo R-15 |
+
+**Lo que estas decisiones mejoraron y lo que complicaron**, dicho sin adornos:
+
+- **Mejor:** el local piloto pasó de ser el caso imposible (Alpwin, sin API) al caso fácil (Contífico, API REST documentada). El riesgo que más pesaba en el proyecto (R-11) dejó de bloquear el arranque.
+- **Más difícil:** el sistema ya no es "Aliflow + un proveedor", sino una plataforma multi-tenant con N ERP heterogéneos conviviendo. Eso encarece pruebas, credenciales, monitoreo y soporte — y hace que la capa de integración deje de ser opcional.
+- **Sin resolver:** cuándo ocurre exactamente la distribución interna del saldo (ver sección 3), y quién da de alta un local nuevo ahora que no existe un super-admin (ver `uml/Documentacion-Casos-de-Uso.md`, UC12).
 
 ## Correcciones aplicadas en esta revisión (27-jul-2026)
 

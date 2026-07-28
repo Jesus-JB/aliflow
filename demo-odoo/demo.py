@@ -11,8 +11,9 @@ solo estaba dibujado en los diagramas UML:
      (PlatoLocal), no contra Odoo — ver plato_local.py para el hallazgo
      de por qué esto NO se puede delegar de forma confiable al ERP
      externo vía RPC (bloqueo optimista real, secuencia-compra-almuerzo.puml).
-  C. Patrón Outbox: un adaptador que simula a Alpwin (sin API pública)
-     fallando, con reintentos hasta marcar el evento como FALLIDO
+  C. Patrón Outbox: un adaptador que simula a Alpwin (el ERP de Caramel
+     Coffee, sin API pública) fallando, con reintentos hasta marcar el
+     evento como FALLIDO
      (ver estado-evento-sincronizacion.puml, objeto-integracion-erp.puml).
 
 Uso:
@@ -125,7 +126,7 @@ def escenario_b_concurrencia():
 
 
 def escenario_c_outbox_alpwin():
-    separador("ESCENARIO C — Patrón Outbox: sincronización con Alpwin (sin API)")
+    separador("ESCENARIO C — Patrón Outbox: sincronización con Alpwin (Caramel Coffee, sin API)")
 
     evento = EventoSincronizacion(tipo_evento="NOTIFICAR_VENTA", payload="ORD-2026-000482")
     worker = SincronizacionWorker(adapter=AlpwinAdapterStub(), max_intentos=3, backoff_segundos=0.3)
@@ -135,7 +136,7 @@ def escenario_c_outbox_alpwin():
 
     print("Procesando evento de sincronización contra Alpwin (simulado)...\n")
     evento_final = worker.procesar(
-        evento, tenant_id="baru", orden_id="ORD-2026-000482", detalle={}, on_intento=on_intento
+        evento, tenant_id="caramel-coffee", orden_id="ORD-2026-000482", detalle={}, on_intento=on_intento
     )
 
     print(f"\nEstado final del evento: {evento_final.estado} (tras {evento_final.intentos} intentos)")
@@ -159,7 +160,7 @@ def main():
     print("A: menú -> compra -> comprobante en Odoo (ERP real)")
     print("B: concurrencia real resuelta en el dominio propio de Aliflow")
     print("   (hallazgo: NO se puede delegar al ERP externo vía RPC)")
-    print("C: patrón Outbox demostrado con el caso real de Alpwin")
+    print("C: patrón Outbox demostrado con el caso real de Alpwin (Caramel Coffee)")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ title Actividad — Retirar y entregar almuerzo (UC5)
 start
 :Se presenta en el\npunto de entrega;
 
-|Cajero|
+|Operador|
 if (¿Tiene código\nde retiro?) then (sí)
   :Capturar el código;
 else (no)
@@ -16,29 +16,29 @@ endif
 |Aliflow|
 :Buscar la Orden asociada;
 if (¿Orden encontrada?) then (no)
-  |Cajero|
+  |Operador|
   :Ver error\n("orden no encontrada");
   stop
 else (sí)
 endif
 
 if (¿Estado == COMPRADO?) then (no)
-  |Cajero|
+  |Operador|
   :Ver error\n("ya fue entregada a las HH:MM"\n/ código inválido);
   stop
 else (sí)
 endif
 
-:Mostrar detalle\n(estudiante, plato) al Cajero;
+:Mostrar detalle\n(estudiante, plato) al Operador;
 
-|Cajero|
+|Operador|
 :Entregar físicamente\nel almuerzo;
 :Confirmar entrega;
 
 |Aliflow|
 :Cambiar estado de la\nOrden a ENTREGADO;
 :Invalidar CodigoRetiro\n(uso único);
-:Registrar timestamp y Cajero\nen RegistroAuditoria;
+:Registrar timestamp y Operador\nen RegistroAuditoria;
 stop
 
 @enduml

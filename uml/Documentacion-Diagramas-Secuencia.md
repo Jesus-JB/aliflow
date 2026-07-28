@@ -18,7 +18,7 @@ Este es el diagrama que **resuelve en detalle** el control de concurrencia que q
 
 **Fuente:** `secuencia-retiro-entrega.puml` · **Referencia:** UC5.
 
-**Hallazgo nuevo de esta revisión, no documentado antes:** el mismo tipo de condición de carrera que existe en el stock (dos compras simultáneas por la última unidad) también puede ocurrir aquí — dos Cajeros validando el mismo código casi al mismo tiempo. Se resuelve con el mismo principio (`UPDATE ... WHERE usado = false`, atómico a nivel de base de datos): si la actualización afecta 0 filas, significa que alguien más ya redimió el código en el intervalo, y se informa como error en vez de marcar una segunda entrega. No hace falta ningún campo nuevo en `CodigoRetiro` (el booleano `usado` ya alcanza), solo que la actualización sea atómica y condicional.
+**Hallazgo nuevo de esta revisión, no documentado antes:** el mismo tipo de condición de carrera que existe en el stock (dos compras simultáneas por la última unidad) también puede ocurrir aquí — dos Operadores validando el mismo código casi al mismo tiempo. Se resuelve con el mismo principio (`UPDATE ... WHERE usado = false`, atómico a nivel de base de datos): si la actualización afecta 0 filas, significa que alguien más ya redimió el código en el intervalo, y se informa como error en vez de marcar una segunda entrega. No hace falta ningún campo nuevo en `CodigoRetiro` (el booleano `usado` ya alcanza), solo que la actualización sea atómica y condicional.
 
 ## 3. Recargar saldo
 
@@ -26,7 +26,7 @@ Este es el diagrama que **resuelve en detalle** el control de concurrencia que q
 
 **Fuente:** `secuencia-recarga-saldo.puml` · **Referencia:** UC2.
 
-Incluye la rama `PENDIENTE` del pago (no solo APROBADO/RECHAZADO), consistente con que las pasarelas candidatas (Kushki/PayPhone/Stripe, ver `uml/diagrama-componentes.puml`) suelen tener estados intermedios asíncronos. `EstrategiaDistribucionRecarga` aparece marcada `<<propuesta>>` en el propio diagrama, igual que en el de clases — el algoritmo de distribución en sí (uno o varios `SaldoProveedor` resultantes) no está cerrado, pero el resto de la transacción (pago → acreditar → comprobante) sí.
+Incluye la rama `PENDIENTE` del pago (no solo APROBADO/RECHAZADO), consistente con que las pasarelas candidatas (Kushki/PayPhone/Stripe, ver `uml/diagrama-componentes.puml`) suelen tener estados intermedios asíncronos. **Actualizado el 28-jul-2026:** con la decisión de Negocios de recarga única, el paso de distribución desapareció de esta secuencia — el pago aprobado acredita directamente `TarjetaVirtual.saldoDisponible` y se emite el comprobante. La acreditación al local se movió a `secuencia-compra-almuerzo.puml`.
 
 ## 4. Sincronización con el ERP externo (patrón Outbox)
 
@@ -44,4 +44,4 @@ Los demás procesos (consultar menú, administrar menú, configurar integración
 
 ## Hallazgo transversal de esta ronda
 
-Al diseñar el diagrama de retiro, se detectó una condición de carrera (doble redención del código) que no estaba identificada en ningún documento anterior — ni en el flujo original, ni en `Gestion-de-Riesgos.md`. Vale la pena agregarla formalmente al registro de riesgos como un riesgo más (probabilidad baja, dado que requiere dos Cajeros validando el mismo código en el mismo instante, pero impacto real si ocurre: dos entregas físicas de un mismo almuerzo).
+Al diseñar el diagrama de retiro, se detectó una condición de carrera (doble redención del código) que no estaba identificada en ningún documento anterior — ni en el flujo original, ni en `Gestion-de-Riesgos.md`. Vale la pena agregarla formalmente al registro de riesgos como un riesgo más (probabilidad baja, dado que requiere dos Operadores validando el mismo código en el mismo instante, pero impacto real si ocurre: dos entregas físicas de un mismo almuerzo).

@@ -3,50 +3,50 @@
 title Secuencia — Retirar y entregar almuerzo (UC5), con redención atómica del código
 
 actor Estudiante
-actor Cajero
+actor Operador
 participant "Módulo de Órdenes\n(API)" as API
 participant "Orden" as Orden
 participant "CodigoRetiro" as Codigo
 participant "RegistroAuditoria" as Audit
 
-Estudiante -> Cajero : presenta código de retiro\n(o datos para búsqueda manual)
-activate Cajero
+Estudiante -> Operador : presenta código de retiro\n(o datos para búsqueda manual)
+activate Operador
 
-Cajero -> API : buscarOrden(codigo | nombre/ID institucional)
+Operador -> API : buscarOrden(codigo | nombre/ID institucional)
 activate API
 
 API -> Orden : buscar por código o criterio manual
 Orden --> API : orden encontrada / no encontrada
 
 alt orden no encontrada
-  API --> Cajero : error "orden no encontrada"
+  API --> Operador : error "orden no encontrada"
 else orden encontrada
   API -> Orden : leer estado
   alt estado != COMPRADO
-    API --> Cajero : error\n("ya fue entregada a las HH:MM" / código inválido)
+    API --> Operador : error\n("ya fue entregada a las HH:MM" / código inválido)
   else estado == COMPRADO
     API -> Codigo : invalidarSiNoUsado()\nUPDATE ... WHERE usado = false
     Codigo --> API : filas afectadas
 
     alt filas afectadas = 0
       note right of API
-        Condición de carrera: otro Cajero
+        Condición de carrera: otro Operador
         ya redimió este código entre la
         lectura del estado y este punto.
         Mismo principio de bloqueo que
         el stock en la compra.
       end note
-      API --> Cajero : error "código ya usado"
+      API --> Operador : error "código ya usado"
     else filas afectadas = 1
-      API -> Orden : marcarEntregado(cajero)
-      API -> Audit : registrar("marcarEntregado", cajero)
-      API --> Cajero : confirmación
-      Cajero -> Estudiante : entrega físicamente el almuerzo
+      API -> Orden : marcarEntregado(operador)
+      API -> Audit : registrar("marcarEntregado", operador)
+      API --> Operador : confirmación
+      Operador -> Estudiante : entrega físicamente el almuerzo
     end
   end
 end
 
 deactivate API
-deactivate Cajero
+deactivate Operador
 
 @enduml

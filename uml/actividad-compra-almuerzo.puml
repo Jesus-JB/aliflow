@@ -7,7 +7,7 @@ start
 :Selecciona un plato\ny confirma la compra;
 
 |Aliflow|
-:Validar saldo suficiente\nen SaldoProveedor;
+:Validar saldo suficiente\nen TarjetaVirtual.saldoDisponible;
 if (¿Saldo suficiente?) then (no)
   |Estudiante|
   :Ver error de saldo insuficiente;
@@ -23,10 +23,10 @@ if (¿Stock disponible?) then (no)
 else (sí)
 endif
 
-:Descontar saldo (atómico);
+:Descontar de TarjetaVirtual.saldoDisponible\ny acreditar SaldoProveedor del local\n(distribución interna, atómico);
 :Confirmar descuento de stock (atómico);
 :Crear Orden en estado COMPRADO\n(validando invariante: un solo\nProveedor por orden);
-:Generar CodigoRetiro\n(UUID firmado con expiración);
+:Generar CodigoRetiro\n(6 dígitos numéricos, con expiración);
 :Generar ComprobanteCompra\n(sin validez tributaria);
 :Publicar EventoSincronizacion\n(NOTIFICAR_VENTA) en la cola;
 :Registrar en RegistroAuditoria;

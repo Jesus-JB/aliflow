@@ -15,7 +15,7 @@ state EXPIRADO <<propuesta>>
 
 [*] --> COMPRADO : confirmarCompra()\n(saldo y stock validados)
 
-COMPRADO --> ENTREGADO : marcarEntregado(cajero)\n[CodigoRetiro válido y no usado]
+COMPRADO --> ENTREGADO : marcarEntregado(operador)\n[CodigoRetiro válido y no usado]
 
 COMPRADO --> EXPIRADO : expirar()\n[CodigoRetiro.fechaExpiracion\nalcanzada sin usar]
 

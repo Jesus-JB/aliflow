@@ -17,7 +17,8 @@ class AlpwinAdapterStub:
     """
     Simula AlpwinAdapter para el demo: siempre falla, porque Alpwin no
     tiene API pública (confirmado en Hallazgos-Ingenieria-API-Generica.md,
-    secciones 2.5 y 4.3). En una implementación real, este adaptador
+    secciones 2.5 y 4.3). Alpwin es el ERP de Caramel Coffee; Barú usa
+    Contífico, que sí tiene API REST. En una implementación real, este adaptador
     escribiría a un archivo o a una base de datos puente en vez de
     lanzar una excepción.
     """

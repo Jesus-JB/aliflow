@@ -3,7 +3,7 @@
 **Proyecto:** Aliflow
 **Preparado por:** Grupo de Ingeniería
 **Referencia:** Acta de Reunión Aliflow 3 (25-jun-2026), compromiso de investigación asignado al Grupo de Ingeniería
-**Fecha de este documento:** 26-jul-2026
+**Fecha de este documento:** 26-jul-2026 · **Última revisión:** 28-jul-2026 (incorpora las decisiones de Negocios — ver sección 4.3)
 **Repositorio del proyecto:** https://github.com/Jesus-JB/aliflow (público)
 **Objetivo:** presentar los hallazgos y recomendaciones de la investigación sobre arquitectura de integración, mecanismos de sincronización, y evaluación de ERPs candidatos (Contífico, Alpwin, Alegra, Odoo Community, ERPNext), para la siguiente reunión de equipo.
 
@@ -11,14 +11,15 @@
 
 ## 1. Resumen ejecutivo
 
-- **🚩 Hallazgo crítico (confirmado 26-jul-2026, ver sección 4.3): el proveedor real del proyecto es Barú (cafetería de la UEES), y su sistema actual es Alpwin.** Esto cambia el marco de la decisión: el reto de Ingeniería ya no es "qué ERP recomendar desde cero", sino "cómo integrar con el sistema que Barú ya usa" — que es justamente el que no tiene API pública. Ver sección 4.3 para el detalle y la ruta ajustada.
+- **🚩 Corregido el 28-jul-2026 (ver sección 4.3):** el hallazgo del 26-jul decía que Barú usaba Alpwin. **Es al revés de como lo entendimos.** Negocios aclaró que Aliflow no se integra con *un* proveedor sino con **cualquier local de comida de la universidad, cada uno con su propio ERP**: Barú usa **Contífico**, Caramel Coffee usa **Alpwin**, y así los demás. La conexión debe ser **bidireccional** en ambos sentidos: el ERP del local le informa a Aliflow su inventario y sus pedidos, y Aliflow le devuelve las órdenes y los pagos para que su inventario quede sincronizado.
+- **Consecuencia doble, y conviene decir las dos:** el arranque es **más fácil** de lo que creíamos (el local piloto, Barú, usa el ERP con la mejor API de todos los que evaluamos) y el producto es **más difícil** (deja de ser una integración y pasa a ser una plataforma multi-tenant con N ERP heterogéneos conviviendo).
+- **Recomendación de ERP para la fase inicial (presupuesto $0):** **Odoo Community**, self-hosted — sigue siendo la herramienta correcta para el demo técnico, ahora como banco de pruebas de la arquitectura, no como candidato a reemplazar el ERP de nadie.
 - El reto técnico identificado en el acta ("API genérica que soporte múltiples ERPs sin depender de la implementación específica de cada uno") es real y se confirma con la investigación: los ERPs candidatos son heterogéneos — desde sistemas con API REST moderna hasta sistemas sin ninguna API pública.
 - **Recomendación de arquitectura:** patrón Adapter (hexagonal) + modelo de datos canónico + outbox/cola de reintentos para manejo de fallos. Ver sección 3.
-- **Recomendación de ERP para la fase inicial (presupuesto $0):** **Odoo Community**, self-hosted. Es la única opción con soporte confirmado y no contradictorio de facturación electrónica SRI Ecuador, API bien documentada, y costo de licencia $0 (solo hosting, ~$5-10 USD/mes). Se usa para validar la arquitectura y el demo técnico ahora, mientras el proyecto no tiene presupuesto.
-- **ERP recomendado como destino final / más estable para el proyecto: Contífico.** Es la opción que el equipo recomienda adoptar en cuanto haya presupuesto, y no solo como alternativa — ver justificación en la sección 4.1.
+- **Contífico dejó de ser "el ERP que recomendamos a futuro" y pasó a ser "el ERP que el local piloto ya usa".** Toda la evaluación de la sección 2.2 sigue siendo válida, pero cambió de propósito: ya no sirve para convencer a nadie de migrar, sino para saber contra qué API vamos a programar el primer adaptador real.
 - **Alegra fue evaluado a fondo y se descarta**: no soporta facturación electrónica para Ecuador (evidencia oficial, ver sección 2.3). Su API técnica es de las mejores documentadas que revisamos, pero no resuelve el problema fiscal real del proveedor ecuatoriano.
 - **ERPNext se descarta** por no tener localización fiscal de Ecuador confirmada.
-- **Alpwin** no tiene API pública — solo aplicable como caso de integración manual/por archivos si un proveedor específico ya lo usa y no puede migrar.
+- **Alpwin** no tiene API pública. Ya no bloquea el piloto (Barú no lo usa), pero **sigue siendo un caso real** — lo usa Caramel Coffee — así que el `AlpwinAdapter` por archivos/BD puente sigue haciendo falta, solo que para el segundo local y no para el primero.
 - Adicionalmente, se revisó el flujo funcional documentado (`Flujos-Aliflow-Revision.html`) y se detectó una **contradicción entre el Acta y el flujo** respecto al comprobante tributario, además de varios vacíos no cubiertos aún (ver sección 5).
 - **Se construyó y validó en vivo un demo funcional** de la arquitectura propuesta usando Odoo Community (ver sección 4.2) — no es solo una propuesta teórica, ya se probó que el flujo menú → compra → descuento de stock → comprobante funciona técnicamente. Código en el repositorio del proyecto, carpeta `demo-odoo/`.
 
@@ -70,7 +71,7 @@ Técnicamente, la API de Alegra sí es la mejor documentada que se revisó (Basi
 - Es un sistema de contabilidad/facturación de **Syscompsa S.A.**, aparentemente un ERP contable genérico para pymes, no un POS especializado en alimentos.
 - No se encontró documentación pública de API, portal de desarrolladores, ni referencias de integración REST/webhooks.
 - Mecanismos de integración esperables: exportación/importación de archivos (CSV/Excel), acceso directo a su base de datos, o conector a medida negociado con Syscompsa.
-- **Recomendación**: solo construir un adaptador para Alpwin si un proveedor real de Aliflow ya lo usa y no puede migrar; en ese caso el adaptador probablemente sea basado en archivos, no en llamadas API síncronas.
+- **Recomendación (actualizada 28-jul-2026)**: hay un local real que lo usa (Caramel Coffee), así que el adaptador sí hace falta — pero **después** del piloto con Barú/Contífico, no antes. Muy probablemente será basado en archivos, no en llamadas API síncronas.
 
 ---
 
@@ -82,10 +83,14 @@ El núcleo de Aliflow no debe conocer nada de Odoo, Contífico o Alpwin directam
 
 ```
 interface IInventoryProvider {
+  // ERP -> Aliflow
   getMenu(tenantId): MenuItem[]
+  getStock(tenantId, itemId): int
+  getSyncStatus(tenantId): SyncStatus
+  // Aliflow -> ERP
   updateStock(tenantId, itemId, delta): Result
   notifySale(tenantId, orderId, items): Result
-  getSyncStatus(tenantId): SyncStatus
+  notifyPayment(tenantId, orderId, pago): Result
 }
 ```
 
@@ -100,7 +105,7 @@ Definir un esquema intermedio propio de Aliflow (`CanonicalProduct`, `CanonicalS
 | Estrategia | Cuándo usarla | Trade-off |
 |---|---|---|
 | Push en tiempo real | ERPs con API síncrona (Odoo, Contífico) | Requiere manejo de fallos de red inmediato |
-| Polling periódico | ERPs sin webhooks (caso probable de Alpwin) | Introduce latencia — ventana de "vendido antes de confirmar" ya identificada como riesgo |
+| Polling periódico | ERPs sin webhooks — **el caso de Contífico** (confirmado, sección 2.2) y de Alpwin | Introduce latencia — ventana de "vendido antes de confirmar" ya identificada como riesgo. Es el mecanismo real detrás de la "bidireccionalidad" que pidió Negocios; ver sección 4.3. |
 | Batch/reconciliación | Red de seguridad diaria, no mecanismo primario | Detecta y corrige divergencias que el push no resolvió |
 
 ### 3.4 Manejo de fallos
@@ -111,11 +116,13 @@ Definir un esquema intermedio propio de Aliflow (`CanonicalProduct`, `CanonicalS
 
 ### 3.5 Multi-tenant
 
-Cada proveedor tiene su propio conjunto de credenciales de ERP, almacenadas cifradas en una tabla `provider_integration_config` separada del dominio — nunca hardcodeadas por adaptador.
+Cada local tiene su propio conjunto de credenciales de ERP, almacenadas cifradas en una tabla `provider_integration_config` separada del dominio — nunca hardcodeadas por adaptador.
+
+**Actualizado 28-jul-2026:** esta sección era la más "por si acaso" de todo el diseño y resultó ser la más importante. Con la aclaración de Negocios (cada local usa un ERP distinto, sección 4.3), el multi-tenant deja de ser una previsión y pasa a ser el modo normal de operación: en producción habrá varios adaptadores activos al mismo tiempo, resueltos por `tenantId` en cada llamada.
 
 ### 3.6 Mapeo a entregables UML del proyecto
 
-- **Diagrama de componentes:** `Aliflow Core` → `Integration Layer` (expone `IInventoryProvider`) → `OdooAdapter` / `ContificoAdapter` / `AlpwinAdapter` → `Retry Worker` / `Reconciliation Store`.
+- **Diagrama de componentes:** `Aliflow Core` → `Integration Layer` (expone `IInventoryProvider`) → `ContificoAdapter` / `AlpwinAdapter` / `OdooAdapter` → `Retry Worker` / `Reconciliation Store`.
 - **Diagrama de despliegue:** nodo backend de Aliflow, nodo/worker de sincronización, y nodos externos representando los servidores de cada ERP (fuera de control de Aliflow, conexión HTTPS).
 - **Diagrama de clases:** la interfaz `IInventoryProvider` + implementaciones concretas es un ejemplo directo de Dependency Inversion y Open/Closed (SOLID), relevante para el rubro de diagramas de clases de la rúbrica.
 
@@ -123,11 +130,16 @@ Cada proveedor tiene su propio conjunto de credenciales de ERP, almacenadas cifr
 
 ## 4. Ruta de implementación sugerida
 
-1. **Fase 0 — piloto, presupuesto $0 (ahora):** levantar Odoo Community self-hosted (el propio equipo de Ingeniería puede hacerlo) y construir el `OdooAdapter` como primera implementación real de `IInventoryProvider`. Es la herramienta para **validar la arquitectura y demostrar que la integración funciona**, no el destino final recomendado.
-2. **Fase 1 — con presupuesto del cliente: migrar a Contífico.** Solo se agrega `ContificoAdapter` detrás del mismo contrato — el core de Aliflow no cambia.
-3. **Caso especial — proveedor ya usa Alpwin u otro ERP sin API:** construir un adaptador basado en archivos/polling de base de datos, aislado detrás del mismo contrato `IInventoryProvider`.
+> **Reescrita el 28-jul-2026.** La versión original de esta ruta ("empezar con Odoo, migrar a Contífico cuando haya presupuesto") partía de una premisa que Negocios corrigió: que había que **elegir** un ERP para el proveedor. No hay que elegir ninguno — cada local ya tiene el suyo y Aliflow se adapta. La ruta vigente está en la sección 4.3, "Ruta ajustada". Se resume aquí:
 
-### 4.1 Por qué Contífico es la opción recomendada a largo plazo (y no solo "una alternativa")
+1. **Fase 0 — demo técnico, $0 (ya hecho):** Odoo Community self-hosted + `OdooAdapter` como primera implementación real de `IInventoryProvider`. Banco de pruebas de la arquitectura, no candidato a reemplazar el ERP de nadie.
+2. **Fase 1 — piloto real: `ContificoAdapter`** para Barú. Primer adaptador de producción; bloqueado solo por las credenciales.
+3. **Fase 2 — segundo local: `AlpwinAdapter`** para Caramel Coffee, por archivos/BD puente si Syscompsa no ofrece nada mejor.
+4. **Fase 3 — escalar:** cada local nuevo = un valor de `TipoERP` + una clase adaptadora.
+
+### 4.1 Por qué Contífico es una buena noticia (evaluación previa, reinterpretada el 28-jul-2026)
+
+> **Nota de contexto:** esta sección se escribió el 26-jul para argumentar por qué el equipo *recomendaba* migrar a Contífico. Esa recomendación ya no aplica —el local piloto ya lo usa, no hay nada que recomendar—, pero el análisis sigue siendo útil, porque explica por qué que Barú use Contífico es la mejor carta que podía tocarnos.
 
 Odoo Community resuelve el problema técnico y de costo *ahora*, pero no es la recomendación final del equipo para cuando el proyecto ya sea un producto real en manos del cliente:
 
@@ -136,7 +148,7 @@ Odoo Community resuelve el problema técnico y de costo *ahora*, pero no es la r
 - **Menor esfuerzo operativo a escala.** Una vez que el proveedor factura en volumen real, no tener que administrar un servidor (parches de seguridad, backups, escalado) es una ventaja frente al modelo self-hosted de Odoo.
 - **Ya validamos que su API REST es real, simple y suficiente** (sección 2.2) para lo que Aliflow necesita — no hay ganancia técnica en quedarse con Odoo una vez que el presupuesto deja de ser la restricción.
 
-En resumen: **Odoo Community es la solución de arranque; Contífico es la recomendación de destino** una vez que el proyecto tenga presupuesto — no se trata de "cualquiera de las dos sirve", sino de una ruta de migración planeada desde ahora gracias al patrón adaptador.
+En resumen (reinterpretado): el ERP que el local piloto ya usa resulta ser el que el equipo habría recomendado de todas formas. Eso elimina de golpe la conversación incómoda de "pedirle al cliente que cambie de sistema" para el piloto — conversación que sigue viva, pero solo para los locales que lleguen con un ERP sin API.
 
 ### 4.2 Demo técnico construido y validado (26-jul-2026)
 
@@ -156,28 +168,53 @@ Se construyó y se corrió en vivo un demo funcional que implementa el patrón d
 
 **Pendiente aceptado a propósito para esta etapa:** la factura queda en estado borrador, sin autorización real ante el SRI (requeriría subir un certificado `.p12` real de una empresa existente) — no era necesario para demostrar que la arquitectura e integración funcionan técnicamente.
 
-### 4.3 Hallazgo crítico: el proveedor real es Barú, y su sistema es Alpwin
+### 4.3 Corregido (28-jul-2026): Aliflow es multi-tenant y multi-ERP — y Barú usa Contífico, no Alpwin
 
-**Confirmado el 26-jul-2026**, a partir de una investigación previa del equipo (conversación separada revisada por Ingeniería): el nombre completo del proyecto es *"Aliflow — Sistema web para venta online de almuerzos en Barú UEES"*. **Barú es la cafetería/bar real de la UEES**, no un proveedor de ejemplo — y **su sistema de punto de venta actual es Alpwin**, el mismo que ya aparecía nombrado en el Acta original (sección 2.5 de este documento).
+**Qué decía este documento el 26-jul-2026:** que el proveedor real del proyecto era Barú y que su sistema era Alpwin, y que por lo tanto el adaptador urgente era `AlpwinAdapter`.
 
-**Por qué esto cambia el enfoque de la decisión:**
+**Qué aclaró Negocios el 28-jul-2026:** las dos mitades de esa afirmación estaban mal.
 
-El acta fundacional del proyecto (25-jun-2026, sección 6) fue explícita: *"no es conveniente desarrollar un sistema de inventario propio... la estrategia será conectar Aliflow con los sistemas ya utilizados por los proveedores de alimentación."* Es decir, la estrategia acordada desde el inicio es **integrar con lo que el proveedor ya tiene**, no migrarlo a un sistema nuevo. Nuestra comparación de ERPs (secciones 2 y 4) evaluó "qué sistema recomendar si hubiera que elegir uno desde cero" — un análisis válido y necesario, pero que **no era la pregunta real** una vez que sabemos que Barú ya usa Alpwin.
+1. **No hay "el proveedor" en singular.** Aliflow debe poder conectarse al sistema de **cualquier local de comida de la universidad** — Barú, Caramel Coffee, y los que se agreguen después. Cada uno es un negocio distinto, con su propio ERP.
+2. **La asignación de ERP estaba invertida.** **Barú usa Contífico. Caramel Coffee usa Alpwin.** El hallazgo del 26-jul venía de una fuente indirecta (una conversación previa del equipo, no un acta) y este documento ya lo advertía; la corrección confirma que esa advertencia estaba justificada.
+3. **La conexión es bidireccional, y eso es un requisito, no un detalle.** El ERP del local le informa a Aliflow qué inventario tiene disponible ese día y qué pedidos entran por sus otros canales; Aliflow le devuelve las órdenes que se hicieron y los pagos que se cobraron, para que su inventario y su contabilidad queden sincronizados. Sin las dos direcciones, el inventario diverge.
 
-**Consecuencia práctica:**
+#### Qué mejora y qué empeora
 
-1. El **demo con Odoo Community (sección 4.2) sigue siendo válido y valioso** como prueba de que la arquitectura (patrón Adapter + API genérica) funciona técnicamente contra un ERP real — es evidencia de arquitectura, no una promesa de que así se integrará con Barú.
-2. Pero el **adaptador que de verdad hace falta construir para el piloto real es `AlpwinAdapter`**, no `OdooAdapter` — y ya documentamos (sección 2.5) que Alpwin no tiene API pública conocida.
-3. **Antes de asumir que hay que migrar a Barú a otro sistema**, corresponde agotar la vía original del acta: contactar directamente a Syscompsa (fabricante de Alpwin) para verificar si existe algún mecanismo de integración no público (API privada bajo NDA, exportación programática, acceso a base de datos, etc.) — esto no se había intentado antes porque Alpwin era un caso hipotético; ahora es el caso real y amerita ese contacto directo.
-4. Si Syscompsa no ofrece ningún mecanismo viable, el `AlpwinAdapter` tendría que construirse sobre **exportación/importación de archivos o un puente de base de datos** (ya anticipado en la sección 2.5), aceptando sincronización por lotes en vez de tiempo real para este proveedor específico — el patrón Adapter ya diseñado soporta esto sin cambiar el core de Aliflow.
-5. Si eso tampoco es viable, **la conversación con Barú/UEES sobre migrar a un sistema con API (Odoo Community u otro) deja de ser una recomendación técnica unilateral y pasa a ser una decisión de negocio** que debe plantearse explícitamente al cliente, con el costo/beneficio ya documentado en este informe.
+Conviene no vender esto solo como buena noticia:
 
-**Ruta ajustada para la próxima reunión:**
-1. Confirmar con el equipo/Negocios que efectivamente Barú usa Alpwin (este hallazgo viene de una fuente indirecta, no de una confirmación oficial documentada — ver checklist sección 6).
-2. Contactar a Syscompsa para descartar (o confirmar) una vía de integración no documentada públicamente.
-3. Solo si no hay vía técnica, escalar la decisión de "migrar de sistema" al cliente como una opción — no como algo ya decidido por Ingeniería.
+| | Antes (lo que creíamos) | Ahora (lo real) |
+|---|---|---|
+| **ERP del local piloto** | Alpwin — sin API pública, integración por archivos en el mejor caso | **Contífico** — API REST documentada, la mejor evaluada junto con Alegra |
+| **Riesgo dominante** | R-11: el piloto podía ser técnicamente inviable | R-01: conseguir credenciales de Contífico — un problema de gestión, no de ingeniería |
+| **Alcance del producto** | Una integración, con un tenant | **Una plataforma multi-tenant** con N ERP heterogéneos conviviendo |
+| **Costo de operación** | Un conjunto de credenciales, un ERP que monitorear | N conjuntos de credenciales, N ERP, N formatos de error, N interlocutores de soporte |
+| **Valor de la arquitectura Adapter** | Defensiva ("por si acaso el proveedor cambia de sistema") | **Estructural** — sin ella el producto directamente no funciona |
 
----
+En resumen: **el arranque se destrabó y el producto creció.** El trabajo de la sección 3 (Adapter + modelo canónico + outbox) no cambia ni una línea — que era exactamente su propósito — pero pasó de ser una buena práctica a ser el núcleo del sistema.
+
+#### Sobre la bidireccionalidad: un punto técnico que hay que decir ahora
+
+Negocios pidió que la conexión sea "bilateral", y eso tiene una implicación que no es obvia. Que Aliflow le escriba al ERP es fácil (es una llamada REST). Que el **ERP le avise a Aliflow** cuando cambia algo es lo difícil, porque:
+
+- **Contífico no tiene webhooks** (confirmado en la sección 2.2). No puede notificar a Aliflow por iniciativa propia.
+- **Alpwin no tiene ni API.**
+
+Por lo tanto, "bidireccional" en la práctica se implementa así, y conviene que Negocios lo sepa antes de prometerle tiempo real a un local:
+
+| Dirección | Mecanismo real | Latencia |
+|---|---|---|
+| Aliflow → ERP (órdenes, pagos, descuento de stock) | Push directo vía adaptador, con outbox y reintentos | Segundos |
+| ERP → Aliflow (inventario del día, pedidos de otros canales) | **Polling** de Aliflow contra el ERP, en intervalo configurable | Minutos — es la "ventana de vendido antes de confirmar" ya registrada como riesgo |
+| ERP → Aliflow, cuando el ERP sí soporte webhooks | Endpoint entrante en Aliflow (queda diseñado, sin uso en v1) | Segundos |
+
+La ventana de polling es la razón por la que el bloqueo optimista de stock **debe vivir en la base de datos de Aliflow** y no delegarse al ERP — cosa que además ya se comprobó empíricamente (`demo-odoo/README.md`, sección 7).
+
+#### Ruta ajustada
+
+1. **Fase 0 (ahora, $0):** demo con Odoo Community, ya construido y validado (sección 4.2). Sirve como banco de pruebas de la arquitectura y del outbox, no como ERP candidato para nadie.
+2. **Fase 1 (piloto real): `ContificoAdapter`.** Es el primer adaptador de producción. Bloqueante: conseguir credenciales de API de Contífico a través de Barú (riesgo R-01).
+3. **Fase 2 (segundo local): `AlpwinAdapter`.** Contactar a Syscompsa para descartar una vía de integración no pública antes de comprometerse con archivos/BD puente. Ya no bloquea el arranque, pero sigue pendiente.
+4. **Fase 3 (escalar):** cada local nuevo = un valor de `TipoERP` + una clase adaptadora. Si un local llega con un ERP sin API y sin alternativa, ahí sí corresponde plantearle a **ese local** —no al proyecto entero— la conversación de migrar de sistema.
 
 ## 5. Revisión del flujo funcional (`Flujos-Aliflow-Revision.html`)
 
@@ -191,11 +228,13 @@ El flujo del rol Proveedor (paso `prov-6` — "Re-emisión de comprobante tribut
 
 **Recomendación:** aclarar y corregir el texto del acta antes de que quede plasmado así en el documento de especificación de requerimientos — el modelo correcto y ya confirmado es el de **re-emisión por parte del proveedor**, no emisión fiscal directa de Aliflow.
 
-### 5.2 Decisiones abiertas de alto impacto (ya marcadas en el flujo, priorizadas aquí)
+### 5.2 Decisiones de alto impacto — cerradas por Negocios el 28-jul-2026
 
-1. **Saldo por proveedor vs. saldo único distribuido internamente** (paso `est-2` — "Recarga de tarjeta virtual") — define el modelo de datos de la wallet y cómo interactúa con la API genérica. Recomendado cerrar antes de construir el diagrama de clases.
-2. **Modelo de cobro de Aliflow al proveedor** (comisión/suscripción, paso `prov-5` — "Visualización de métricas y operación") — no bloquea el MVP técnico, pero afecta el modelo de datos si se quiere reflejar en los requerimientos.
-3. **Formato del código de retiro** (QR vs. numérico, pasos `est-6` — "Retiro del almuerzo" — y `op-2` — "Recepción del estudiante en el punto de entrega") — bloquea el prototipo de alta fidelidad (mockups) exigido en el entregable. **Propuesta encontrada (revisión de investigación previa del equipo, 26-jul-2026, no formalizada aún):** UUID firmado con expiración de X minutos, validado en backend — resolvería tanto el formato como la invalidación de un solo uso. Falta confirmarlo formalmente con el equipo/Negocios.
+Las tres estaban abiertas y bloqueaban trabajo. Las tres se resolvieron:
+
+1. **Saldo por proveedor vs. saldo único** (paso `est-2` — "Recarga de tarjeta virtual"). **Resuelto: recarga única.** El estudiante hace una sola recarga a una bolsa común y Aliflow la distribuye internamente hacia los locales. Queda un punto fino que Ingeniería resolvió por interpretación y que conviene confirmar: *cuándo* ocurre esa distribución. Repartir el monto entre todos los locales en el momento de recargar es inviable (una recarga de $20 entre 4 locales deja $5 en cada uno, y el estudiante no puede almorzar en ninguno), así que se modeló como reparto **al momento de la compra**, con un libro interno por local. Ver `uml/Documentacion-Diagrama-Clases.md`, sección 3.
+2. **Modelo de cobro de Aliflow al proveedor** (paso `prov-5`). **Sigue abierto** — es la única de las tres que no se resolvió. No bloquea el MVP técnico.
+3. **Formato del código de retiro** (pasos `est-6` y `op-2`). **Resuelto: código numérico corto.** Negocios descartó la propuesta de Ingeniería (UUID firmado) por una razón operativa correcta: el estudiante le dice el código al Operador de viva voz y este lo digita. Se implementa como 6 dígitos, únicos entre los códigos vigentes del mismo local, con expiración y un solo uso. Desbloquea el prototipo de mockups (entregable 01.f). El costo de la decisión es que el código pasa a ser adivinable por fuerza bruta, lo que se registró como riesgo R-15.
 
 ### 5.3 Vacíos detectados, no flageados aún en el flujo
 
@@ -207,22 +246,31 @@ El flujo del rol Proveedor (paso `prov-6` — "Re-emisión de comprobante tribut
 
 ---
 
-## 6. Pendientes para la siguiente reunión
+## 6. Pendientes — estado al 28-jul-2026
+
+### Cerrado
 
 - [x] Investigar y comparar ERPs candidatos (Contífico, Alpwin, Alegra, Odoo Community, ERPNext).
 - [x] Construir y validar un demo técnico de la arquitectura propuesta (Odoo Community, ver sección 4.2).
 - [x] Publicar el proyecto en un repositorio público (https://github.com/Jesus-JB/aliflow).
-- [ ] **Prioritario:** confirmar oficialmente con el equipo/Negocios que el proveedor real es Barú y su sistema es Alpwin (sección 4.3) — el hallazgo viene de una fuente indirecta, no de una confirmación documentada en acta.
-- [ ] **Prioritario:** contactar a Syscompsa (fabricante de Alpwin) para verificar si existe algún mecanismo de integración no público, antes de asumir que hay que construir un adaptador basado en archivos o migrar a Barú a otro sistema (sección 4.3).
-- [ ] Validar con Negocios la corrección de la sección 4 del acta (comprobante tributario).
-- [ ] Decidir modelo de saldo (por proveedor vs. unificado).
-- [ ] Confirmar formalmente el formato del código de retiro (propuesta: UUID firmado con expiración, ver sección 5.2).
-- [ ] Aprobar la ruta de implementación ajustada (AlpwinAdapter como prioridad real; Odoo Community como demo de arquitectura; Contífico como opción de destino si se decide migrar de sistema) con el equipo y, si aplica, con el cliente.
-- [ ] Definir estado de expiración/no-show para órdenes no retiradas.
-- [ ] Registrar formalmente el riesgo de "sin modo offline" en el documento de gestión de riesgos.
-- [ ] Definir el alcance real del rol "Administrador" (super-admin de la plataforma Aliflow, distinto de Proveedor) — ver `uml/Documentacion-Casos-de-Uso.md`, actor agregado como pendiente de definición.
-- [ ] Formalizar el registro de riesgos ya elaborado en `Gestion-de-Riesgos.md` con el equipo (10 riesgos ya identificados, ver ese documento).
-- [ ] (Opcional, no bloqueante) Verificar oficialmente el precio de Contífico — se encontró una referencia no oficial de terceros (Lite $9/mes, Pyme $30/mes, Anual $91/año) que contradice nuestra afirmación previa de "sin costos públicos". Nota: Contífico ahora opera como **"Siigo Contífico"** tras una fusión — su portal de clientes está en `contifico.portaldeclientes.siigo.ec`.
+- [x] **Confirmar cuál es el ERP real del proveedor** — resuelto y **corregido** el 28-jul-2026: no hay un solo proveedor; Barú usa Contífico y Caramel Coffee usa Alpwin (sección 4.3).
+- [x] **Decidir modelo de saldo** — recarga única distribuida internamente (sección 5.2).
+- [x] **Confirmar el formato del código de retiro** — numérico corto de 6 dígitos (sección 5.2).
+- [x] **Definir el alcance del rol "Administrador"** — no existe como rol aparte: es el Proveedor, el gerente del local. Solo hay 3 roles.
+- [x] **Definir si un proveedor puede tener varios usuarios** — sí, varias cuentas de Proveedor y varias de Operador por local.
+- [x] Registrar formalmente el riesgo de "sin modo offline" en el documento de gestión de riesgos (R-12).
+
+### Abierto
+
+- [ ] **Prioritario:** conseguir credenciales de API de Contífico a través de Barú — es lo único que separa al proyecto de tener un adaptador de producción funcionando (riesgo R-01, que volvió a ser el riesgo dominante).
+- [ ] Contactar a Syscompsa (fabricante de Alpwin) para verificar si existe algún mecanismo de integración no público, antes de comprometerse con un adaptador por archivos/BD puente para Caramel Coffee (riesgo R-11, ya no bloqueante).
+- [ ] Validar con Negocios la corrección de la sección 4 del acta (comprobante tributario, sección 5.1).
+- [ ] Confirmar la interpretación de Ingeniería sobre *cuándo* se distribuye internamente el saldo (sección 5.2, punto 1).
+- [ ] Definir quién da de alta un local nuevo, ahora que no existe un rol de super-admin en el sistema (propuesta de Ingeniería: fuera de alcance de v1, lo hace el equipo manualmente).
+- [ ] Decidir el modelo de cobro de Aliflow al proveedor (comisión/suscripción).
+- [ ] Definir la regla de expiración/no-show para órdenes no retiradas.
+- [ ] Formalizar el registro de riesgos con el equipo (`Gestion-de-Riesgos.md`, 15 riesgos).
+- [ ] (Opcional, no bloqueante) Verificar oficialmente el precio de Contífico — se encontró una referencia no oficial de terceros (Lite $9/mes, Pyme $30/mes, Anual $91/año) que contradice nuestra afirmación previa de "sin costos públicos". Nota: Contífico ahora opera como **"Siigo Contífico"** tras una fusión — su portal de clientes está en `contifico.portaldeclientes.siigo.ec`. **Subió de prioridad**: ya no es un dato para una decisión futura, es el ERP del local piloto.
 
 ---
 

@@ -4,6 +4,7 @@ title Secuencia — Comprar almuerzo (UC4), con bloqueo optimista de stock
 
 actor Estudiante
 participant "Módulo de Órdenes\n(API)" as API
+participant "TarjetaVirtual" as Tarjeta
 participant "SaldoProveedor" as Saldo
 participant "Plato" as Plato
 participant "Orden" as Orden
@@ -15,8 +16,8 @@ queue "Cola de eventos\n(Redis)" as Cola
 Estudiante -> API : confirmarCompra(platoId, cantidad)
 activate API
 
-API -> Saldo : consultar saldo disponible
-Saldo --> API : monto
+API -> Tarjeta : consultar saldoDisponible
+Tarjeta --> API : monto
 
 alt saldo insuficiente
   API --> Estudiante : error "saldo insuficiente"
@@ -44,9 +45,16 @@ else saldo suficiente
     API --> Estudiante : error "sin stock disponible"
   end
 
-  API -> Saldo : descontar(monto)
+  API -> Tarjeta : descontar(monto, proveedor)
+  API -> Saldo : acreditar(monto)\n[distribución interna hacia el local]
+  note right of Saldo
+    Decisión de Negocios (28-jul-2026):
+    la recarga es única y va a una bolsa
+    común; lo que Aliflow le debe a cada
+    local se acredita aquí, al comprar.
+  end note
   API -> Orden : crear(estado=COMPRADO, proveedor,\ndetalles) [valida invariante:\nun solo proveedor por orden]
-  API -> Codigo : generar(UUID firmado, expiración)
+  API -> Codigo : generar(6 dígitos numéricos, expiración)\n[único entre los códigos vigentes del local]
   API -> Comp : generar(sinValidezTributaria=true)
   API -> Audit : registrar("confirmarCompra", estudiante)
   API -> Cola : publicar(EventoSincronizacion\ntipo=NOTIFICAR_VENTA)

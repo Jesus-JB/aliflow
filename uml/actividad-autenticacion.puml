@@ -22,7 +22,7 @@ endif
 
 if (¿Es el primer ingreso\ndel estudiante?) then (sí)
   :Crear perfil de Estudiante;
-  :Crear TarjetaVirtual\n(sin SaldoProveedor todavía);
+  :Crear TarjetaVirtual\n(saldoDisponible = 0);
 else (no)
 endif
 

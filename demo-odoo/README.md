@@ -85,8 +85,10 @@ El demo corre 3 escenarios en secuencia:
   propio de Aliflow (`plato_local.py`), no contra Odoo — ver sección 6 para el
   porqué.
 - **C — Patrón Outbox**: procesa un evento de sincronización contra un
-  adaptador que simula a Alpwin (sin API pública), con reintentos hasta
-  marcarlo `FALLIDO`.
+  adaptador que simula a Alpwin (el ERP de Caramel Coffee, sin API pública),
+  con reintentos hasta marcarlo `FALLIDO`. Barú, el local piloto, usa
+  Contífico y sí tiene API REST — ver `Hallazgos-Ingenieria-API-Generica.md`
+  sección 4.3.
 
 Puedes verificar el resultado del Escenario A directamente en la interfaz de Odoo:
 - **Inventario → Productos** para ver el stock actualizado.

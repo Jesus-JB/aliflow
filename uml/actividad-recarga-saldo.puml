@@ -19,12 +19,20 @@ else (sí)
 endif
 
 :Registrar Pago con\nestado APROBADO;
-:Aplicar EstrategiaDistribucionRecarga\n(propuesta, pendiente de validar);
-:Actualizar SaldoProveedor(es)\n(operación atómica);
+:Acreditar TarjetaVirtual.saldoDisponible\n(bolsa única, operación atómica);
 :Generar ComprobanteRecarga\n(sin validez tributaria);
 
 |Estudiante|
 :Ver saldo actualizado;
 stop
+
+note right
+  **Decisión de Negocios (28-jul-2026):** el estudiante
+  hace **una sola recarga** a una bolsa única, gastable
+  en cualquier local. Ya no se reparte el monto entre
+  proveedores en este paso — la distribución interna
+  hacia cada local ocurre al comprar (ver
+  actividad-compra-almuerzo.puml).
+end note
 
 @enduml

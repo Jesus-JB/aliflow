@@ -18,7 +18,7 @@ Cubre la rama que el flujo original ya identificaba como crítica (validación d
 
 **Fuente:** `actividad-recarga-saldo.puml` · **Referencia:** `est-2`, UC2.
 
-Incluye el paso `EstrategiaDistribucionRecarga` marcado explícitamente como **propuesta pendiente de validar** (mismo criterio que en el diagrama de clases) — este diagrama no resuelve la decisión de negocio, solo muestra dónde encaja en el proceso.
+**Actualizado el 28-jul-2026** con la decisión de Negocios: la recarga es **única** y acredita una bolsa común (`TarjetaVirtual.saldoDisponible`), no se reparte entre proveedores en este paso. El reparto interno hacia cada local pasó al proceso de compra, donde sí se sabe a qué local le corresponde el dinero. Antes este paso mostraba una `EstrategiaDistribucionRecarga` marcada como propuesta pendiente.
 
 ## 3. Comprar almuerzo
 
@@ -42,7 +42,7 @@ Cubre las tres ramas de excepción que el flujo original ya documentaba: sin có
 
 **Fuente:** `actividad-sincronizacion-erp.puml` · **Referencia:** `Hallazgos-Ingenieria-API-Generica.md` sección 3.4, `uml/objeto-integracion-erp.puml`.
 
-Este es el proceso que materializa el patrón Outbox: consumir el evento, invocar el adaptador correspondiente, y — si falla — reintentar con backoff hasta un máximo, marcando el evento como `FALLIDO` para reconciliación manual en el panel del Proveedor (UC10). Es la misma secuencia que ya ilustramos con datos concretos en el diagrama de objetos (`objeto-integracion-erp.puml`, evento fallido tras 3 intentos con Alpwin) — aquí se ve el proceso general, allá el caso puntual.
+Este es el proceso que materializa el patrón Outbox: consumir el evento, invocar el adaptador correspondiente, y — si falla — reintentar con backoff hasta un máximo, marcando el evento como `FALLIDO` para reconciliación manual en el panel del Proveedor (UC10). Es la misma secuencia que ya ilustramos con datos concretos en el diagrama de objetos (`objeto-integracion-erp.puml`, evento fallido tras 3 intentos contra Alpwin en Caramel Coffee, junto a uno exitoso contra Contífico en Barú) — aquí se ve el proceso general, allá el caso puntual.
 
 ---
 
@@ -50,4 +50,4 @@ Este es el proceso que materializa el patrón Outbox: consumir el evento, invoca
 
 - **Consultar menú (UC3)** y **Administrar menú (UC8)** — son mayormente lineales (sin ramas de decisión relevantes más allá de la sincronización con el ERP, ya cubierta en el diagrama 5); no se justificaba un diagrama separado.
 - **Configurar integración (UC7)**, **Consultar métricas (UC9/UC13)**, **Consultar estado de sincronización (UC10)**, **Consultar detalle de venta (UC11)** — son consultas/configuración sin lógica de negocio compleja.
-- **UC12/UC14 (Administrador)** — al ser propuesta de Ingeniería sin validar (ver `uml/Documentacion-Casos-de-Uso.md`), no se modeló su actividad en detalle todavía; se hará si Negocios confirma el alcance del rol.
+- **UC12 (Gestionar usuarios del local)** — es un CRUD de cuentas sin ramas de decisión interesantes; no aporta como diagrama de actividad. Los antiguos UC13/UC14 desaparecieron junto con el rol de super-admin descartado por Negocios el 28-jul-2026.

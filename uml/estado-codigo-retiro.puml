@@ -13,9 +13,9 @@ endlegend
 
 state Expirado <<propuesta>>
 
-[*] --> Vigente : generar(UUID firmado,\nfechaExpiracion)\n[al confirmar la compra]
+[*] --> Vigente : generar(6 dígitos numéricos,\nfechaExpiracion)\n[al confirmar la compra]
 
-Vigente --> Usado : invalidarSiNoUsado()\nUPDATE ... WHERE usado=false\n[Cajero confirma entrega]
+Vigente --> Usado : invalidarSiNoUsado()\nUPDATE ... WHERE usado=false\n[Operador confirma entrega]
 
 Vigente --> Expirado : fechaExpiracion alcanzada\nsin ser usado
 
@@ -28,6 +28,19 @@ note right of Vigente
   doble redención (riesgo R-14,
   ver Gestion-de-Riesgos.md y
   secuencia-retiro-entrega.puml).
+end note
+
+note left of Vigente
+  **Formato (decisión de Negocios, 28-jul-2026):**
+  código **numérico corto de 6 dígitos**, no UUID
+  ni QR — el estudiante se lo dice de viva voz al
+  Operador y este lo digita en Aliflow.
+  Consecuencia de diseño: la unicidad se exige solo
+  entre los códigos **Vigentes del mismo local**
+  (no global ni histórica), y se reintenta la
+  generación si hay colisión. El espacio corto
+  obliga además a limitar los intentos de validación
+  (riesgo R-15 en Gestion-de-Riesgos.md).
 end note
 
 note right of Expirado

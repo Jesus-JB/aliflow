@@ -8,7 +8,19 @@ object "baru : Proveedor" as baru {
   activo = true
 }
 
-object "integ1 : IntegracionERP" as integ1 {
+object "integBaru : IntegracionERP" as integBaru {
+  tipoERP = "CONTIFICO"
+  endpoint = "https://api.contifico.com/sistema/api/v1/"
+  ultimaSincronizacionExitosa = "2026-07-27 12:16"
+}
+
+object "caramel : Proveedor" as caramel {
+  nombreComercial = "Caramel Coffee"
+  ruc = "0997654321001"
+  activo = true
+}
+
+object "integCaramel : IntegracionERP" as integCaramel {
   tipoERP = "ALPWIN"
   endpoint = "(sin API pública conocida)"
   ultimaSincronizacionExitosa = "2026-07-20 09:12"
@@ -16,35 +28,59 @@ object "integ1 : IntegracionERP" as integ1 {
 
 object "factory : ProviderAdapterFactory" as factory
 
-object "adapter1 : AlpwinAdapter" as adapter1
+object "adapterBaru : ContificoAdapter" as adapterBaru
+
+object "adapterCaramel : AlpwinAdapter" as adapterCaramel
 
 object "worker : SincronizacionWorker" as worker
 
-object "evento1 : EventoSincronizacion" as evento1 {
+object "eventoOk : EventoSincronizacion" as eventoOk {
   tipoEvento = "NOTIFICAR_VENTA"
   payload = "ORD-2026-000482"
-  estado = "FALLIDO"
-  intentos = 3
+  estado = "PROCESADO"
+  intentos = 1
   fechaCreacion = "2026-07-27 12:15"
 }
 
-baru *-- integ1
-baru *-- evento1
-factory ..> integ1 : lee tipoERP
-factory ..> adapter1 : crea
-worker ..> factory : usa
-worker ..> evento1 : procesa
-worker ..> adapter1 : invoca notifySale()
+object "eventoFallido : EventoSincronizacion" as eventoFallido {
+  tipoEvento = "NOTIFICAR_VENTA"
+  payload = "ORD-2026-000517"
+  estado = "FALLIDO"
+  intentos = 3
+  fechaCreacion = "2026-07-27 12:41"
+}
 
-note bottom of evento1
-  Snapshot del hallazgo crítico
-  (Hallazgos-Ingenieria-API-Generica.md,
-  sección 4.3): Barú usa Alpwin, que no
-  tiene API pública. Este evento ya
-  agotó 3 reintentos y queda FALLIDO —
-  visible en el panel del proveedor
-  (UC10) para reconciliación manual,
-  en vez de perder la venta.
+baru *-- integBaru
+baru *-- eventoOk
+caramel *-- integCaramel
+caramel *-- eventoFallido
+
+factory ..> integBaru : lee tipoERP
+factory ..> integCaramel : lee tipoERP
+factory ..> adapterBaru : crea
+factory ..> adapterCaramel : crea
+worker ..> factory : usa
+worker ..> eventoOk : procesa
+worker ..> eventoFallido : procesa
+worker ..> adapterBaru : invoca notifySale()
+worker ..> adapterCaramel : invoca notifySale()
+
+note bottom of eventoOk
+  Snapshot de la arquitectura multi-tenant
+  confirmada el 28-jul-2026: **cada local trae
+  su propio ERP**. Barú usa Contífico, que sí
+  tiene API REST documentada — el evento se
+  procesa al primer intento.
+end note
+
+note bottom of eventoFallido
+  El mismo core, el mismo worker y la misma
+  interfaz, contra un ERP sin API pública
+  (Caramel Coffee / Alpwin): el evento agota
+  3 reintentos y queda FALLIDO — visible en el
+  panel del proveedor (UC10) para reconciliación
+  manual, en vez de perder la venta. Ver
+  Hallazgos-Ingenieria-API-Generica.md sección 4.3.
 end note
 
 @enduml

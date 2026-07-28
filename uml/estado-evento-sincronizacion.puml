@@ -25,7 +25,8 @@ note right of FALLIDO
   (UC10) para reconciliación manual.
   Caso real ilustrado en
   objeto-integracion-erp.puml
-  (Barú / Alpwin, 3 intentos agotados).
+  (p. ej. Caramel Coffee / Alpwin,
+  3 intentos agotados).
 end note
 
 @enduml

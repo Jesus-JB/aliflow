@@ -5,12 +5,12 @@ left to right direction
 
 legend top left
   <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / decisión de Negocios
 endlegend
 
 actor Estudiante
-actor Proveedor
+actor "Proveedor\n(administrador del local)" as Proveedor
 actor Operador
-actor Administrador
 
 package "Cliente" {
   [Aliflow Web\n(Next.js + TypeScript)] as WEB
@@ -21,20 +21,20 @@ package "Aliflow API (FastAPI)" {
   [Módulo de Wallet\n(saldo, recargas, pagos)] as WALLET
   [Módulo de Órdenes\n(compra, código de retiro)] as ORDERS
   [Módulo de Proveedores y Menú] as PROVMOD
-  [Módulo de Administración] as ADMINMOD #FFF3B0
+  [Módulo de Usuarios del Local\n(altas de Proveedores y Operadores)] as USERMOD
 }
 
 package "Capa de Integración" {
   interface IInventoryProvider
   [ProviderAdapterFactory] as FACTORY
-  [OdooAdapter] as ODOOA
   [ContificoAdapter] as CONTIFICOA
   [AlpwinAdapter] as ALPWINA
+  [OdooAdapter] as ODOOA
 
   FACTORY --> IInventoryProvider
-  ODOOA -up-( IInventoryProvider
   CONTIFICOA -up-( IInventoryProvider
   ALPWINA -up-( IInventoryProvider
+  ODOOA -up-( IInventoryProvider
 }
 
 package "Procesamiento asíncrono" {
@@ -46,18 +46,17 @@ database "PostgreSQL" as DB
 
 cloud "Proveedor de Identidad\n(Google OAuth)" as IDP
 cloud "Pasarela de Pagos\n(Kushki / PayPhone / Stripe)" as PAY
-cloud "Sistema ERP del Proveedor\n(Odoo / Contífico / Alpwin)" as ERP
+cloud "ERP de cada local\n(Barú → Contífico,\nCaramel Coffee → Alpwin, …)" as ERP
 
 Estudiante --> WEB
 Proveedor --> WEB
 Operador --> WEB
-Administrador --> WEB
 
 WEB --> AUTH : HTTPS/REST
 WEB --> WALLET : HTTPS/REST
 WEB --> ORDERS : HTTPS/REST
 WEB --> PROVMOD : HTTPS/REST
-WEB --> ADMINMOD : HTTPS/REST
+WEB --> USERMOD : HTTPS/REST
 
 AUTH --> IDP : OAuth 2.0 / OIDC
 WALLET --> PAY : procesar pago
@@ -66,7 +65,7 @@ AUTH --> DB
 WALLET --> DB
 ORDERS --> DB
 PROVMOD --> DB
-ADMINMOD --> DB
+USERMOD --> DB
 
 ORDERS --> QUEUE : publica evento\n(venta confirmada)
 PROVMOD --> QUEUE : publica evento\n(cambio de menú/stock)
@@ -75,14 +74,22 @@ WORKER --> QUEUE : consume
 WORKER --> IInventoryProvider : usa
 WORKER --> DB : actualiza estado\nde sincronización
 
-ODOOA --> ERP
-CONTIFICOA --> ERP
-ALPWINA --> ERP : archivos / BD puente\n(sin API pública)
+CONTIFICOA <--> ERP : REST bidireccional\n(lee inventario / notifica ventas y pagos)
+ODOOA <--> ERP : JSON-RPC bidireccional
+ALPWINA <--> ERP : archivos / BD puente\n(sin API pública)
+
+note bottom of CONTIFICOA
+  Adaptador del **local piloto**: Barú usa
+  Contífico, que sí tiene API REST documentada.
+  Ver Hallazgos-Ingenieria-API-Generica.md
+  secciones 2.2 y 4.3.
+end note
 
 note bottom of ALPWINA
-  Caso real confirmado: Barú usa Alpwin.
-  Ver Hallazgos-Ingenieria-API-Generica.md
-  sección 4.3.
+  Segundo local real: Caramel Coffee usa
+  Alpwin, que **no** tiene API pública —
+  este adaptador es el caso difícil, pero
+  ya no bloquea el piloto. Ver sección 4.3.
 end note
 
 note right of QUEUE

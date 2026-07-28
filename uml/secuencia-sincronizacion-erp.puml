@@ -6,7 +6,7 @@ participant "SincronizacionWorker" as Worker
 queue "Cola de eventos\n(Redis)" as Cola
 participant "ProviderAdapterFactory" as Factory
 participant "IInventoryProvider\n(adaptador concreto)" as Adapter
-participant "Sistema ERP externo\n(Odoo / Contífico / Alpwin)" as ERP
+participant "ERP del local\n(Contífico / Alpwin / Odoo…)" as ERP
 participant "EventoSincronizacion" as Evento
 
 Worker -> Cola : consumir()
@@ -19,7 +19,7 @@ Factory --> Worker : instancia de IInventoryProvider
 loop hasta máximo de intentos
   Worker -> Adapter : notifySale(tenantId, orden)
   activate Adapter
-  Adapter -> ERP : (según implementación:\nREST/JSON-RPC, o archivo/BD puente\nsi es Alpwin)
+  Adapter -> ERP : (según implementación:\nREST si es Contífico, JSON-RPC si es Odoo,\narchivo/BD puente si es Alpwin)
   ERP --> Adapter : respuesta
   Adapter --> Worker : Result
   deactivate Adapter
@@ -43,7 +43,8 @@ opt intentos agotados sin éxito
     Visible en el panel del Proveedor
     (UC10) para reconciliación manual —
     ver uml/objeto-integracion-erp.puml
-    para el caso real con Alpwin.
+    para los locales cuyo ERP no tiene API
+    (Alpwin), no para los que sí (Contífico).
   end note
 end
 

@@ -6,20 +6,30 @@
 
 **Referencia:** cada caso de uso indica el paso correspondiente de `Flujos-Aliflow-Revision.html` (formato `{rol}-{número}`, ver nota en `Hallazgos-Ingenieria-API-Generica.md` sección 5) del que se derivó.
 
-**Convención visual (revisión 27-jul-2026):** UC12, UC13 y UC14 (asociados al actor Administrador) aparecen ahora con fondo amarillo en el diagrama — marca que son propuesta de Ingeniería sin validar con Negocios, no casos de uso confirmados. Misma convención usada en `diagrama-clases.puml` y `diagrama-componentes.puml`.
+**Convención visual:** fondo amarillo = propuesta de Ingeniería sin validar con Negocios. Misma convención usada en `diagrama-clases.puml` y `diagrama-componentes.puml`. En esta revisión (28-jul-2026) el diagrama quedó **sin ningún caso de uso amarillo**: los tres que lo estaban (UC12/UC13/UC14, del rol Administrador) fueron eliminados o reasignados tras la decisión de Negocios que se describe abajo.
+
+## Cambios de esta revisión (28-jul-2026, decisiones de Negocios)
+
+| Qué cambió | Antes | Ahora |
+|---|---|---|
+| **Número de roles** | 4 actores primarios (Estudiante, Proveedor, Operador, Administrador de plataforma) | **3** — Estudiante, Proveedor, Operador. El "Administrador" **es** el Proveedor: el gerente del local. No existe un super-admin de plataforma. |
+| **UC12/UC13/UC14** | Propuesta de Ingeniería para el super-admin (alta de proveedores, métricas globales, gestión de usuarios) | UC13 y UC14 **eliminados**. UC12 se redefine como "Gestionar usuarios del local" y pasa al Proveedor. |
+| **Personal múltiple por local** | Pendiente de definir | **Confirmado**: un local puede tener varias cuentas de Proveedor y varias de Operador. |
+| **ERP del proveedor** | Un solo ERP objetivo (se creía que Barú usaba Alpwin) | **Multi-ERP**: cada local usa el suyo (Barú → Contífico, Caramel Coffee → Alpwin), con conexión **bidireccional**. |
+| **Código de retiro (UC5)** | Pendiente entre QR y numérico; propuesta de UUID firmado | **Código numérico corto** (6 dígitos), dictado de viva voz al Operador. |
+| **Recarga de saldo (UC2)** | Pendiente entre saldo por proveedor y saldo único | **Recarga única**, distribuida internamente por Aliflow. |
 
 ## Actores
 
 | Actor | Tipo | Descripción |
 |---|---|---|
 | **Estudiante** | Primario | Usuario institucional que recarga saldo, consulta el menú, compra y retira almuerzos. |
-| **Proveedor** | Primario | Administra el menú, inventario y métricas de su negocio dentro de Aliflow. En la práctica, corresponde a Barú (cafetería de la UEES) — ver `Hallazgos-Ingenieria-API-Generica.md` sección 4.3. |
-| **Operador** | Primario | Valida compras y entrega físicamente el almuerzo en el punto de entrega. Equivalente al rol "cajero" usado en discusiones previas del equipo. |
-| **Administrador** | Primario | Super-admin de la plataforma Aliflow — **distinto del Proveedor** (confirmado 26-jul-2026). Gestiona la plataforma en sí (altas de proveedores, usuarios/roles, métricas globales), no el negocio de un proveedor específico. **Su alcance detallado (UC12-UC14) es una propuesta inicial de Ingeniería, no está validado formalmente con Negocios todavía** — ver nota en el diagrama. |
+| **Proveedor** | Primario | La **persona** que administra un local: menú, inventario, métricas, integración con su ERP y las cuentas de su propio personal. Es el gerente del local — Negocios confirmó (28-jul-2026) que el rol "Administrador" y el rol "Proveedor" son el mismo. Un local puede tener **varias** cuentas de Proveedor. |
+| **Operador** | Primario | Valida las compras realizadas por los estudiantes y marca la entrega física del almuerzo en el punto de entrega. Un local puede tener varios. (En discusiones previas del equipo aparecía como "cajero"; el nombre oficial del rol es **Operador**.) |
 | **Proveedor de Identidad (Google OAuth)** | Secundario / sistema externo | Autentica al Estudiante mediante OAuth 2.0 / OpenID Connect. |
-| **Sistema ERP del Proveedor** | Secundario / sistema externo | En la práctica, **Alpwin** (el sistema que Barú ya usa, sin API pública conocida — ver sección 4.3 del hallazgo de Ingeniería). Odoo/Contífico quedan como alternativas de arquitectura ya validadas (demo) o recomendadas a futuro, conectadas vía la API genérica (patrón Adapter, ver `Hallazgos-Ingenieria-API-Generica.md` sección 3). |
+| **Sistema ERP del local** | Secundario / sistema externo | **No es uno solo**: cada local de la universidad usa un ERP distinto (Barú → **Contífico**, Caramel Coffee → **Alpwin**, etc.). La conexión es **bidireccional** — Aliflow lee inventario/menú del ERP y le devuelve órdenes y pagos. Todos entran por la misma API genérica (patrón Adapter, ver `Hallazgos-Ingenieria-API-Generica.md` sección 3). |
 
-> **Nota:** el acta y el flujo dejan pendiente si un mismo Proveedor puede tener varios usuarios con permisos distintos ("personal autorizado", `prov-1`). Este modelo no lo asume todavía — se documenta como pendiente en el hallazgo de Ingeniería, no se modela como actor separado hasta que Negocios lo defina.
+> **Nota sobre vocabulario:** "Proveedor" se usa en dos sentidos que conviene no confundir. Como **actor/rol** es la persona que gerencia el local. Como **entidad** (clase `Proveedor` del diagrama de clases) es el local/negocio en sí — el tenant. En el diagrama de clases la persona se modela como `Administrador`, subclase de `UsuarioProveedor`; ver `uml/Documentacion-Diagrama-Clases.md`, sección "Usuarios".
 
 ---
 
@@ -45,7 +55,7 @@
 | **Precondición** | El estudiante está autenticado (UC1). |
 | **Flujo principal** | 1. El estudiante selecciona "Recargar saldo" e ingresa un monto (o elige uno predefinido).<br>2. Se redirige al método de recarga definido por el negocio.<br>3. Al confirmarse el pago, el sistema actualiza el saldo (operación atómica) e incluye la generación del comprobante (`<<include>>` UC2a).<br>4. El estudiante ve su saldo actualizado. |
 | **Postcondición** | El saldo del estudiante queda incrementado; existe un comprobante de recarga asociado. |
-| **Pendiente (no bloquea el caso de uso, pero afecta su diseño de datos)** | Si el saldo es único distribuido internamente o independiente por proveedor/tenant — decisión abierta documentada en `Hallazgos-Ingenieria-API-Generica.md` sección 5.2. |
+| **Resuelto (28-jul-2026)** | El estudiante hace **una única recarga**, que va a una bolsa común gastable en cualquier local; Aliflow distribuye internamente hacia cada proveedor. Ya no hay recarga separada por local. Lo único abierto es *cuándo* ocurre esa distribución interna — ver `Decisiones-Pendientes-Negocios.md`, punto 4. |
 
 ## UC3 — Consultar menú del día
 
@@ -82,7 +92,8 @@
 | **Flujo principal** | 1. El estudiante se presenta en el punto de entrega con su código de validación.<br>2. El operador busca la orden (`<<include>>` UC5a — por código o búsqueda manual por nombre/ID institucional si el estudiante no tiene el código).<br>3. El sistema valida y confirma la entrega (`<<include>>` UC5b): verifica que el estado sea "Comprado" (no "Entregado"), cambia el estado a "Entregado", registra timestamp y operador, e invalida el código (uso único). |
 | **Flujo alternativo (extend)** | **UC5c — Manejar excepción de entrega:** código inválido/ya usado (mensaje de error con hora de entrega previa), o fallo de conexión (v1 no tiene modo offline — riesgo ya documentado). |
 | **Postcondición** | Orden en estado "Entregado"; código invalidado. |
-| **Pendiente** | Formato del código (QR/numérico) — decisión abierta que bloquea el prototipo de mockups (sección 5.2 del hallazgo de Ingeniería). Estado de "no retiro"/expiración de orden no está definido (sección 5.3). |
+| **Resuelto (28-jul-2026)** | Formato del código: **numérico corto de 6 dígitos**. El estudiante se lo presenta/dicta al Operador, que lo digita en Aliflow para marcar el retiro. Desbloquea el prototipo de mockups. |
+| **Pendiente** | Regla de expiración de una orden nunca retirada (sección 5.3 del hallazgo de Ingeniería). |
 
 ## UC6 — Iniciar sesión operativa
 
@@ -101,9 +112,9 @@
 | **Actor primario** | Proveedor (junto con Ingeniería) |
 | **Actor secundario** | Sistema ERP del Proveedor |
 | **Referencia** | `prov-2` |
-| **Precondición** | El proveedor está dado de alta en Aliflow; su ERP (Odoo, Contífico, u otro) ya fue identificado. |
+| **Precondición** | El local está dado de alta en Aliflow; su ERP (Contífico, Alpwin, Odoo u otro) ya fue identificado. |
 | **Flujo principal** | 1. Se especifica el endpoint/mecanismo de conexión del ERP.<br>2. Se define el mapeo de datos (productos, precios, stock) al modelo canónico de Aliflow.<br>3. La API genérica (patrón Adapter) actúa como capa de abstracción, sin que el resto de Aliflow dependa de la implementación específica del ERP. |
-| **Postcondición** | El adaptador correspondiente (`OdooAdapter`, `ContificoAdapter`, etc.) queda configurado y operativo para ese proveedor. |
+| **Postcondición** | El adaptador correspondiente (`ContificoAdapter`, `AlpwinAdapter`, `OdooAdapter`, …) queda configurado y operativo para ese local, en ambos sentidos: Aliflow lee su inventario y le devuelve órdenes y pagos. |
 | **Nota de arquitectura** | Este caso de uso es la materialización directa del reto técnico investigado en `Hallazgos-Ingenieria-API-Generica.md` — ver secciones 3 y 4.2 (demo validado con Odoo Community). |
 
 ## UC8 — Administrar menú
@@ -149,39 +160,20 @@
 | **Postcondición** | El proveedor cuenta con la información necesaria para emitir su factura fiscal real; Aliflow nunca emite un comprobante con validez tributaria. |
 | **Nota importante** | Este es el caso de uso donde se detectó la contradicción entre el Acta (25-jun-2026) y el flujo documentado respecto al comprobante tributario — ver `Hallazgos-Ingenieria-API-Generica.md` sección 5.1. El modelo correcto es el aquí descrito: re-emisión por el proveedor, no emisión fiscal directa de Aliflow. |
 
-## UC12 — Dar de alta / gestionar proveedores
-
-> ⚠️ **Propuesta inicial de Ingeniería, no validada con Negocios.** El rol Administrador se confirmó como distinto del Proveedor, pero su alcance detallado no está definido en ningún acta ni flujo — este caso de uso (y UC13/UC14) son una hipótesis razonable de lo que un super-admin de plataforma necesitaría, para no dejar el actor sin casos de uso en el diagrama. Debe validarse en la siguiente reunión.
+## UC12 — Gestionar usuarios del local
 
 | Campo | Detalle |
 |---|---|
-| **Actor primario** | Administrador |
-| **Referencia** | Ninguna aún — no existe en el flujo documentado ni en el acta. |
-| **Precondición** | El administrador está autenticado con el rol de plataforma. |
-| **Flujo principal** | 1. El administrador registra un nuevo proveedor (tenant) en Aliflow.<br>2. Define sus datos básicos y, en coordinación con Ingeniería, su integración con el ERP correspondiente (ver UC7).<br>3. Puede suspender o dar de baja a un proveedor existente. |
-| **Postcondición** | El proveedor queda habilitado (o deshabilitado) para operar dentro de Aliflow. |
+| **Actor primario** | Proveedor (administrador del local) |
+| **Referencia** | `prov-1` — "el proveedor **o personal autorizado**". Este caso de uso cierra ese vacío. |
+| **Precondición** | El proveedor está autenticado (UC6). |
+| **Flujo principal** | 1. El proveedor crea una cuenta nueva para su local, eligiendo el rol: **Proveedor** (otro administrador) u **Operador**.<br>2. Si es Operador, lo asocia a un punto de entrega.<br>3. Puede revocar accesos o restablecer credenciales de las cuentas de su propio local. |
+| **Postcondición** | El personal del local queda habilitado con el rol que le corresponde, con acceso limitado a ese local. |
+| **Regla de alcance** | Un Proveedor solo puede gestionar cuentas **de su propio local**. No hay ningún rol con visibilidad sobre todos los locales. |
 
-## UC13 — Consultar métricas globales de la plataforma
-
-| Campo | Detalle |
-|---|---|
-| **Actor primario** | Administrador |
-| **Referencia** | Ninguna aún — propuesta de Ingeniería. |
-| **Precondición** | El administrador está autenticado. |
-| **Flujo principal** | 1. El administrador consulta métricas agregadas de toda la plataforma (todos los proveedores), no las de un solo tenant como en UC9.<br>2. El sistema muestra volumen de transacciones, proveedores activos, y estado general de las integraciones. |
-| **Postcondición** | El administrador tiene visibilidad del estado global de Aliflow. |
-| **Pendiente relacionado** | Depende de que se defina el modelo de cobro de Aliflow a los proveedores (sección 5.2 del hallazgo de Ingeniería) para saber qué métricas de negocio (no solo operativas) debería ver este rol. |
-
-## UC14 — Gestionar usuarios y roles
-
-| Campo | Detalle |
-|---|---|
-| **Actor primario** | Administrador |
-| **Referencia** | Ninguna aún — propuesta de Ingeniería. |
-| **Precondición** | El administrador está autenticado. |
-| **Flujo principal** | 1. El administrador crea/gestiona cuentas con rol Proveedor u Operador.<br>2. Puede revocar accesos o restablecer credenciales. |
-| **Postcondición** | Los usuarios de la plataforma quedan correctamente habilitados con el rol que les corresponde. |
-| **Nota** | Relacionado con el vacío ya detectado en `Hallazgos-Ingenieria-API-Generica.md` sección 5.3 sobre "roles múltiples por proveedor" (`prov-1`) — ambos temas conviene resolverlos juntos con Negocios. |
+> **Cambio del 28-jul-2026:** este caso de uso reemplaza al antiguo UC14 ("Gestionar usuarios y roles", del super-admin). Los antiguos **UC12** ("Dar de alta / gestionar proveedores") y **UC13** ("Métricas globales de la plataforma") quedaron **eliminados** junto con el rol Administrador de plataforma que los justificaba. Ambos eran hipótesis de Ingeniería y estaban marcados en amarillo justamente por eso.
+>
+> **Consecuencia abierta:** si nadie dentro del sistema da de alta un local nuevo, ese paso es **manual y fuera del alcance de v1** — lo hace el equipo de Aliflow directamente contra la base de datos, junto con la configuración de la integración (UC7). Está registrado como punto abierto en `Decisiones-Pendientes-Negocios.md`.
 
 ---
 

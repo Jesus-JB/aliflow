@@ -8,6 +8,12 @@ object "baru : Proveedor" as baru {
   activo = true
 }
 
+object "caramel : Proveedor" as caramel {
+  nombreComercial = "Caramel Coffee"
+  ruc = "0997654321001"
+  activo = true
+}
+
 object "plato1 : Plato" as plato1 {
   nombre = "Seco de pollo con arroz"
   precio = 3.50
@@ -23,10 +29,15 @@ object "ana : Estudiante" as ana {
 
 object "tv1 : TarjetaVirtual" as tv1 {
   id = "TV-0001"
+  saldoDisponible = 8.50
 }
 
 object "sp1 : SaldoProveedor" as sp1 {
-  monto = 8.50
+  montoAcumulado = 3.50
+}
+
+object "sp2 : SaldoProveedor" as sp2 {
+  montoAcumulado = 2.00
 }
 
 object "orden1 : Orden" as orden1 {
@@ -41,14 +52,16 @@ object "det1 : OrdenDetalle" as det1 {
 }
 
 object "codigo1 : CodigoRetiro" as codigo1 {
-  valor = "a93f2c11-6e4d-4b7a-9c2e-1f0d8b3a55e7"
+  valor = "418327"
   fechaExpiracion = "2026-07-27 14:00"
   usado = false
 }
 
 ana *-- tv1
 tv1 *-- sp1
+tv1 *-- sp2
 sp1 --> baru : proveedor
+sp2 --> caramel : proveedor
 ana --> orden1 : realiza
 orden1 --> baru : proveedor
 orden1 *-- det1
@@ -56,30 +69,38 @@ det1 --> plato1
 plato1 --> baru : menú
 orden1 *-- codigo1
 
-note bottom of sp1
-  Ilustra la decisión de negocio ya
-  confirmada: el saldo es independiente
-  por proveedor (no una sola bolsa de
-  dinero). Ana podría tener otro
-  SaldoProveedor distinto con otro
-  proveedor, en cero.
+note bottom of tv1
+  Ilustra la decisión de Negocios del
+  28-jul-2026: Ana hizo **una sola recarga**
+  y le quedan $8.50 en una bolsa única,
+  gastables en cualquier local. Los objetos
+  SaldoProveedor **no** reparten ese saldo:
+  son el libro interno de lo que Aliflow ya
+  le debe a cada local por compras hechas
+  ($3.50 a Barú, $2.00 a Caramel Coffee).
+end note
+
+note bottom of codigo1
+  El código de retiro es **numérico corto**
+  (6 dígitos, decisión de Negocios del
+  28-jul-2026): Ana se lo dice de viva voz
+  al Operador, que lo digita en Aliflow.
 end note
 
 note bottom of orden1
   El estudiante ya compró (estado
   COMPRADO), tiene su código de retiro
   vigente (usado=false). Cuando el
-  Cajero lo valide, orden1.estado
+  Operador lo valide, orden1.estado
   pasará a ENTREGADO y codigo1.usado
-  a true (ver diagrama de estados,
-  entregable pendiente).
+  a true (ver estado-orden.puml y
+  estado-codigo-retiro.puml).
 
   orden1.proveedor = baru, igual que
   det1.plato1.proveedor — cumple el
-  invariante agregado el 27-jul-2026
-  en diagrama-clases.puml: una orden
-  nunca mezcla platos de proveedores
-  distintos.
+  invariante de diagrama-clases.puml:
+  una orden nunca mezcla platos de
+  locales distintos.
 end note
 
 @enduml

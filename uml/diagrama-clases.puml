@@ -18,7 +18,7 @@ skinparam note<<propuesta>> {
 
 legend top left
   <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / investigación
+  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / decisión de Negocios
 endlegend
 
 package "Usuarios" {
@@ -34,28 +34,35 @@ package "Usuarios" {
   class Estudiante extends Usuario {
     - dominioInstitucional: String
     - codigoInstitucional: String
-    + consultarSaldo(proveedor: Proveedor): Money
+    + consultarSaldo(): Money
   }
 
-  class Administrador << propuesta >> extends Usuario {
-    + darDeAltaProveedor(datos: DatosProveedor): Proveedor
-    + gestionarUsuarios(): void
-  }
-
-  abstract class UsuarioProveedor << propuesta >> extends Usuario {
+  abstract class UsuarioProveedor extends Usuario {
     # proveedor: Proveedor
   }
 
-  class Propietario << propuesta >> extends UsuarioProveedor {
+  class Administrador extends UsuarioProveedor {
     + administrarMenu(): void
     + consultarMetricas(): MetricasProveedor
+    + gestionarUsuariosDelLocal(): void
+    + configurarIntegracionERP(): IntegracionERP
   }
 
-  class Cajero << propuesta >> extends UsuarioProveedor {
+  class Operador extends UsuarioProveedor {
     - puntoDeEntrega: PuntoDeEntrega
     + buscarOrden(codigo: String): Orden
     + confirmarEntrega(orden: Orden): void
   }
+
+  note bottom of Administrador
+    **Vocabulario (decisión de Negocios, 28-jul-2026):**
+    el sistema tiene 3 roles: Estudiante, **Proveedor**
+    y Operador. El rol de negocio "Proveedor" es esta
+    clase `Administrador` — la **persona** que gerencia
+    el local. La clase `Proveedor` de abajo es el
+    **local/negocio** (el tenant), no una persona.
+    No existe un super-admin de plataforma.
+  end note
 }
 
 package "Proveedor y Menú" {
@@ -66,6 +73,13 @@ package "Proveedor y Menú" {
     - fechaAlta: DateTime
     - activo: boolean
   }
+
+  note right of Proveedor
+    El **local** de comida dentro de la universidad
+    (Barú, Caramel Coffee, …). Cada uno es un tenant
+    independiente, con su propio ERP, su propio menú
+    y su propio personal.
+  end note
 
   class PuntoDeEntrega {
     - id: UUID
@@ -91,41 +105,75 @@ package "Proveedor y Menú" {
     si version no cambió desde la lectura
     (evita que dos compras se lleven la
     última unidad). Detalle exacto de la
-    transacción en el diagrama de secuencia
-    (entregable pendiente).
+    transacción en el diagrama de secuencia.
   end note
 
-  Proveedor "1" *-- "0..*" UsuarioProveedor : personal autorizado
+  Proveedor "1" *-- "1..*" Administrador : gerencia el local
+  Proveedor "1" *-- "0..*" Operador : personal de entrega
   Proveedor "1" *-- "0..*" PuntoDeEntrega
   Proveedor "1" *-- "0..*" Plato : menú
-  Cajero "0..*" --> "1" PuntoDeEntrega : trabaja en
+  Operador "0..*" --> "1" PuntoDeEntrega : trabaja en
 }
 
 package "Wallet y Pagos" {
   class TarjetaVirtual {
     - id: UUID
-    + saldoTotal(): Money
-  }
-
-  class SaldoProveedor {
-    - monto: Money
-    + descontar(cantidad: Money): void
+    - saldoDisponible: Money
+    + descontar(cantidad: Money, proveedor: Proveedor): void
     + acreditar(cantidad: Money): void
   }
+
+  note right of TarjetaVirtual
+    **Decisión de Negocios (28-jul-2026):**
+    el estudiante hace **una sola recarga**;
+    `saldoDisponible` es una bolsa única
+    utilizable en cualquier local. Aliflow
+    distribuye internamente hacia cada
+    proveedor (ver SaldoProveedor).
+  end note
+
+  class SaldoProveedor << propuesta >> {
+    - montoAcumulado: Money
+    + acreditar(cantidad: Money): void
+  }
+
+  note bottom of SaldoProveedor
+    <back:#FFF3B0>Interpretación de Ingeniería</back> de "Aliflow
+    distribuye internamente a todos los
+    proveedores": **no** se reparte el dinero
+    al recargar (repartir $20 entre N locales
+    dejaría al estudiante sin poder comprar
+    en ninguno), sino que se lleva un libro
+    interno de cuánto le corresponde a cada
+    local, acreditado **en el momento de la
+    compra**. Es lo que Aliflow le liquida al
+    local. Pendiente de confirmar con Negocios.
+  end note
 
   class Recarga {
     - id: UUID
     - montoTotal: Money
     - fechaHora: DateTime
-    + distribuir(): List<SaldoProveedor>
+    + aplicar(tarjeta: TarjetaVirtual): void
   }
 
-  interface EstrategiaDistribucionRecarga << propuesta >> {
-    + distribuir(monto: Money, tarjeta: TarjetaVirtual): List<SaldoProveedor>
+  interface EstrategiaDistribucionRecarga {
+    + distribuir(monto: Money, tarjeta: TarjetaVirtual): void
   }
 
-  class RecargaDirectaPorProveedor << propuesta >> implements EstrategiaDistribucionRecarga
-  class RecargaDistribuidaAutomaticamente << propuesta >> implements EstrategiaDistribucionRecarga
+  class DistribucionBajoDemanda implements EstrategiaDistribucionRecarga
+
+  note bottom of DistribucionBajoDemanda
+    Implementación **elegida** por Negocios
+    (28-jul-2026): recarga única a la bolsa
+    común; la acreditación al local ocurre
+    al comprar. La alternativa que se evaluó
+    —`RecargaDirectaPorProveedor`, recargar
+    explícitamente por local— quedó descartada;
+    la interfaz se conserva porque el reparto
+    (comisiones, retenciones) todavía puede
+    cambiar sin tocar el resto del modelo.
+  end note
 
   class ComprobanteRecarga {
     - id: UUID
@@ -177,7 +225,7 @@ package "Órdenes" {
     - fechaHora: DateTime
     - estado: EstadoOrden
     + confirmarCompra(): void
-    + marcarEntregado(cajero: Cajero): void
+    + marcarEntregado(operador: Operador): void
     + expirar(): void
   }
 
@@ -186,7 +234,7 @@ package "Órdenes" {
     de una misma Orden deben referenciar
     Platos cuyo Proveedor sea igual a
     Orden.proveedor — una orden nunca
-    mezcla platos de proveedores distintos.
+    mezcla platos de locales distintos.
     confirmarCompra() lo valida antes de
     crear la orden.
   end note
@@ -197,12 +245,24 @@ package "Órdenes" {
   }
 
   class CodigoRetiro {
-    - valor: String
+    - valor: String(6)
     - fechaExpiracion: DateTime
     - usado: boolean
     + validar(): boolean
     + invalidar(): void
   }
+
+  note right of CodigoRetiro
+    **Decisión de Negocios (28-jul-2026):**
+    **código numérico corto** (6 dígitos), no
+    UUID ni QR — el estudiante se lo dice al
+    Operador de viva voz y este lo digita.
+    Unicidad exigida solo entre los códigos
+    **vigentes del mismo local** (no global),
+    para que 6 dígitos alcancen. Ver el riesgo
+    R-15 (adivinación por fuerza bruta) en
+    Gestion-de-Riesgos.md.
+  end note
 
   class ComprobanteCompra {
     - id: UUID
@@ -234,7 +294,7 @@ package "Órdenes" {
   OrdenDetalle "0..*" --> "1" Plato
   Orden "1" *-- "1" CodigoRetiro
   Orden "1" *-- "0..1" ComprobanteCompra
-  Orden "0..*" --> "0..1" Cajero : entregada por
+  Orden "0..*" --> "0..1" Operador : entregada por
   RegistroAuditoria "0..*" --> "1" Usuario : ejecutado por
 }
 
@@ -244,11 +304,22 @@ package "Integración con ERP externo" {
     + getStock(tenantId: UUID, itemId: UUID): int
     + updateStock(tenantId: UUID, itemId: UUID, delta: int): Result
     + notifySale(tenantId: UUID, orden: Orden): Result
+    + notifyPayment(tenantId: UUID, orden: Orden, pago: Pago): Result
     + getSyncStatus(tenantId: UUID): SyncStatus
   }
 
-  class OdooAdapter implements IInventoryProvider
+  note right of IInventoryProvider
+    La interfaz es **bidireccional** por diseño:
+    los métodos de lectura (getMenu/getStock)
+    traen el inventario del local hacia Aliflow;
+    los de escritura (updateStock/notifySale/
+    notifyPayment) devuelven al ERP las órdenes
+    y pagos para que su inventario y su
+    contabilidad queden sincronizados.
+  end note
+
   class ContificoAdapter implements IInventoryProvider
+  class OdooAdapter implements IInventoryProvider
   class AlpwinAdapter implements IInventoryProvider {
     + notifySale(tenantId: UUID, orden: Orden): Result
     .. nota: sin API pública, implementación\npor archivos/BD puente (ver Hallazgos-Ingenieria-API-Generica.md) ..
@@ -259,10 +330,19 @@ package "Integración con ERP externo" {
   }
 
   enum TipoERP {
-    ODOO
     CONTIFICO
     ALPWIN
+    ODOO
+    OTRO
   }
+
+  note bottom of TipoERP
+    Cada local trae su propio ERP —
+    Barú → CONTIFICO, Caramel Coffee → ALPWIN.
+    Agregar un local con un ERP nuevo = un
+    valor de enum + una clase adaptadora,
+    cero cambios al core (Open/Closed).
+  end note
 
   class IntegracionERP {
     - id: UUID
@@ -275,6 +355,7 @@ package "Integración con ERP externo" {
   enum TipoEvento {
     ACTUALIZAR_STOCK
     NOTIFICAR_VENTA
+    NOTIFICAR_PAGO
   }
 
   enum EstadoEvento {

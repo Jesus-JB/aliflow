@@ -6,8 +6,7 @@ actor Estudiante
 participant "Módulo de Wallet\n(API)" as API
 participant "Pasarela de Pagos" as Pasarela
 participant "Pago" as Pago
-participant "EstrategiaDistribucionRecarga\n<<propuesta>>" as Estrategia
-participant "SaldoProveedor" as Saldo
+participant "TarjetaVirtual" as Tarjeta
 participant "ComprobanteRecarga" as Comp
 
 Estudiante -> API : solicitarRecarga(monto)
@@ -26,13 +25,13 @@ else PENDIENTE
   API --> Estudiante : recarga pendiente de confirmación
 else APROBADO
   API -> Pago : crear(estado=APROBADO)
-  API -> Estrategia : distribuir(monto, tarjeta)
-  Estrategia --> API : List<SaldoProveedor a acreditar>
-
-  loop por cada SaldoProveedor resultante
-    API -> Saldo : acreditar(monto_i)
-  end
-
+  API -> Tarjeta : acreditar(monto)\n(bolsa única, atómico)
+  note right of Tarjeta
+    Decisión de Negocios (28-jul-2026):
+    una sola recarga, un solo saldo.
+    La distribución interna hacia cada
+    local ocurre al comprar, no aquí.
+  end note
   API -> Comp : generar(sinValidezTributaria=true)
   API --> Estudiante : saldo actualizado
 end

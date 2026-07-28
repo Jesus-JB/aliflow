@@ -8,15 +8,14 @@ skinparam actorStyle awesome
 ' validar con Negocios. Ver Documentacion-Casos-de-Uso.md.
 legend top left
   <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional
+  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / decisión de Negocios
 endlegend
 
 actor Estudiante as EST
-actor Proveedor as PROV
+actor "Proveedor\n(administrador del local)" as PROV
 actor Operador as OP
-actor "Administrador\n(super-admin de Aliflow)" as ADMIN
 actor "Proveedor de Identidad\n(Google OAuth)" as IDP
-actor "Sistema ERP del Proveedor\n(Odoo / Contífico / Alpwin,\nvía API genérica)" as ERP
+actor "Sistema ERP del local\n(Contífico / Alpwin / Odoo…,\nvía API genérica bidireccional)" as ERP
 
 rectangle "Aliflow" {
 
@@ -29,22 +28,22 @@ rectangle "Aliflow" {
   usecase "Generar comprobante de recarga" as UC2a
 
   usecase "UC3. Consultar menú del día" as UC3
-  usecase "Sincronizar catálogo con\nsistema del proveedor" as UC3a
+  usecase "Sincronizar catálogo con\nel ERP del local" as UC3a
 
   usecase "UC4. Comprar almuerzo" as UC4
   usecase "Validar saldo y disponibilidad" as UC4a
   usecase "Generar comprobante de compra" as UC4b
-  usecase "Notificar venta al sistema\ndel proveedor (API genérica)" as UC4c
+  usecase "Notificar venta y pago al ERP\ndel local (API genérica)" as UC4c
 
   usecase "UC5. Retirar y entregar almuerzo" as UC5
-  usecase "Buscar orden\n(código o manual)" as UC5a
+  usecase "Buscar orden\n(código numérico o manual)" as UC5a
   usecase "Validar y confirmar entrega" as UC5b
   usecase "Manejar excepción de entrega" as UC5c
 
   ' ---- Proveedor / Operador ----
   usecase "UC6. Iniciar sesión operativa" as UC6
 
-  usecase "UC7. Configurar integración\ncon sistema externo" as UC7
+  usecase "UC7. Configurar integración\ncon el ERP del local" as UC7
 
   usecase "UC8. Administrar menú" as UC8
 
@@ -54,10 +53,7 @@ rectangle "Aliflow" {
 
   usecase "UC11. Consultar detalle de venta\n(soporte re-emisión de comprobante)" as UC11
 
-  ' ---- Administrador (pendiente de definición detallada, ver documentación) ----
-  usecase "UC12. Dar de alta / gestionar proveedores" as UC12 #FFF3B0
-  usecase "UC13. Consultar métricas globales\nde la plataforma" as UC13 #FFF3B0
-  usecase "UC14. Gestionar usuarios y roles" as UC14 #FFF3B0
+  usecase "UC12. Gestionar usuarios del local\n(Proveedores y Operadores)" as UC12
 }
 
 ' ---- Asociaciones actor - caso de uso ----
@@ -76,17 +72,13 @@ PROV --> UC8
 PROV --> UC9
 PROV --> UC10
 PROV --> UC11
+PROV --> UC12
 
 IDP --> UC1a
 ERP --> UC3a
 ERP --> UC4c
 ERP --> UC7
 ERP --> UC11
-
-ADMIN --> UC12
-ADMIN --> UC13
-ADMIN --> UC14
-ADMIN --> UC6
 
 ' ---- Include / Extend ----
 UC1 .> UC1a : <<include>>
@@ -104,13 +96,26 @@ UC5 .> UC5a : <<include>>
 UC5 .> UC5b : <<include>>
 UC5 .> UC5c : <<extend>>
 
-note right of ADMIN
-  Rol confirmado como distinto de Proveedor
-  (super-admin de la plataforma Aliflow),
-  pero su alcance detallado (UC12-UC14)
-  aún no ha sido definido formalmente
-  por Negocios/el equipo. Ver
-  Documentacion-Casos-de-Uso.md.
+note right of PROV
+  **Decisión de Negocios (28-jul-2026):**
+  el sistema tiene exactamente 3 roles —
+  Estudiante, Proveedor y Operador. El rol
+  "Administrador" **es** el Proveedor: el
+  gerente del local. No existe un super-admin
+  de plataforma (los UC12-UC14 anteriores,
+  que lo suponían, fueron eliminados).
+  Un mismo local puede tener varias cuentas
+  de Proveedor y varias de Operador.
+end note
+
+note right of ERP
+  **Decisión de Negocios (28-jul-2026):**
+  cada local de la universidad usa un ERP
+  distinto (Barú → Contífico, Caramel Coffee
+  → Alpwin, etc.). La conexión es **bidireccional**:
+  Aliflow lee inventario/menú del ERP, y le
+  devuelve órdenes y pagos para mantener el
+  inventario sincronizado.
 end note
 
 @enduml
