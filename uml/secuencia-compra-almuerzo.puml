@@ -1,0 +1,58 @@
+@startuml secuencia-compra-almuerzo-aliflow
+
+title Secuencia — Comprar almuerzo (UC4), con bloqueo optimista de stock
+
+actor Estudiante
+participant "Módulo de Órdenes\n(API)" as API
+participant "SaldoProveedor" as Saldo
+participant "Plato" as Plato
+participant "Orden" as Orden
+participant "CodigoRetiro" as Codigo
+participant "ComprobanteCompra" as Comp
+participant "RegistroAuditoria" as Audit
+queue "Cola de eventos\n(Redis)" as Cola
+
+Estudiante -> API : confirmarCompra(platoId, cantidad)
+activate API
+
+API -> Saldo : consultar saldo disponible
+Saldo --> API : monto
+
+alt saldo insuficiente
+  API --> Estudiante : error "saldo insuficiente"
+else saldo suficiente
+  loop hasta máximo de reintentos (bloqueo optimista)
+    API -> Plato : leer stockDisponible, version
+    Plato --> API : stockDisponible, version=v
+    API -> Plato : reservarStock(cantidad)\nUPDATE ... WHERE version = v
+    Plato --> API : filas afectadas
+    alt filas afectadas = 1 (éxito)
+      note right of API
+        Nadie más modificó el Plato
+        entre la lectura y la escritura.
+      end note
+    else filas afectadas = 0 (conflicto de versión)
+      note right of API
+        Otro estudiante compró primero
+        (version cambió) — se reintenta
+        con una lectura fresca.
+      end note
+    end
+  end
+
+  opt reintentos agotados sin éxito
+    API --> Estudiante : error "sin stock disponible"
+  end
+
+  API -> Saldo : descontar(monto)
+  API -> Orden : crear(estado=COMPRADO, proveedor,\ndetalles) [valida invariante:\nun solo proveedor por orden]
+  API -> Codigo : generar(UUID firmado, expiración)
+  API -> Comp : generar(sinValidezTributaria=true)
+  API -> Audit : registrar("confirmarCompra", estudiante)
+  API -> Cola : publicar(EventoSincronizacion\ntipo=NOTIFICAR_VENTA)
+  API --> Estudiante : confirmación + código de retiro
+end
+
+deactivate API
+
+@enduml

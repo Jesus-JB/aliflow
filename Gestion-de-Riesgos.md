@@ -81,6 +81,11 @@ Estos se detectaron en `Hallazgos-Ingenieria-API-Generica.md` sección 5.3 y con
 |---|---|---|---|---|---|
 | R-12 | Operador sin modo offline en v1 (decisión de negocio ya confirmada) — un fallo de conectividad en el punto de entrega bloquea toda entrega de almuerzos | Tecnológico | Media | Grave | Aceptar (con plan de contingencia manual documentado) |
 | R-13 | Órdenes "Comprado" sin estado de expiración/no-show — no hay regla definida para una orden nunca retirada | Requerimientos | Media | Moderado | Mitigar (definir el estado y su regla de negocio antes de construir el diagrama de estados) |
+| R-14 | *(nuevo, detectado 27-jul-2026 al diseñar `uml/secuencia-retiro-entrega.puml`)* Doble redención del código de retiro — dos Cajeros podrían validar el mismo código casi simultáneamente | Tecnológico | Baja | Grave | Mitigar |
+
+### R-14 — Doble redención del código de retiro
+**Descripción:** si dos Cajeros (posiblemente en distintos puntos de entrega del mismo proveedor) intentan validar el mismo `CodigoRetiro` casi al mismo tiempo, sin un mecanismo atómico ambos podrían marcar la entrega como exitosa, resultando en dos entregas físicas de un mismo almuerzo.
+**Acción:** ya resuelto a nivel de diseño — la invalidación del código se modela como una actualización atómica y condicional (`UPDATE ... WHERE usado = false`), igual que el mecanismo de bloqueo optimista usado para el stock (`Plato.version`). Si la actualización afecta 0 filas, se informa error en vez de completar una segunda entrega. Ver `uml/secuencia-retiro-entrega.puml`.
 
 ---
 

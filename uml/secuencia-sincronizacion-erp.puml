@@ -1,0 +1,52 @@
+@startuml secuencia-sincronizacion-erp-aliflow
+
+title Secuencia — Sincronización con el ERP externo (patrón Outbox)
+
+participant "SincronizacionWorker" as Worker
+queue "Cola de eventos\n(Redis)" as Cola
+participant "ProviderAdapterFactory" as Factory
+participant "IInventoryProvider\n(adaptador concreto)" as Adapter
+participant "Sistema ERP externo\n(Odoo / Contífico / Alpwin)" as ERP
+participant "EventoSincronizacion" as Evento
+
+Worker -> Cola : consumir()
+activate Worker
+Cola --> Worker : evento (tipo=NOTIFICAR_VENTA)
+
+Worker -> Factory : crearAdaptador(proveedor)
+Factory --> Worker : instancia de IInventoryProvider
+
+loop hasta máximo de intentos
+  Worker -> Adapter : notifySale(tenantId, orden)
+  activate Adapter
+  Adapter -> ERP : (según implementación:\nREST/JSON-RPC, o archivo/BD puente\nsi es Alpwin)
+  ERP --> Adapter : respuesta
+  Adapter --> Worker : Result
+  deactivate Adapter
+
+  alt éxito
+    Worker -> Evento : marcar PROCESADO
+    Worker -> Factory : actualizar\nultimaSincronizacionExitosa
+    note right of Worker
+      Fin del proceso — venta
+      reflejada en el ERP externo.
+    end note
+  else fallo
+    Worker -> Evento : incrementar intentos
+    Worker -> Worker : esperar backoff exponencial
+  end
+end
+
+opt intentos agotados sin éxito
+  Worker -> Evento : marcar FALLIDO
+  note right of Evento
+    Visible en el panel del Proveedor
+    (UC10) para reconciliación manual —
+    ver uml/objeto-integracion-erp.puml
+    para el caso real con Alpwin.
+  end note
+end
+
+deactivate Worker
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml secuencia-recarga-saldo-aliflow
+
+title Secuencia — Recargar saldo (UC2)
+
+actor Estudiante
+participant "Módulo de Wallet\n(API)" as API
+participant "Pasarela de Pagos" as Pasarela
+participant "Pago" as Pago
+participant "EstrategiaDistribucionRecarga\n<<propuesta>>" as Estrategia
+participant "SaldoProveedor" as Saldo
+participant "ComprobanteRecarga" as Comp
+
+Estudiante -> API : solicitarRecarga(monto)
+activate API
+
+API -> Pasarela : procesarPago(monto)
+activate Pasarela
+Pasarela --> API : resultado (APROBADO | PENDIENTE | RECHAZADO)
+deactivate Pasarela
+
+alt RECHAZADO
+  API -> Pago : crear(estado=RECHAZADO)
+  API --> Estudiante : error de pago
+else PENDIENTE
+  API -> Pago : crear(estado=PENDIENTE)
+  API --> Estudiante : recarga pendiente de confirmación
+else APROBADO
+  API -> Pago : crear(estado=APROBADO)
+  API -> Estrategia : distribuir(monto, tarjeta)
+  Estrategia --> API : List<SaldoProveedor a acreditar>
+
+  loop por cada SaldoProveedor resultante
+    API -> Saldo : acreditar(monto_i)
+  end
+
+  API -> Comp : generar(sinValidezTributaria=true)
+  API --> Estudiante : saldo actualizado
+end
+
+deactivate API
+
+@enduml
