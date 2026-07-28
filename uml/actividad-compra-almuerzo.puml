@@ -1,0 +1,38 @@
+@startuml actividad-compra-almuerzo-aliflow
+
+title Actividad — Comprar almuerzo (UC4)
+
+|Estudiante|
+start
+:Selecciona un plato\ny confirma la compra;
+
+|Aliflow|
+:Validar saldo suficiente\nen SaldoProveedor;
+if (¿Saldo suficiente?) then (no)
+  |Estudiante|
+  :Ver error de saldo insuficiente;
+  stop
+else (sí)
+endif
+
+:Revalidar stock —\nPlato.reservarStock(cantidad)\n(bloqueo optimista, campo version);
+if (¿Stock disponible?) then (no)
+  |Estudiante|
+  :Ver error\n("vendido antes de confirmar");
+  stop
+else (sí)
+endif
+
+:Descontar saldo (atómico);
+:Confirmar descuento de stock (atómico);
+:Crear Orden en estado COMPRADO\n(validando invariante: un solo\nProveedor por orden);
+:Generar CodigoRetiro\n(UUID firmado con expiración);
+:Generar ComprobanteCompra\n(sin validez tributaria);
+:Publicar EventoSincronizacion\n(NOTIFICAR_VENTA) en la cola;
+:Registrar en RegistroAuditoria;
+
+|Estudiante|
+:Ver confirmación y\ncódigo de retiro;
+stop
+
+@enduml

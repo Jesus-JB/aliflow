@@ -1,0 +1,35 @@
+@startuml actividad-autenticacion-aliflow
+
+title Actividad — Iniciar sesión institucional (UC1)
+
+|Estudiante|
+start
+:Selecciona "Iniciar sesión con Google";
+
+|Proveedor de Identidad|
+:Solicita consentimiento OAuth 2.0 / OIDC;
+
+|Estudiante|
+:Autoriza el acceso;
+
+|Aliflow|
+:Recibe el token de identidad;
+if (¿Dominio institucional\nautorizado?) then (no)
+  :Rechazar acceso;
+  stop
+else (sí)
+endif
+
+if (¿Es el primer ingreso\ndel estudiante?) then (sí)
+  :Crear perfil de Estudiante;
+  :Crear TarjetaVirtual\n(sin SaldoProveedor todavía);
+else (no)
+endif
+
+:Generar sesión autenticada (JWT);
+
+|Estudiante|
+:Accede a la aplicación;
+stop
+
+@enduml

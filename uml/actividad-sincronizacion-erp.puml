@@ -1,0 +1,28 @@
+@startuml actividad-sincronizacion-erp-aliflow
+
+title Actividad — Sincronización con el ERP externo (patrón Outbox)
+
+|SincronizacionWorker|
+start
+:Consumir EventoSincronizacion\nde la cola (Redis);
+:ProviderAdapterFactory resuelve\nel adaptador según\nProveedor.IntegracionERP.tipoERP;
+:Adaptador invoca notifySale() /\nupdateStock() en el ERP externo;
+
+if (¿Respuesta exitosa?) then (sí)
+  :Marcar evento como PROCESADO;
+  :Actualizar\nultimaSincronizacionExitosa;
+  stop
+else (no)
+  :Incrementar contador de intentos;
+  if (¿Intentos < máximo\nconfigurado?) then (sí)
+    :Reintentar con\nbackoff exponencial;
+    stop
+  else (no)
+    :Marcar evento como FALLIDO;
+    |Proveedor|
+    :Ver evento fallido en el panel\n(UC10 — Consultar estado de\nsincronización) para reconciliación\nmanual;
+    stop
+  endif
+endif
+
+@enduml

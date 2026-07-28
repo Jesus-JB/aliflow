@@ -1,0 +1,44 @@
+@startuml actividad-retiro-entrega-aliflow
+
+title Actividad — Retirar y entregar almuerzo (UC5)
+
+|Estudiante|
+start
+:Se presenta en el\npunto de entrega;
+
+|Cajero|
+if (¿Tiene código\nde retiro?) then (sí)
+  :Capturar el código;
+else (no)
+  :Buscar orden manualmente\n(nombre / ID institucional);
+endif
+
+|Aliflow|
+:Buscar la Orden asociada;
+if (¿Orden encontrada?) then (no)
+  |Cajero|
+  :Ver error\n("orden no encontrada");
+  stop
+else (sí)
+endif
+
+if (¿Estado == COMPRADO?) then (no)
+  |Cajero|
+  :Ver error\n("ya fue entregada a las HH:MM"\n/ código inválido);
+  stop
+else (sí)
+endif
+
+:Mostrar detalle\n(estudiante, plato) al Cajero;
+
+|Cajero|
+:Entregar físicamente\nel almuerzo;
+:Confirmar entrega;
+
+|Aliflow|
+:Cambiar estado de la\nOrden a ENTREGADO;
+:Invalidar CodigoRetiro\n(uso único);
+:Registrar timestamp y Cajero\nen RegistroAuditoria;
+stop
+
+@enduml

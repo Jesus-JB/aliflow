@@ -1,0 +1,30 @@
+@startuml actividad-recarga-saldo-aliflow
+
+title Actividad — Recargar saldo (UC2)
+
+|Estudiante|
+start
+:Selecciona "Recargar saldo"\ne ingresa el monto;
+
+|Pasarela de Pagos|
+:Procesa el pago\n(Kushki / PayPhone / Stripe);
+
+|Aliflow|
+if (¿Pago aprobado?) then (no)
+  :Registrar Pago con\nestado RECHAZADO;
+  |Estudiante|
+  :Ver mensaje de error;
+  stop
+else (sí)
+endif
+
+:Registrar Pago con\nestado APROBADO;
+:Aplicar EstrategiaDistribucionRecarga\n(propuesta, pendiente de validar);
+:Actualizar SaldoProveedor(es)\n(operación atómica);
+:Generar ComprobanteRecarga\n(sin validez tributaria);
+
+|Estudiante|
+:Ver saldo actualizado;
+stop
+
+@enduml
