@@ -121,6 +121,50 @@ class OdooAdapter:
         current = self.get_stock(product_id)
         return self.set_stock(product_id, current + delta)
 
+    def reservar_stock(self, product_id, cantidad, max_intentos=5):
+        """
+        Intenta aproximar el bloqueo optimista diseñado en
+        secuencia-compra-almuerzo.puml, pero contra la API externa de Odoo.
+
+        ADVERTENCIA (hallazgo real, 27-jul-2026, ver demo.py y
+        plato_local.py): una prueba con 5 hilos comprando concurrentemente
+        con solo 3 unidades de stock en Odoo terminó vendiendo las 5 — este
+        método NO ofrece atomicidad real. La relectura antes de escribir no
+        cierra la ventana de carrera (el conflicto real ocurre entre esa
+        relectura y el `set_stock`, que sigue sin protección).
+
+        Conclusión: el control de concurrencia crítico NO debe delegarse al
+        ERP externo vía RPC — debe vivir en la base de datos propia de
+        Aliflow (transacción real + lock de fila, ver Plato.version en
+        diagrama-clases.puml y PlatoLocal en plato_local.py). Este método se
+        deja en el adaptador solo como sincronización de "mejor esfuerzo"
+        hacia Odoo, nunca como mecanismo de bloqueo.
+        """
+        for intento in range(1, max_intentos + 1):
+            stock_inicial = self.get_stock(product_id)
+            if stock_inicial < cantidad:
+                return {
+                    "exito": False,
+                    "razon": "sin_stock",
+                    "intento": intento,
+                    "stock_visto": stock_inicial,
+                }
+
+            stock_justo_antes_de_escribir = self.get_stock(product_id)
+            if stock_justo_antes_de_escribir != stock_inicial:
+                # Alguien más modificó el stock en el intervalo: reintentar
+                # con una lectura fresca, igual que en el diagrama de secuencia.
+                continue
+
+            nuevo_stock = self.set_stock(product_id, stock_justo_antes_de_escribir - cantidad)
+            return {
+                "exito": True,
+                "intento": intento,
+                "stock_resultante": nuevo_stock,
+            }
+
+        return {"exito": False, "razon": "conflicto_no_resuelto", "intentos": max_intentos}
+
     def notify_sale(self, partner_id, product_id, quantity, price_unit):
         """
         Crea una factura de venta (account.move, move_type=out_invoice) simulando

@@ -75,26 +75,20 @@ librería estándar de Python (JSON-RPC, no XML-RPC — ver nota en la sección 
 python3 demo.py
 ```
 
-Salida esperada (aproximada):
+El demo corre 3 escenarios en secuencia:
 
-```
-Conectando a Odoo en http://localhost:8069 (db=aliflow)...
-Autenticado. uid=2
+- **A — Flujo normal**: carga un menú realista (4 platos, inspirados en lo que
+  ofrecería Barú), consulta el menú, compra un plato, y genera la factura en
+  Odoo. Es la evolución del demo original (menú → compra → comprobante).
+- **B — Concurrencia real**: lanza 5 compras simultáneas (con hilos de verdad,
+  no simuladas) sobre un plato con solo 3 unidades de stock, contra el dominio
+  propio de Aliflow (`plato_local.py`), no contra Odoo — ver sección 6 para el
+  porqué.
+- **C — Patrón Outbox**: procesa un evento de sincronización contra un
+  adaptador que simula a Alpwin (sin API pública), con reintentos hasta
+  marcarlo `FALLIDO`.
 
-Producto listo: 'Almuerzo del día - Menú Demo' (id=..), stock inicial=20
-
-== est-3: Estudiante consulta el menú del día ==
-  Almuerzo del día - Menú Demo — $3.5 — stock: 20
-
-== est-4: Estudiante compra 1 unidad ==
-  Stock antes de la compra: 20
-  Stock después de la compra (est-5): 19
-  Factura creada en Odoo (prov-6): account.move id=..
-
-Demo completado: menú -> compra -> descuento de stock -> comprobante en Odoo.
-```
-
-Puedes verificar el resultado directamente en la interfaz de Odoo:
+Puedes verificar el resultado del Escenario A directamente en la interfaz de Odoo:
 - **Inventario → Productos** para ver el stock actualizado.
 - **Facturación → Clientes → Facturas** para ver la factura creada (en
   estado borrador — no está autorizada por el SRI, que es justo el hueco
@@ -126,3 +120,28 @@ la comunidad.
 Pendiente aparte (esperado y aceptado desde el inicio, ver sección "Alcance"):
 la factura queda en estado borrador, sin autorización real ante el SRI —
 requeriría subir un certificado `.p12` real y no es necesario para este demo.
+
+## 7. Hallazgo importante (27-jul-2026): el control de concurrencia no se puede delegar al ERP externo
+
+Al implementar `OdooAdapter.reservar_stock()` (bloqueo optimista contra el
+stock de Odoo vía JSON-RPC) y probarlo con 5 hilos comprando concurrentemente
+con solo 3 unidades disponibles, **se vendieron las 5** — el mecanismo de
+"releer antes de escribir" no cierra la ventana de carrera real, porque no
+hay forma de hacer un `UPDATE` atómico condicionado a una versión sobre una
+API RPC externa sin transacciones propias.
+
+**Esto no es un fallo del diseño — lo confirma.** El diagrama de clases ya
+ponía `Plato.version` y `reservarStock()` en el dominio propio de Aliflow
+(PostgreSQL), no en el ERP externo. La prueba demostró *por qué* esa decisión
+es la correcta: solo la base de datos propia de Aliflow puede dar una
+garantía transaccional real. El ERP se sincroniza después, de forma
+asíncrona, vía el patrón Outbox — y por eso no necesita ser atómico.
+
+`plato_local.py` simula ese dominio propio con un lock real (equivalente
+conceptual a `SELECT ... FOR UPDATE` en una transacción de PostgreSQL), y el
+Escenario B del demo corre la prueba de concurrencia ahí, no contra Odoo —
+con resultado correcto (3 de 5 compras exitosas, nunca más de lo disponible).
+
+`OdooAdapter.reservar_stock()` se deja en el código, pero con una advertencia
+explícita en su docstring: solo sirve como sincronización de "mejor
+esfuerzo" hacia Odoo, nunca como mecanismo de bloqueo de concurrencia real.
