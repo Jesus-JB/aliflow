@@ -1,0 +1,39 @@
+@startuml estado-orden-aliflow
+
+title Diagrama de Estado — Orden
+
+skinparam state {
+  BackgroundColor<<propuesta>> #FFF3B0
+  BorderColor<<propuesta>> #8A6D00
+}
+
+legend top left
+  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+endlegend
+
+state EXPIRADO <<propuesta>>
+
+[*] --> COMPRADO : confirmarCompra()\n(saldo y stock validados)
+
+COMPRADO --> ENTREGADO : marcarEntregado(cajero)\n[CodigoRetiro válido y no usado]
+
+COMPRADO --> EXPIRADO : expirar()\n[CodigoRetiro.fechaExpiracion\nalcanzada sin usar]
+
+ENTREGADO --> [*]
+EXPIRADO --> [*]
+
+note right of EXPIRADO
+  Propuesta concreta de regla de
+  expiración (antes solo estaba
+  identificado el vacío, sin mecanismo):
+  Orden pasa a EXPIRADO cuando se
+  cumple CodigoRetiro.fechaExpiracion
+  sin que CodigoRetiro.usado sea true.
+  Ver estado-codigo-retiro.puml.
+  Pendiente: si esto implica algún
+  reembolso (fuera de alcance v1
+  según el acta) o solo queda como
+  registro histórico.
+end note
+
+@enduml

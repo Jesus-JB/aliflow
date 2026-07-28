@@ -1,0 +1,40 @@
+@startuml estado-codigo-retiro-aliflow
+
+title Diagrama de Estado — CodigoRetiro
+
+skinparam state {
+  BackgroundColor<<propuesta>> #FFF3B0
+  BorderColor<<propuesta>> #8A6D00
+}
+
+legend top left
+  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+endlegend
+
+state Expirado <<propuesta>>
+
+[*] --> Vigente : generar(UUID firmado,\nfechaExpiracion)\n[al confirmar la compra]
+
+Vigente --> Usado : invalidarSiNoUsado()\nUPDATE ... WHERE usado=false\n[Cajero confirma entrega]
+
+Vigente --> Expirado : fechaExpiracion alcanzada\nsin ser usado
+
+Usado --> [*]
+Expirado --> [*]
+
+note right of Vigente
+  La actualización a Usado es
+  atómica y condicional — evita la
+  doble redención (riesgo R-14,
+  ver Gestion-de-Riesgos.md y
+  secuencia-retiro-entrega.puml).
+end note
+
+note right of Expirado
+  Dispara la transición de la Orden
+  asociada a EXPIRADO — ver
+  estado-orden.puml. Mismo mecanismo,
+  dos objetos.
+end note
+
+@enduml

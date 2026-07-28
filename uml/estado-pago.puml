@@ -1,0 +1,27 @@
+@startuml estado-pago-aliflow
+
+title Diagrama de Estado — Pago
+
+[*] --> PENDIENTE : crear(monto)\n[enviado a la pasarela de pagos]
+
+PENDIENTE --> APROBADO : la pasarela confirma\n(directo o vía webhook)
+PENDIENTE --> RECHAZADO : la pasarela rechaza\n(directo o vía webhook)
+
+APROBADO --> [*]
+RECHAZADO --> [*]
+
+note right of APROBADO
+  Solo un Pago en estado APROBADO
+  genera una Recarga — ver
+  diagrama-clases.puml
+  (Pago "1" --> "0..1" Recarga).
+end note
+
+note right of PENDIENTE
+  Refleja el riesgo R-06
+  (Gestion-de-Riesgos.md): la pasarela
+  elegida (Kushki/PayPhone/Stripe)
+  podría no confirmar de inmediato.
+end note
+
+@enduml

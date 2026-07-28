@@ -1,0 +1,31 @@
+@startuml estado-evento-sincronizacion-aliflow
+
+title Diagrama de Estado — EventoSincronizacion
+
+[*] --> PENDIENTE : publicar()\n[venta o cambio de menú confirmado]
+
+PENDIENTE --> PENDIENTE : notifySale()/updateStock() falla\n[intentos < máximo]\n/ incrementar intentos, esperar backoff
+
+PENDIENTE --> PROCESADO : notifySale()/updateStock() exitoso
+
+PENDIENTE --> FALLIDO : intentos >= máximo\nsin éxito
+
+PROCESADO --> [*]
+FALLIDO --> [*]
+
+note right of PENDIENTE
+  Implementa el patrón Outbox — ver
+  Hallazgos-Ingenieria-API-Generica.md
+  sección 3.4 y
+  secuencia-sincronizacion-erp.puml.
+end note
+
+note right of FALLIDO
+  Visible en el panel del Proveedor
+  (UC10) para reconciliación manual.
+  Caso real ilustrado en
+  objeto-integracion-erp.puml
+  (Barú / Alpwin, 3 intentos agotados).
+end note
+
+@enduml
