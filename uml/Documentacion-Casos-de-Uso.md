@@ -6,7 +6,7 @@
 
 **Referencia:** cada caso de uso indica el paso correspondiente de `Flujos-Aliflow-Revision.html` (formato `{rol}-{número}`, ver nota en `Hallazgos-Ingenieria-API-Generica.md` sección 5) del que se derivó.
 
-**Convención visual:** fondo amarillo = propuesta de Ingeniería sin validar con Negocios. Misma convención usada en `diagrama-clases.puml` y `diagrama-componentes.puml`. En esta revisión (28-jul-2026) el diagrama quedó **sin ningún caso de uso amarillo**: los tres que lo estaban (UC12/UC13/UC14, del rol Administrador) fueron eliminados o reasignados tras la decisión de Negocios que se describe abajo.
+**Convención visual:** fondo amarillo = propuesta de Ingeniería sin validar con Negocios. Misma convención usada en `diagrama-clases.puml` y `diagrama-componentes.puml`. En esta revisión (28-jul-2026) los tres casos de uso que estaban en amarillo (UC12/UC13/UC14, del rol Administrador) fueron eliminados o reasignados. Los que están en amarillo ahora son otros: **UC13, UC14, UC15 y "Acreditar sello"**, del requisito nuevo de cartilla de fidelidad. Los números UC13/UC14 se reutilizaron y **no tienen relación con los anteriores**.
 
 ## Cambios de esta revisión (28-jul-2026, decisiones de Negocios)
 
@@ -18,6 +18,7 @@
 | **ERP del proveedor** | Un solo ERP objetivo (se creía que Barú usaba Alpwin) | **Multi-ERP**: cada local usa el suyo (Barú → Contífico, Caramel Coffee → Alpwin), con conexión **bidireccional**. |
 | **Código de retiro (UC5)** | Pendiente entre QR y numérico; propuesta de UUID firmado | **Código numérico corto** (6 dígitos), dictado de viva voz al Operador. |
 | **Recarga de saldo (UC2)** | Pendiente entre saldo por proveedor y saldo único | **Recarga única**, distribuida internamente por Aliflow. |
+| **Cartilla de fidelidad** | No existía como requisito | **Requisito nuevo**: el estudiante acumula sellos por compra y al completar la cartilla gana un premio. Se agregan UC13, UC14, UC15 y el sub-flujo UC5d. Cuántos sellos y qué premio siguen sin definir. |
 
 ## Actores
 
@@ -175,6 +176,45 @@
 >
 > **Consecuencia abierta:** si nadie dentro del sistema da de alta un local nuevo, ese paso es **manual y fuera del alcance de v1** — lo hace el equipo de Aliflow directamente contra la base de datos, junto con la configuración de la integración (UC7). Está registrado como punto abierto en `Decisiones-Pendientes-Negocios.md`.
 
+## Cartilla de fidelidad — UC13, UC14, UC15
+
+> ⚠️ **Requisito nuevo (28-jul-2026), modelado como propuesta de Ingeniería.** Negocios pidió una "cartilla de fidelidad": el estudiante acumula un sello por compra y al completar la cartilla gana un premio. **Cuántos sellos hacen falta y cuál es el premio todavía están en definición**, así que se modelan como *configuración por local* (UC14) y no como constantes del sistema — cuando Negocios los defina, es un valor en base de datos, no un cambio de código.
+>
+> **Nota sobre la numeración:** UC13 y UC14 existieron antes con otro significado (métricas globales y gestión de usuarios del super-admin) y fueron eliminados en esta misma revisión. Estos son casos de uso nuevos que reutilizan esos números.
+
+### UC13 — Consultar cartilla de fidelidad
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Estudiante |
+| **Referencia** | Ninguna aún — requisito nuevo, no está en el flujo ni en el acta. |
+| **Precondición** | El estudiante está autenticado (UC1). |
+| **Flujo principal** | 1. El estudiante abre su sección de fidelidad.<br>2. El sistema muestra **una cartilla por local** en el que haya comprado: sellos acumulados sobre sellos requeridos, premio ofrecido, y fecha de expiración si aplica.<br>3. Si alguna cartilla está `COMPLETA`, se destaca que tiene un premio disponible para canjear (UC15). |
+| **Postcondición** | El estudiante conoce su avance en cada local. |
+
+### UC14 — Configurar programa de fidelidad del local
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Proveedor (administrador del local) |
+| **Referencia** | Ninguna aún — requisito nuevo. |
+| **Precondición** | El proveedor está autenticado (UC6). |
+| **Flujo principal** | 1. El proveedor activa o desactiva el programa de fidelidad de **su** local.<br>2. Define cuántos sellos requiere la cartilla, en qué consiste el premio, cuántos sellos como máximo se pueden acumular por día, y si la cartilla caduca.<br>3. El sistema valida los datos mínimos (sellos requeridos > 0). |
+| **Postcondición** | El programa queda activo; a partir de ahí, cada entrega acredita sellos (UC5d). |
+| **Regla de alcance** | El programa es **por local**, no de la plataforma: el costo del premio lo absorbe el local, así que cada uno define el suyo. Un local puede no tener programa. |
+
+### UC15 — Canjear premio de la cartilla
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Estudiante y Operador (transacción compartida, igual que UC5) |
+| **Referencia** | Ninguna aún — requisito nuevo. |
+| **Precondición** | El estudiante tiene una cartilla en estado `COMPLETA` en ese local. |
+| **Flujo principal** | 1. El estudiante elige el plato del premio y confirma el canje.<br>2. El sistema crea una **orden real** (`<<include>>` UC4) con `esCanje = true` y total $0: se descuenta el stock y se genera código de retiro como en cualquier compra, pero **no** se descuenta saldo.<br>3. La cartilla pasa a `CANJEADA` mediante una actualización atómica y condicional (`WHERE estado = 'COMPLETA'`), igual que la redención del código de retiro.<br>4. El Operador entrega el premio y confirma, como en UC5. |
+| **Flujo alternativo** | Si la cartilla ya fue canjeada entre el paso 1 y el 3 (doble canje concurrente), la actualización afecta 0 filas y se informa error sin crear la orden. |
+| **Postcondición** | Cartilla en `CANJEADA`; orden de canje entregada; inventario del local descontado. |
+| **Pendiente** | Cómo debe representarse una venta de $0 en el ERP del local (documento de cortesía / descuento 100%) — se resuelve distinto en Contífico que en Alpwin. Ver `Decisiones-Pendientes-Negocios.md`, punto 9. |
+
 ---
 
 ## Casos de uso incluidos/extendidos (sub-flujos reutilizables)
@@ -193,6 +233,7 @@ Estos no son procesos de negocio independientes, sino pasos reutilizados dentro 
 | UC5a | Buscar orden (código o manual) | UC5 (include) | Ubicar la orden por código de validación o por nombre/ID institucional. |
 | UC5b | Validar y confirmar entrega | UC5 (include) | Verificar estado, cambiar a "Entregado", invalidar código, registrar timestamp/operador. |
 | UC5c | Manejar excepción de entrega | UC5 (extend) | Código inválido/ya usado, o fallo de conectividad (riesgo v1 sin modo offline). |
+| UC5d | Acreditar sello en la cartilla | UC5 (include) | Sumar un sello a la cartilla vigente del estudiante en ese local, si el local tiene programa de fidelidad activo y no se acreditó ya un sello ese día. |
 
 ---
 

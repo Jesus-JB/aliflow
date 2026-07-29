@@ -1,6 +1,6 @@
 # Documentación de Diagramas de Estado — Aliflow
 
-Cuatro diagramas de estado, para los objetos del sistema con un ciclo de vida real (más de un estado posible y transiciones con condiciones). Misma convención visual que el resto del proyecto: fondo amarillo = propuesta de Ingeniería sin validar con Negocios.
+Cinco diagramas de estado, para los objetos del sistema con un ciclo de vida real (más de un estado posible y transiciones con condiciones). Misma convención visual que el resto del proyecto: fondo amarillo = propuesta de Ingeniería sin validar con Negocios.
 
 ---
 
@@ -41,8 +41,23 @@ Simple pero real: `PENDIENTE` no es solo un estado transitorio instantáneo — 
 
 El auto-loop en `PENDIENTE` (reintento con backoff) y la transición a `FALLIDO` tras agotar intentos son exactamente el comportamiento ya mostrado en el diagrama de secuencia y en el diagrama de objetos con el caso real de Alpwin en Caramel Coffee — este diagrama es la vista de ciclo de vida del mismo mecanismo.
 
+## 5. Cartilla de fidelidad
+
+![Estado: Cartilla](estado-cartilla.svg)
+
+**Fuente:** `estado-cartilla.puml` · **Referencia:** UC13/UC14/UC15, `uml/diagrama-clases.puml` paquete "Fidelidad".
+
+**Requisito nuevo del 28-jul-2026**, todo en amarillo: la cartilla de fidelidad. Es el diagrama de estado que más aporta de los cinco, porque el ciclo de vida **es** la regla de negocio — cuándo suma un sello, cuándo se puede canjear y cuándo se pierde.
+
+Cuatro estados: `EN_CURSO` (acumulando), `COMPLETA` (premio disponible), `CANJEADA` y `EXPIRADA`. Dos detalles que no son obvios y por eso están anotados en el propio diagrama:
+
+- **El auto-loop en `EN_CURSO` se dispara desde `marcarEntregado()`, no desde `confirmarCompra()`.** Una orden comprada y nunca retirada no suma sello. Sin esta regla, la cartilla se puede llenar sin ir nunca a buscar el almuerzo, y el local termina regalando un premio por ventas que no ocurrieron físicamente.
+- **`COMPLETA → CANJEADA` es atómica y condicional** (`UPDATE ... WHERE estado = 'COMPLETA'`), el mismo mecanismo que resuelve la doble redención del código de retiro (R-14). Sin esto, dos canjes simultáneos entregarían dos premios por una sola cartilla.
+
+`EXPIRADA` es la parte más tentativa: Negocios no dijo si una cartilla a medio llenar caduca. Se modeló el estado con un campo `vigenciaCartillaDias` configurable; si la decisión es que no caduca, el campo queda nulo y la transición nunca se dispara — el modelo no cambia.
+
 ---
 
-## Por qué estos 4 y no otros
+## Por qué estos 5 y no otros
 
-`Estudiante`, `Proveedor`, `Plato` no tienen un ciclo de vida con estados discretos más allá de `activo`/`inactivo` (una sola transición booleana, no justifica un diagrama). `SaldoProveedor` y `TarjetaVirtual` cambian de valor (monto) pero no de "estado" en el sentido UML. Se priorizaron los objetos cuyo estado determina qué operaciones son válidas en cada momento — que es exactamente el criterio que pide la rúbrica ("objetos pertinentes").
+`Estudiante`, `Proveedor`, `Plato` y `ProgramaFidelidad` no tienen un ciclo de vida con estados discretos más allá de `activo`/`inactivo` (una sola transición booleana, no justifica un diagrama). `SaldoProveedor` y `TarjetaVirtual` cambian de valor (monto) pero no de "estado" en el sentido UML. Se priorizaron los objetos cuyo estado determina qué operaciones son válidas en cada momento — que es exactamente el criterio que pide la rúbrica ("objetos pertinentes").

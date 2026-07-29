@@ -2,7 +2,7 @@
 
 **Preparado por:** Grupo de Ingeniería
 **Creado:** 27-jul-2026, para la reunión con el Grupo de Negocios
-**Actualizado:** 28-jul-2026 — Negocios resolvió 5 de las 8 decisiones abiertas
+**Actualizado:** 28-jul-2026 — Negocios resolvió 5 de las 8 decisiones abiertas y agregó un requisito nuevo (cartilla de fidelidad, punto 9)
 **Objetivo:** llevar la cuenta de qué está decidido, qué sigue abierto, y qué cambió en el diseño como consecuencia.
 
 Todo lo trabajado (arquitectura, casos de uso, diagramas de clases/objetos/componentes/despliegue/actividad/secuencia/estado, registro de riesgos, demo funcional) está en el repositorio: **https://github.com/Jesus-JB/aliflow**. Este documento no repite ese contenido — apunta a la sección exacta de cada documento donde está el detalle.
@@ -21,6 +21,7 @@ Todo lo trabajado (arquitectura, casos de uso, diagramas de clases/objetos/compo
 | 6 | Formato del código de retiro | ✅ **Resuelta** | Prototipo de mockups |
 | 7 | Modelo de cobro de Aliflow al proveedor | ⬜ Abierta | Nada crítico |
 | 8 | Corrección del Acta (comprobante tributario) | ⬜ Abierta — pendiente de explicación, ver abajo | Documento de requerimientos |
+| 9 | **Cartilla de fidelidad** *(requisito nuevo)* | 🆕 **Modelada**, faltan las reglas | Nada — se modeló como configuración |
 
 **Las tres decisiones que bloqueaban el modelo de base de datos (#1, #2, #3) están cerradas. Ingeniería puede empezar el esquema de base de datos.**
 
@@ -63,7 +64,7 @@ En resumen: **el arranque se destrabó y el producto creció**. El riesgo que m�
 Ingeniería había propuesto un super-admin de plataforma con tres funciones (alta de proveedores, métricas globales, gestión de usuarios), marcado en amarillo en los diagramas precisamente porque no tenía base en ningún acta. La suposición era incorrecta y se eliminó.
 
 **Impacto en el diseño (ya aplicado):**
-- `uml/casos-de-uso.puml` — eliminado el actor Administrador. **UC13 y UC14 eliminados.** UC12 redefinido como "Gestionar usuarios del local" y reasignado al Proveedor. El diagrama quedó sin ningún caso de uso en amarillo.
+- `uml/casos-de-uso.puml` — eliminado el actor Administrador. **UC13 y UC14 eliminados.** UC12 redefinido como "Gestionar usuarios del local" y reasignado al Proveedor. *(Los números UC13/UC14 se reutilizaron después para la cartilla de fidelidad — punto 9 — y no tienen relación con los anteriores.)*
 - `uml/diagrama-clases.puml` — eliminada la clase `Administrador` de plataforma. `Propietario` → `Administrador` (la persona gerente) y `Cajero` → `Operador`, para usar el vocabulario oficial de Negocios.
 - `uml/diagrama-componentes.puml` — "Módulo de Administración" → "Módulo de Usuarios del Local".
 
@@ -160,6 +161,42 @@ Negocios preguntó qué significa este punto. Explicación completa:
 **Qué necesitamos de Negocios.** Nada complicado: solo **corregir la redacción de la sección 4 del Acta** para que diga "comprobante de compra sin validez tributaria; el proveedor re-emite la factura fiscal en su sistema". No cambia nada de lo ya decidido ni de lo ya construido — evita que quede una contradicción entre dos documentos oficiales del proyecto cuando se redacte la especificación de requerimientos final.
 
 **Detalle:** `Hallazgos-Ingenieria-API-Generica.md`, sección 5.1.
+
+### 9. Cartilla de fidelidad — requisito nuevo, ya modelado
+
+**Lo que pidió Negocios:** una cartilla de fidelidad — por cada compra el estudiante acumula un sello, y al completarla gana un premio. **Cuántos sellos hacen falta y cuál es el premio siguen en definición.**
+
+**Cómo se resolvió el no saber esos dos datos:** no se esperó a tenerlos. Se modelaron como **configuración por local** (`ProgramaFidelidad.sellosRequeridos` y `descripcionPremio`), no como constantes del sistema. Cuando Negocios los defina, es un valor que se carga en base de datos desde el panel del Proveedor (UC14) — no hay que rediseñar ni reprogramar nada. Lo mismo con la caducidad de la cartilla y con el tope de sellos por día.
+
+**Lo que Ingeniería sí tuvo que decidir para poder modelarlo.** Estas cuatro no las dijo Negocios; son propuestas y conviene revisarlas:
+
+| Decisión | Qué se asumió | Por qué |
+|---|---|---|
+| **¿La cartilla es por local o global?** | **Por local.** Un estudiante tiene una cartilla activa en Barú y otra en Caramel Coffee, independientes. | El premio lo regala el local, no Aliflow. Sería injusto que las compras en Barú llenen una cartilla que Caramel Coffee tiene que pagar. También permite que un local no ofrezca programa. |
+| **¿El sello se gana al comprar o al retirar?** | **Al retirar** (`marcarEntregado`). | Si se ganara al comprar, se puede llenar la cartilla comprando almuerzos y no yendo nunca a buscarlos: el local pagaría un premio por ventas que no ocurrieron físicamente. |
+| **¿Cuántos sellos se pueden ganar en un día?** | **Uno** (configurable). | Sin tope, la cartilla premia volumen en vez de recurrencia y se llena en un solo día comprando el ítem más barato del menú varias veces. |
+| **¿Cómo se cobra el premio?** | Como una **orden real con total $0** (`esCanje = true`): descuenta stock, genera código de retiro, pero no toca el saldo del estudiante ni lo que Aliflow le debe al local. | El plato igual sale del inventario y el estudiante igual tiene que retirarlo. Y Aliflow no le debe nada al local por un premio que el local decidió regalar. |
+
+**La pregunta concreta que necesitamos que Negocios responda.** En la descripción se dijo *"si lo hace durante 10 veces diarias por ejemplo"*, y eso admite dos lecturas muy distintas:
+
+| Lectura | Qué significaría | Comentario de Ingeniería |
+|---|---|---|
+| **A — 10 compras en un mismo día** | El estudiante debe comprar 10 almuerzos el mismo día para completar la cartilla | No parece realista: nadie almuerza 10 veces. Y si se cuenta cualquier ítem (café, snack), premia gasto, no lealtad. |
+| **B — 10 compras, una por día, a lo largo de 10 días** | Cartilla de sellos clásica: vuelve 10 veces y el 11° te lo regalamos | **Es la que se implementó**, con tope de 1 sello por día. Es el mecanismo estándar de fidelidad y es el que tiene sentido para un almuerzo. |
+
+Si la intención era A, o algo intermedio (varios sellos por día pero con monto mínimo), avísanos: es cambiar el valor de `maxSellosPorDia`, no rediseñar.
+
+**Un punto técnico que hay que verificar antes de construirlo:** el canje genera una venta de **$0** en el ERP del local. Un `notifySale` con monto cero puede parecerle un error al ERP y rechazarlo. Habría que emitirlo como documento de cortesía o descuento del 100%, y eso se resuelve distinto en Contífico que en Alpwin. Es una verificación pendiente contra la documentación de Contífico.
+
+**Impacto en el diseño (ya aplicado):**
+- `uml/diagrama-clases.puml` — paquete nuevo **"Fidelidad"**: `ProgramaFidelidad`, `Cartilla`, `Sello`, `Canje`, `EstadoCartilla`; campo `Orden.esCanje`.
+- `uml/estado-cartilla.puml` *(diagrama nuevo)* — ciclo de vida `EN_CURSO → COMPLETA → CANJEADA`, con `EXPIRADA`.
+- `uml/casos-de-uso.puml` — UC13 (consultar cartilla), UC14 (configurar el programa), UC15 (canjear premio) y el sub-flujo "Acreditar sello" dentro de UC5.
+- `uml/actividad-retiro-entrega.puml` y `uml/secuencia-retiro-entrega.puml` — la acreditación del sello, después de confirmar la entrega.
+- `uml/diagrama-componentes.puml` — "Módulo de Fidelidad" aparte del de Órdenes.
+- `Gestion-de-Riesgos.md` — riesgo **R-17**.
+
+**Riesgo que conviene nombrar:** un requisito nuevo entrando después de cerrar el diseño es exactamente lo que R-08 advertía. Se absorbió sin rehacer nada, pero **el alcance del módulo debería congelarse en "una cartilla simple: N sellos → 1 premio, por local"**. Si más adelante aparecen puntos, niveles o campañas por temporada, eso es otro proyecto — y en un taller con fecha de entrega, conviene decirlo ahora y no después.
 
 ### Nuevo — ¿quién da de alta un local nuevo?
 

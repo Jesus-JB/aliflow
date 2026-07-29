@@ -19,6 +19,7 @@ Organizada en módulos, cada uno mapeado a los paquetes del diagrama de clases:
 - **Módulo de Wallet** — implementa UC2 (recarga); es el único módulo que habla con la **Pasarela de Pagos**.
 - **Módulo de Órdenes** — implementa UC4/UC5 (compra, retiro); publica eventos a la cola cuando se confirma una venta.
 - **Módulo de Proveedores y Menú** — implementa UC7/UC8 (integración, administración de menú).
+- **Módulo de Fidelidad** *(nuevo, 28-jul-2026)* — implementa UC13/UC14/UC15 y el sub-flujo UC5d: cartillas, sellos y canjes. Se modela como módulo aparte y no como lógica dentro de Órdenes por una razón concreta: las reglas del programa (cuántos sellos, qué premio, tope diario, si caduca) las define cada local y todavía no están cerradas. Conviene que puedan cambiar sin tocar el módulo que mueve dinero e inventario. La flecha `Órdenes → Fidelidad` refleja que el sello se acredita cuando la entrega se confirma.
 - **Módulo de Usuarios del Local** — implementa UC12: permite que un Proveedor (administrador del local) dé de alta y revoque a otros Proveedores y a los Operadores de **su propio** local. Reemplaza al antiguo "Módulo de Administración", que existía para un rol de super-admin de plataforma ya descartado por Negocios (28-jul-2026).
 
 Todos los módulos persisten en **PostgreSQL** directamente (no hay una capa de repositorio separada mostrada aquí — a ese nivel de detalle correspondería un diagrama de clases de infraestructura, fuera del alcance de "lógica de negocio" que pide la rúbrica).

@@ -54,6 +54,12 @@ rectangle "Aliflow" {
   usecase "UC11. Consultar detalle de venta\n(soporte re-emisión de comprobante)" as UC11
 
   usecase "UC12. Gestionar usuarios del local\n(Proveedores y Operadores)" as UC12
+
+  ' ---- Fidelidad (requisito nuevo, 28-jul-2026) ----
+  usecase "UC13. Consultar cartilla\nde fidelidad" as UC13 #FFF3B0
+  usecase "UC14. Configurar programa\nde fidelidad del local" as UC14 #FFF3B0
+  usecase "UC15. Canjear premio\nde la cartilla" as UC15 #FFF3B0
+  usecase "Acreditar sello\nen la cartilla" as UC5d #FFF3B0
 }
 
 ' ---- Asociaciones actor - caso de uso ----
@@ -62,9 +68,12 @@ EST --> UC2
 EST --> UC3
 EST --> UC4
 EST --> UC5
+EST --> UC13
+EST --> UC15
 
 OP --> UC5
 OP --> UC6
+OP --> UC15
 
 PROV --> UC6
 PROV --> UC7
@@ -73,6 +82,7 @@ PROV --> UC9
 PROV --> UC10
 PROV --> UC11
 PROV --> UC12
+PROV --> UC14
 
 IDP --> UC1a
 ERP --> UC3a
@@ -95,6 +105,10 @@ UC4 .> UC4c : <<include>>
 UC5 .> UC5a : <<include>>
 UC5 .> UC5b : <<include>>
 UC5 .> UC5c : <<extend>>
+UC5 .> UC5d : <<include>>
+
+UC15 .> UC4 : <<include>>
+ERP --> UC15
 
 note right of PROV
   **Decisión de Negocios (28-jul-2026):**
@@ -102,10 +116,26 @@ note right of PROV
   Estudiante, Proveedor y Operador. El rol
   "Administrador" **es** el Proveedor: el
   gerente del local. No existe un super-admin
-  de plataforma (los UC12-UC14 anteriores,
-  que lo suponían, fueron eliminados).
+  de plataforma: los tres casos de uso que lo
+  suponían se eliminaron, y UC12 se redefinió
+  como gestión de usuarios **del local**.
+  (UC13/UC14 se reutilizaron después para la
+  cartilla de fidelidad — no tienen relación
+  con los antiguos.)
   Un mismo local puede tener varias cuentas
   de Proveedor y varias de Operador.
+end note
+
+note bottom of UC14
+  <back:#FFF3B0>Requisito nuevo (28-jul-2026):</back> cartilla de
+  fidelidad. Cuántos sellos hacen falta y cuál
+  es el premio **todavía no están definidos**
+  por Negocios, así que se modelan como
+  configuración por local (UC14), no como
+  constantes del sistema. El sello se acredita
+  al **entregar** el almuerzo (UC5), no al
+  comprarlo. Ver Decisiones-Pendientes-Negocios.md,
+  punto 9.
 end note
 
 note right of ERP

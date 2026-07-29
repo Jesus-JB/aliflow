@@ -8,6 +8,7 @@ participant "Módulo de Órdenes\n(API)" as API
 participant "Orden" as Orden
 participant "CodigoRetiro" as Codigo
 participant "RegistroAuditoria" as Audit
+participant "Cartilla\n<<propuesta>>" as Cartilla
 
 Estudiante -> Operador : presenta código de retiro\n(o datos para búsqueda manual)
 activate Operador
@@ -40,7 +41,23 @@ else orden encontrada
     else filas afectadas = 1
       API -> Orden : marcarEntregado(operador)
       API -> Audit : registrar("marcarEntregado", operador)
-      API --> Operador : confirmación
+
+      opt el local tiene ProgramaFidelidad activo
+        API -> Cartilla : acreditarSello(orden)
+        note right of Cartilla
+          Propuesta (28-jul-2026). El sello se
+          acredita aquí, en la entrega, no en la
+          compra. Sello->Orden es único, así que
+          un reintento no acredita dos veces, y
+          maxSellosPorDia limita el acumulado
+          diario. Si con este sello la cartilla
+          se completa, pasa a COMPLETA y el
+          estudiante ve el premio disponible.
+        end note
+        Cartilla --> API : sellosAcumulados / estado
+      end
+
+      API --> Operador : confirmación\n(+ estado de la cartilla, si aplica)
       Operador -> Estudiante : entrega físicamente el almuerzo
     end
   end

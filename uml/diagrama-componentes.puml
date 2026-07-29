@@ -22,6 +22,7 @@ package "Aliflow API (FastAPI)" {
   [Módulo de Órdenes\n(compra, código de retiro)] as ORDERS
   [Módulo de Proveedores y Menú] as PROVMOD
   [Módulo de Usuarios del Local\n(altas de Proveedores y Operadores)] as USERMOD
+  [Módulo de Fidelidad\n(cartillas, sellos, canjes)] as LOYALTY #FFF3B0
 }
 
 package "Capa de Integración" {
@@ -57,6 +58,7 @@ WEB --> WALLET : HTTPS/REST
 WEB --> ORDERS : HTTPS/REST
 WEB --> PROVMOD : HTTPS/REST
 WEB --> USERMOD : HTTPS/REST
+WEB --> LOYALTY : HTTPS/REST
 
 AUTH --> IDP : OAuth 2.0 / OIDC
 WALLET --> PAY : procesar pago
@@ -66,7 +68,9 @@ WALLET --> DB
 ORDERS --> DB
 PROVMOD --> DB
 USERMOD --> DB
+LOYALTY --> DB
 
+ORDERS --> LOYALTY : entrega confirmada\n(acreditar sello)
 ORDERS --> QUEUE : publica evento\n(venta confirmada)
 PROVMOD --> QUEUE : publica evento\n(cambio de menú/stock)
 
@@ -90,6 +94,16 @@ note bottom of ALPWINA
   Alpwin, que **no** tiene API pública —
   este adaptador es el caso difícil, pero
   ya no bloquea el piloto. Ver sección 4.3.
+end note
+
+note bottom of LOYALTY
+  <back:#FFF3B0>Requisito nuevo (28-jul-2026):</back> cartilla
+  de fidelidad. Módulo aparte y no lógica
+  dentro de Órdenes, porque las reglas
+  (cuántos sellos, qué premio, si caduca)
+  las define cada local y todavía no están
+  cerradas — conviene que cambien sin tocar
+  el módulo que mueve dinero e inventario.
 end note
 
 note right of QUEUE

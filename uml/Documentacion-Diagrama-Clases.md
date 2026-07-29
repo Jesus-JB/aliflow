@@ -4,7 +4,7 @@
 
 **Diagrama fuente:** `diagrama-clases.puml` (mismo directorio) — ver `README-diagramas.md` para regenerar el SVG tras editarlo.
 
-Este diagrama modela la **lógica de negocio** del sistema (no las clases de infraestructura/ORM/framework), organizada en 5 paquetes.
+Este diagrama modela la **lógica de negocio** del sistema (no las clases de infraestructura/ORM/framework), organizada en 6 paquetes.
 
 **Convención visual (revisión 27-jul-2026):** los elementos con fondo amarillo y estereotipo `<<propuesta>>` son diseño de Ingeniería sin validar todavía con Negocios — no decisiones ya confirmadas. Antes esta distinción solo vivía en este markdown; ahora es visible directamente en el `.svg`, para que no se pueda confundir una propuesta con una decisión cerrada solo mirando la imagen.
 
@@ -78,7 +78,28 @@ Bajo la lectura B, `SaldoProveedor` deja de ser "el saldo del estudiante en ese 
 
 **Auditoría (agregada 27-jul-2026):** `RegistroAuditoria` responde al riesgo R-09 (`Gestion-de-Riesgos.md`), que pedía explícitamente registro de auditoría para compras y redenciones — antes este requisito estaba documentado como riesgo pero no tenía ninguna clase correspondiente. Registra quién ejecutó `confirmarCompra()`, `marcarEntregado()`, `invalidar()` y la acreditación interna al local.
 
-## 5. Paquete "Integración con ERP externo"
+## 5. Paquete "Fidelidad" (requisito nuevo, 28-jul-2026)
+
+Negocios pidió una **cartilla de fidelidad**: el estudiante acumula un sello por compra y al completar la cartilla gana un premio. **Cuántos sellos y qué premio todavía están en definición**, así que todo el paquete está marcado `<<propuesta>>`.
+
+**La decisión de diseño que evita quedarse esperando:** los dos datos que faltan (`sellosRequeridos`, `descripcionPremio`) se modelan como **campos configurables de `ProgramaFidelidad`**, no como constantes. Cuando Negocios los defina, es un valor en base de datos — no hay que rediseñar ni reprogramar nada. Lo mismo con `vigenciaCartillaDias` (si Negocios decide que la cartilla no caduca, el campo queda nulo) y con `maxSellosPorDia`.
+
+**Cuatro decisiones de diseño que Ingeniería tomó y conviene que Negocios revise:**
+
+1. **El programa es por local, no de la plataforma.** `ProgramaFidelidad` cuelga de `Proveedor`. La razón es económica, no técnica: el premio lo regala el local, así que es el local quien debe poder decidir si lo ofrece, cuántos sellos pide y qué da. Un local puede no tener programa. Como consecuencia, el estudiante tiene **una cartilla activa por local**, no una sola global.
+2. **El sello se acredita al entregar, no al comprar.** `Sello` se crea dentro de `Orden.marcarEntregado()`, no de `confirmarCompra()`. Si se acreditara al comprar, un estudiante podría llenar la cartilla comprando almuerzos y nunca yendo a buscarlos — el local pagaría el premio sin haber vendido nada real. Además el sello así acompaña al acto físico, que es lo que el negocio quiere premiar.
+3. **Un sello por orden, garantizado por el modelo.** La asociación `Sello --> Orden` es 1 a 1 con restricción de unicidad. Si la confirmación de entrega se reintenta (fallo de red, doble clic del Operador), la segunda inserción falla y no se acredita dos veces. Es el mismo principio de idempotencia que ya se usa en el outbox con `eventId`.
+4. **Un sello por día como tope por defecto.** `maxSellosPorDia = 1`. Sin este límite, la cartilla premia volumen en vez de recurrencia, y se puede llenar en un solo día comprando el ítem más barato del menú varias veces. Este punto depende de lo que Negocios haya querido decir con "10 veces diarias" — ver `Decisiones-Pendientes-Negocios.md`, punto 9.
+
+**El canje toca el resto del sistema en tres lugares:**
+
+- **`Orden.esCanje`** — el canje se aplica sobre una orden real con total $0. Tiene que ser una orden de verdad porque el plato igual sale del inventario y el estudiante igual necesita un código de retiro.
+- **La wallet no se toca.** No se descuenta `TarjetaVirtual.saldoDisponible` ni se acredita `SaldoProveedor`: Aliflow no le debe nada al local por un premio que el local mismo decidió regalar.
+- **El ERP sí se entera, y ahí hay un problema abierto.** Un `notifySale` con monto $0 puede parecerle un error al ERP del local. Habría que emitirlo como documento de cortesía o descuento del 100%, y eso se resuelve distinto en Contífico que en Alpwin. Está registrado como pendiente.
+
+**Concurrencia:** el paso `COMPLETA → CANJEADA` usa el mismo mecanismo atómico y condicional que la redención del código de retiro (`UPDATE ... WHERE estado = 'COMPLETA'`). Si dos pestañas del estudiante intentan canjear a la vez, la segunda afecta 0 filas y falla sin crear la orden.
+
+## 6. Paquete "Integración con ERP externo"
 
 Materializa directamente la arquitectura ya diseñada en `Hallazgos-Ingenieria-API-Generica.md` (sección 3):
 
@@ -127,6 +148,7 @@ Todos marcados con `<<propuesta>>` y fondo amarillo directamente en el diagrama.
 1. `SaldoProveedor` como libro interno acreditado **al momento de la compra** — es la interpretación de Ingeniería de "Aliflow distribuye internamente" (lectura B de la tabla en la sección 3). Falta que Negocios la confirme.
 2. `EstadoOrden.EXPIRADO` es una adición de Ingeniería para cubrir el vacío de "orden nunca retirada" — falta que Negocios defina la regla de expiración exacta.
 3. `Usuario.autenticar()` no distingue aún el mecanismo (OAuth institucional para Estudiante vs. credenciales propias para Proveedor y Operador) a nivel de firma — se resuelve en `uml/actividad-autenticacion.puml`.
+4. **Todo el paquete "Fidelidad"** — es un requisito real de Negocios, pero su modelado completo (programa por local, sello en la entrega, tope diario, canje como orden de $0) es diseño de Ingeniería sobre una descripción todavía incompleta. Ver sección 5.
 
 **Cerrados por Negocios el 28-jul-2026** (ya no son supuestos): la jerarquía de personal por local, el alcance del rol Administrador (que resultó ser el Proveedor mismo), el mecanismo de recarga, y el formato del código de retiro.
 
@@ -141,6 +163,7 @@ Negocios resolvió cinco de las decisiones que bloqueaban el modelo. Impacto sob
 | 3 | Un local puede tener varios Proveedores y varios Operadores | Cardinalidades `1..*` / `0..*`; la jerarquía `UsuarioProveedor` deja de ser `<<propuesta>>` |
 | 4 | Recarga única distribuida internamente | `TarjetaVirtual.saldoDisponible` agregado; `SaldoProveedor` pasa a libro interno (`montoAcumulado`); `RecargaDirectaPorProveedor` eliminada, `DistribucionBajoDemanda` vigente |
 | 6 | Código de retiro numérico corto | `CodigoRetiro.valor` documentado como 6 dígitos; nota de unicidad acotada por local; riesgo R-15 |
+| 9 | **Cartilla de fidelidad** (requisito nuevo) | Paquete "Fidelidad" completo: `ProgramaFidelidad`, `Cartilla`, `Sello`, `Canje`, `EstadoCartilla`; campo `Orden.esCanje`; riesgo R-17 |
 
 **Lo que estas decisiones mejoraron y lo que complicaron**, dicho sin adornos:
 

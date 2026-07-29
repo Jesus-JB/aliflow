@@ -1,0 +1,68 @@
+@startuml estado-cartilla-aliflow
+
+title Diagrama de Estado — Cartilla de fidelidad
+
+skinparam state {
+  BackgroundColor<<propuesta>> #FFF3B0
+  BorderColor<<propuesta>> #8A6D00
+}
+
+legend top left
+  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+endlegend
+
+state EnCurso <<propuesta>>
+state Completa <<propuesta>>
+state Canjeada <<propuesta>>
+state Expirada <<propuesta>>
+
+[*] --> EnCurso : emitirCartilla(estudiante)\n[primera entrega en ese local]
+
+EnCurso --> EnCurso : acreditarSello(orden)\n[sellosAcumulados < sellosRequeridos]
+
+EnCurso --> Completa : acreditarSello(orden)\n[sellosAcumulados == sellosRequeridos]
+
+Completa --> Canjeada : canjear(orden)\nUPDATE ... WHERE estado='COMPLETA'\n[Operador valida la entrega del premio]
+
+EnCurso --> Expirada : fechaExpiracion alcanzada\nsin completarse
+Completa --> Expirada : fechaExpiracion alcanzada\nsin canjearse
+
+Canjeada --> [*]
+Expirada --> [*]
+
+note right of EnCurso
+  El sello se acredita en `marcarEntregado()`,
+  **no** en `confirmarCompra()`: una orden
+  comprada y nunca retirada no suma. Además
+  `Sello → Orden` es único, así que un
+  reintento de entrega no acredita dos veces.
+
+  `maxSellosPorDia` (por defecto 1) evita
+  que se llene la cartilla comprando varias
+  veces el mismo día.
+end note
+
+note right of Completa
+  El canje se aplica sobre una Orden real con
+  `esCanje = true` y total $0 — el plato sale
+  del inventario igual y el ERP del local se
+  entera igual.
+end note
+
+note bottom of Canjeada
+  Cuando una cartilla se cierra (Canjeada o
+  Expirada), la siguiente entrega en ese local
+  emite una cartilla nueva en EnCurso. El
+  estudiante tiene **una cartilla activa por local**,
+  no una sola global.
+end note
+
+note bottom of Expirada
+  <back:#FFF3B0>`vigenciaCartillaDias` es propuesta.</back>
+  Negocios no definió si una cartilla a medio
+  llenar caduca. Si decide que no caduca,
+  basta con dejar el campo en nulo — el
+  modelo no cambia.
+end note
+
+@enduml

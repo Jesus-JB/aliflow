@@ -39,6 +39,23 @@ endif
 :Cambiar estado de la\nOrden a ENTREGADO;
 :Invalidar CodigoRetiro\n(uso único);
 :Registrar timestamp y Operador\nen RegistroAuditoria;
+
+partition "Fidelidad (propuesta, 28-jul-2026)" {
+  if (¿El local tiene\nProgramaFidelidad activo?) then (no)
+  else (sí)
+    if (¿Ya se acreditó un sello\nhoy en este local?) then (sí)
+    else (no)
+      :Acreditar Sello en la Cartilla\nvigente del estudiante\n(único por Orden);
+      if (¿Cartilla completa?) then (sí)
+        :Marcar Cartilla como COMPLETA;
+        |Estudiante|
+        :Ver aviso de premio disponible;
+        |Aliflow|
+      else (no)
+      endif
+    endif
+  endif
+}
 stop
 
 @enduml

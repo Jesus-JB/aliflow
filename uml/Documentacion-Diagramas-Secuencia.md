@@ -20,6 +20,8 @@ Este es el diagrama que **resuelve en detalle** el control de concurrencia que q
 
 **Hallazgo nuevo de esta revisión, no documentado antes:** el mismo tipo de condición de carrera que existe en el stock (dos compras simultáneas por la última unidad) también puede ocurrir aquí — dos Operadores validando el mismo código casi al mismo tiempo. Se resuelve con el mismo principio (`UPDATE ... WHERE usado = false`, atómico a nivel de base de datos): si la actualización afecta 0 filas, significa que alguien más ya redimió el código en el intervalo, y se informa como error en vez de marcar una segunda entrega. No hace falta ningún campo nuevo en `CodigoRetiro` (el booleano `usado` ya alcanza), solo que la actualización sea atómica y condicional.
 
+**Ampliado el 28-jul-2026** con el bloque `opt` de acreditación del sello de la cartilla de fidelidad, que ocurre después de `marcarEntregado()`. Va dentro de un `opt` y no de la rama principal porque el programa de fidelidad es **opcional por local**: si el local no lo tiene activo, el flujo de entrega es idéntico al de antes.
+
 ## 3. Recargar saldo
 
 ![Secuencia: recarga de saldo](secuencia-recarga-saldo.svg)

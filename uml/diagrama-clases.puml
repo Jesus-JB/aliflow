@@ -224,6 +224,7 @@ package "Órdenes" {
     - proveedor: Proveedor
     - fechaHora: DateTime
     - estado: EstadoOrden
+    - esCanje: boolean = false
     + confirmarCompra(): void
     + marcarEntregado(operador: Operador): void
     + expirar(): void
@@ -296,6 +297,104 @@ package "Órdenes" {
   Orden "1" *-- "0..1" ComprobanteCompra
   Orden "0..*" --> "0..1" Operador : entregada por
   RegistroAuditoria "0..*" --> "1" Usuario : ejecutado por
+}
+
+package "Fidelidad" {
+  class ProgramaFidelidad << propuesta >> {
+    - id: UUID
+    - sellosRequeridos: int
+    - descripcionPremio: String
+    - vigenciaCartillaDias: int
+    - maxSellosPorDia: int = 1
+    - activo: boolean
+    + emitirCartilla(estudiante: Estudiante): Cartilla
+  }
+
+  note top of ProgramaFidelidad
+    <back:#FFF3B0>Requisito nuevo (28-jul-2026),</back> todo el paquete
+    es propuesta de Ingeniería: "cartilla de
+    fidelidad" — el estudiante acumula sellos
+    por compra y al completarla gana un premio.
+    Negocios todavía no definió cuántos sellos
+    ni cuál es el premio, así que ambos son
+    **configuración** (`sellosRequeridos`,
+    `descripcionPremio`), no constantes: se
+    pueden cambiar sin tocar código.
+
+    El programa cuelga de **Proveedor**, no de
+    la plataforma: el premio lo absorbe el local,
+    así que cada local define el suyo. Ver
+    Decisiones-Pendientes-Negocios.md, punto 9.
+  end note
+
+  enum EstadoCartilla {
+    EN_CURSO
+    COMPLETA
+    CANJEADA
+    EXPIRADA
+  }
+
+  class Cartilla << propuesta >> {
+    - id: UUID
+    - sellosAcumulados: int
+    - estado: EstadoCartilla
+    - fechaInicio: DateTime
+    - fechaExpiracion: DateTime
+    + acreditarSello(orden: Orden): boolean
+    + estaCompleta(): boolean
+    + canjear(orden: Orden): Canje
+  }
+
+  class Sello << propuesta >> {
+    - id: UUID
+    - fecha: DateTime
+  }
+
+  note bottom of Sello
+    **Decisión de diseño de Ingeniería:** el sello
+    se acredita en `marcarEntregado()`, **no** en
+    `confirmarCompra()`. Dos razones:
+    (1) una orden comprada y nunca retirada no
+    debe sumar — si no, se llena la cartilla
+    comprando sin ir a buscar el almuerzo;
+    (2) el sello acompaña al acto físico, que es
+    lo que el negocio quiere premiar.
+
+    `Sello --> Orden` es 1 a 1 y con restricción
+    de unicidad: una orden nunca puede generar
+    dos sellos, aunque la entrega se reintente.
+  end note
+
+  class Canje << propuesta >> {
+    - id: UUID
+    - fechaHora: DateTime
+    - premioEntregado: String
+  }
+
+  note bottom of Canje
+    El canje se aplica sobre una **Orden real**
+    con `esCanje = true` y total $0: el plato
+    igual sale del inventario y el ERP del local
+    igual tiene que enterarse. Ojo con esto —
+    un `notifySale` de $0 puede parecerle un
+    error al ERP; hay que emitirlo como
+    documento de cortesía/descuento 100%, y eso
+    se resuelve distinto en Contífico que en
+    Alpwin. Pendiente de verificar.
+
+    Tampoco acredita `SaldoProveedor`: Aliflow
+    no le debe nada al local por un premio que
+    el local mismo decidió regalar.
+  end note
+
+  Proveedor "1" *-- "0..1" ProgramaFidelidad
+  ProgramaFidelidad "1" --> "0..*" Cartilla : emite
+  Estudiante "1" --> "0..*" Cartilla : acumula
+  Cartilla "1" *-- "0..*" Sello
+  Sello "1" --> "1" Orden : acreditado por
+  Cartilla "1" --> "0..1" Canje
+  Canje "1" --> "1" Orden : aplicado en
+  Canje "0..*" --> "1" Operador : validado por
 }
 
 package "Integración con ERP externo" {

@@ -27,6 +27,7 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 | R-11 | Alpwin (sistema de **Caramel Coffee**, no de Barú) no tiene API pública documentada | Tecnológico | Alta | **Moderado** | Mitigar |
 | R-15 | *(nuevo, 28-jul-2026)* Código de retiro numérico de 6 dígitos: adivinable por fuerza bruta | Tecnológico | Baja | Moderado | Mitigar |
 | R-16 | *(nuevo, 28-jul-2026)* Costo operativo de sostener N ERP heterogéneos a la vez (credenciales, formatos de error, soporte, pruebas) | Estimación | Alta | Grave | Mitigar |
+| R-17 | *(nuevo, 28-jul-2026)* Cartilla de fidelidad con reglas sin definir: alcance no acotado y riesgo de que el local regale premios que no vendió | Requerimientos | Alta | Moderado | Mitigar |
 
 > **Actualizado 28-jul-2026 — el ranking de riesgos se dio vuelta.** El 27-jul se había degradado R-01 y promovido R-11, sobre la base de que Barú usaba Alpwin. Negocios corrigió ese dato (`Hallazgos-Ingenieria-API-Generica.md` sección 4.3): **Barú usa Contífico; Alpwin lo usa Caramel Coffee**. Consecuencias sobre la matriz:
 >
@@ -81,6 +82,13 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 ### R-11 — Alpwin (sistema de Caramel Coffee) no tiene API pública documentada
 **Descripción:** Alpwin no tiene documentación pública de API (`Hallazgos-Ingenieria-API-Generica.md` secciones 2.5 y 4.3). **Corregido el 28-jul-2026:** el local que lo usa es Caramel Coffee, no Barú. El riesgo sigue siendo real pero cambió de severidad — degrada el alcance de la plataforma (un local que no se puede integrar en tiempo real) en vez de bloquear el piloto.
 **Acción:** Contactar a Syscompsa para descartar o confirmar una vía de integración no pública, **después** de tener el `ContificoAdapter` andando. Si no hay vía, construir el adaptador por archivos/BD puente y aceptar sincronización por lotes para ese local. La conversación de "migrar de sistema" corresponde plantearla a ese local específico, no al proyecto entero.
+
+### R-17 — Cartilla de fidelidad con reglas sin definir
+**Descripción:** Negocios pidió una cartilla de fidelidad (28-jul-2026) pero **cuántos sellos hacen falta y cuál es el premio siguen en definición**. Hay dos problemas distintos escondidos ahí:
+1. **De alcance:** un requisito nuevo entrando después de que el diseño estaba cerrado. Si además llega con reglas que cambian (puntos en vez de sellos, premios escalonados, campañas por temporada), el módulo se convierte en un pozo sin fondo dentro de un proyecto de taller con fecha de entrega.
+2. **De negocio:** según cómo se defina "una compra", el local puede terminar regalando premios por ventas que no ocurrieron. Si el sello se acredita al comprar, un estudiante llena la cartilla sin retirar nunca el almuerzo. Si no hay tope diario, la llena en un día comprando el ítem más barato varias veces.
+
+**Acción:** (1) Modelar los dos datos faltantes como **configuración** (`sellosRequeridos`, `descripcionPremio`) y no como constantes, para que definirlos sea un valor en base de datos y no un cambio de diseño — **ya aplicado**. (2) Acreditar el sello en `marcarEntregado()`, no en `confirmarCompra()`, y hacer `Sello → Orden` único — **ya aplicado**, cierra el agujero de llenar la cartilla sin retirar. (3) Tope `maxSellosPorDia = 1` por defecto — **ya aplicado**, pendiente de confirmar con Negocios. (4) **Congelar el alcance del módulo a una cartilla simple** (N sellos → 1 premio, por local): cualquier variante más rica (puntos, niveles, campañas) va a control de cambios con reestimación, igual que R-08.
 
 ### R-15 — El código de retiro numérico corto es adivinable
 **Descripción:** Negocios eligió un código de retiro **numérico de 6 dígitos** (28-jul-2026) en vez del UUID firmado que había propuesto Ingeniería. La decisión es correcta operativamente —el estudiante lo dicta de viva voz y el Operador lo digita—, pero tiene un costo de seguridad que no tenía la propuesta anterior: el espacio de búsqueda pasa de 2¹²² combinaciones a 10⁶, y en la práctica es mucho menor, porque solo son válidos los pocos códigos vigentes de ese local en ese momento. Un atacante que pruebe códigos al azar en el panel del Operador podría acertar el almuerzo de otro estudiante.
