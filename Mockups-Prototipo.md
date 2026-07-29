@@ -5,8 +5,10 @@
 **Entregable:** 01.f — prototipo de interfaz
 **Objetivo:** mostrar cómo se ven las decisiones ya cerradas con Negocios, y dejar visualmente marcado lo que sigue abierto.
 
+**Prototipo interactivo:** **https://jesus-jb.github.io/aliflow/** — se abre en el navegador, sin instalar nada
 **Archivo fuente en Figma:** https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt
 **Exportaciones (PNG @2x):** carpeta [`mockups/`](mockups/)
+**Código del prototipo:** carpeta [`mockups/prototipo-web/`](mockups/prototipo-web/)
 
 Este documento no repite los casos de uso ni el modelo de datos — apunta al caso de uso exacto que cada pantalla representa. El detalle está en [`uml/Documentacion-Casos-de-Uso.md`](uml/Documentacion-Casos-de-Uso.md) y el estado de las decisiones en [`Decisiones-Pendientes-Negocios.md`](Decisiones-Pendientes-Negocios.md).
 
@@ -99,7 +101,8 @@ Consecuencia práctica: si Negocios cambia un valor (por ejemplo el color de un 
 
 Conviene decirlas antes de que las pregunten:
 
-- **Son mockups estáticos, no un prototipo navegable.** No hay clics ni transiciones. Si se quiere una demo interactiva, es trabajo aparte.
+- **Los PNG de esta carpeta son estáticos.** Para ver los flujos funcionando está el [prototipo interactivo](https://jesus-jb.github.io/aliflow/), donde los tres roles comparten estado: el Estudiante compra, se genera un código real, el Operador lo teclea y la orden se entrega.
+- **El prototipo interactivo no tiene backend.** Todo el estado vive en memoria del navegador y se pierde al recargar. No hay base de datos, ni ERP, ni pagos reales.
 - **Los datos son de ejemplo** (nombres de platos, montos, órdenes). No provienen del demo con Odoo ni de Contífico.
 - **Las fotos de platos son marcadores de posición**, no imágenes reales.
 - **No hay pantallas para UC7** (configurar la integración ERP) ni **UC12** (gestionar usuarios del local). UC7 es trabajo técnico conjunto con Ingeniería, no una pantalla de autoservicio; UC12 quedó fuera de esta ronda.
