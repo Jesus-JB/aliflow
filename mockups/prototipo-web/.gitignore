@@ -1,0 +1,15 @@
+# Dependencias — se reinstalan con `npm install`, nunca se versionan (≈390 MB)
+node_modules/
+
+# Salida de compilación — la genera GitHub Actions en cada push
+dist/
+
+# Caché de herramientas
+.vite/
+*.tsbuildinfo
+
+# Sistema operativo / editores
+.DS_Store
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,59 @@
+name: Publicar prototipo web
+
+# Compila el prototipo interactivo y lo publica en GitHub Pages, para que se
+# pueda abrir desde el navegador sin descargar ni instalar nada.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mockups/prototipo-web/**'
+      - '.github/workflows/deploy-prototipo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un solo despliegue a la vez; si llega uno nuevo, cancela el anterior.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mockups/prototipo-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mockups/prototipo-web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          # Esta ruta es relativa a la raíz del repositorio, no a working-directory.
+          path: mockups/prototipo-web/dist
+
+  desplegar:
+    needs: compilar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v4
