@@ -1,0 +1,106 @@
+# Prototipo de interfaz (mockups) — Aliflow
+
+**Preparado por:** Grupo de Ingeniería
+**Creado:** 28-jul-2026
+**Entregable:** 01.f — prototipo de interfaz
+**Objetivo:** mostrar cómo se ven las decisiones ya cerradas con Negocios, y dejar visualmente marcado lo que sigue abierto.
+
+**Archivo fuente en Figma:** https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt
+**Exportaciones (PNG @2x):** carpeta [`mockups/`](mockups/)
+
+Este documento no repite los casos de uso ni el modelo de datos — apunta al caso de uso exacto que cada pantalla representa. El detalle está en [`uml/Documentacion-Casos-de-Uso.md`](uml/Documentacion-Casos-de-Uso.md) y el estado de las decisiones en [`Decisiones-Pendientes-Negocios.md`](Decisiones-Pendientes-Negocios.md).
+
+---
+
+## Alcance
+
+**17 pantallas, 3 roles.** Formato móvil 390×844.
+
+| Rol | Pantallas | Exportación |
+|---|---|---|
+| Estudiante | 8 | [`mockups/01-estudiante.png`](mockups/01-estudiante.png) |
+| Proveedor | 5 | [`mockups/02-proveedor.png`](mockups/02-proveedor.png) |
+| Operador | 4 | [`mockups/03-operador.png`](mockups/03-operador.png) |
+| Sistema de diseño | — | [`mockups/00-design-system.png`](mockups/00-design-system.png) |
+
+---
+
+## Convención visual
+
+Se usa la **misma convención que los diagramas UML**: el color amarillo con la etiqueta **"Pendiente de Negocios"** marca lo que Ingeniería propuso pero Negocios todavía no validó. Es el equivalente al estereotipo `<<propuesta>>` de `diagrama-clases.puml`.
+
+**Importante:** el amarillo aparece **solo** donde hay una decisión genuinamente abierta. Todo lo que Negocios cerró el 28-jul-2026 se dibuja como definitivo, sin marca.
+
+---
+
+## Pantallas por rol
+
+### Estudiante
+
+| # | Pantalla | Caso de uso | Qué decisión refleja |
+|---|---|---|---|
+| 01 | Login institucional | UC1, UC1a | Solo Google OAuth con dominio `@uees.edu.ec` |
+| 02 | Menú del día | UC3, UC3a | **Saldo único** rotulado explícitamente "único para todos los locales"; selector de local |
+| 03 | Detalle y confirmación de compra | UC4, UC4a | Revalidación de saldo y stock antes de descontar |
+| 04 | **Código de retiro** | UC5 | **6 dígitos numéricos, sin QR**; se dicta de viva voz |
+| 05 | Recargar saldo | UC2, UC2a | **Recarga única** a un solo saldo |
+| 06 | Historial de órdenes | UC11 | Estados Comprado / Entregado / Expirado; incluye una orden de canje de $0.00 |
+| 07 | Mi cartilla de fidelidad | UC13 | Una cartilla **por local**; progreso de sellos |
+| 08 | Canjear premio | UC15 | El canje es una **orden real de $0.00**, no descuenta saldo pero sí inventario |
+
+### Proveedor
+
+| # | Pantalla | Caso de uso | Qué decisión refleja |
+|---|---|---|---|
+| 01 | Login operativo | UC6 | **Credenciales propias del rol**, no OAuth institucional |
+| 02 | Panel de métricas | UC9 | Vendidos, ingresos, pendientes de entrega, platos más vendidos |
+| 03 | Administrar menú | UC8 | Sincronización desde el ERP; validaciones (precio > 0, stock ≥ 0) |
+| 04 | Estado de sincronización ERP | UC10 | **Cola Outbox** con un evento fallido reintentándose; lectura por **polling** |
+| 05 | Configurar programa de fidelidad | UC14 | Sellos y premio como **configuración por local**, no constantes del sistema |
+
+### Operador
+
+| # | Pantalla | Caso de uso | Qué decisión refleja |
+|---|---|---|---|
+| 01 | Login operador | UC6 | Credenciales de rol + punto de entrega asignado |
+| 02 | **Validar código de retiro** | UC5a | El Operador **teclea** el código en un teclado numérico. **No se escanea nada** |
+| 03 | Entrega confirmada | UC5b, UC5d | Estado a Entregado, código invalidado, y **sello acreditado en la cartilla** |
+| 04 | Código inválido o ya usado | UC5c | Uso único del código; se nombran los otros casos de fallo |
+
+---
+
+## Lo que el prototipo deja marcado como abierto
+
+Estas cuatro marcas amarillas corresponden una a una con las decisiones abiertas del documento de decisiones:
+
+| Dónde aparece | Decisión | Qué falta |
+|---|---|---|
+| Estudiante 04 — Código de retiro | **#5** Expiración | Cuánto dura un código sin retirar y qué pasa con el saldo |
+| Estudiante 05 — Recargar saldo | **#4** (punto fino) | Confirmar que acreditar el saldo por local **al momento de la compra** es la interpretación correcta |
+| Estudiante 07 / Proveedor 05 | **#9** Cartilla | Cuántos sellos y qué premio — por eso se modelaron como configuración |
+| Proveedor 02 — Panel de métricas | **#7** Modelo de cobro | No se muestra comisión ni cobro porque no está definido |
+| Estudiante 08 — Canjear premio | **#9** (derivada) | Cómo representar una venta de $0 en el ERP del local |
+
+---
+
+## Sistema de diseño
+
+A diferencia del prototipo anterior, las pantallas **no** son frames sueltos: se componen a partir de un sistema de diseño real en el mismo archivo.
+
+- **2 colecciones de variables:** `Aliflow · Color` (20 variables) y `Aliflow · Scale` (12: espaciado y radios).
+- **10 estilos de texto** sobre la familia Inter, incluido uno específico para el código de 6 dígitos.
+- **10 componentes**, varios con variantes: `StatusBar`, `Button` (4), `Badge` (6 estados), `AppBar`, `TabBar` (4), `TabBarProveedor` (4), `Sello` (lleno/vacío), `Tecla`, `InputField`, `PlatoCard`.
+
+Consecuencia práctica: si Negocios cambia un valor (por ejemplo el color de un estado, o el número de sellos), se cambia en un solo lugar.
+
+---
+
+## Limitaciones conocidas
+
+Conviene decirlas antes de que las pregunten:
+
+- **Son mockups estáticos, no un prototipo navegable.** No hay clics ni transiciones. Si se quiere una demo interactiva, es trabajo aparte.
+- **Los datos son de ejemplo** (nombres de platos, montos, órdenes). No provienen del demo con Odoo ni de Contífico.
+- **Las fotos de platos son marcadores de posición**, no imágenes reales.
+- **No hay pantallas para UC7** (configurar la integración ERP) ni **UC12** (gestionar usuarios del local). UC7 es trabajo técnico conjunto con Ingeniería, no una pantalla de autoservicio; UC12 quedó fuera de esta ronda.
+- **El archivo fuente vive en drafts de un equipo de Figma que no es institucional.** Las exportaciones de esta carpeta son la copia de referencia del repositorio.
