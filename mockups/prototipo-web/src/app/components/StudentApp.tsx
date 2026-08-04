@@ -1,29 +1,9 @@
 import { useState, useEffect } from "react";
 import { UtensilsCrossed, BookOpen, ClipboardList, User, ArrowLeft, ChevronRight, Check, CreditCard, AlertTriangle, Info, Clock } from "lucide-react";
 import { useStore, MenuItem, Order, Local, LoyaltyCard as LoyaltyCardType, EstadoCodigo, cupoDisponible } from "../store";
+import { C } from "../tokens";
+import { AliflowLogoMark } from "./AliflowLogo";
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const C = {
-  orange: "#E05423",
-  orangeLight: "#F2743F",
-  orangeBg: "#FDEAE1",
-  text: "#14161A",
-  textSec: "#5A6472",
-  textMuted: "#98A1AE",
-  pageBg: "#F5F6F8",
-  card: "#FFFFFF",
-  sunken: "#EDEFF3",
-  border: "#E4E7EC",
-  borderStrong: "#C6CCD6",
-  successBg: "#DCF5EB",
-  successText: "#12805C",
-  warnBg: "#FDF0DC",
-  warnText: "#9A5B00",
-  errorBg: "#FCE6E2",
-  errorText: "#C4321F",
-  infoBg: "#E4EBFD",
-  infoText: "#2B5CE6",
-};
 
 type StudentTab = "menu" | "cartilla" | "ordenes" | "perfil";
 type StudentScreen =
@@ -73,7 +53,7 @@ function PrimaryBtn({ children, onClick, disabled, style }: { children: React.Re
       onClick={onClick}
       disabled={disabled}
       style={{
-        background: disabled ? C.borderStrong : C.orange,
+        background: disabled ? C.borderStrong : C.brand,
         color: "#fff",
         border: "none",
         borderRadius: 12,
@@ -120,9 +100,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px", gap: 32 }}>
         {/* Logo */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 20, background: C.orange, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 32 }}>🍽</span>
-          </div>
+          <AliflowLogoMark size={80} />
           <div style={{ textAlign: "center" }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: 28, color: C.text, letterSpacing: -0.5 }}>Aliflow</div>
             <div style={{ fontSize: 14, color: C.textSec, marginTop: 4 }}>Pide y paga tu almuerzo del campus</div>
@@ -130,8 +108,8 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         </div>
 
         {/* Info box */}
-        <div style={{ background: C.orangeBg, borderRadius: 16, padding: "16px 18px", width: "100%", textAlign: "center" }}>
-          <div style={{ fontSize: 13, color: C.orange, fontWeight: 600 }}>Universidad · Campus Central</div>
+        <div style={{ background: C.brandBg, borderRadius: 16, padding: "16px 18px", width: "100%", textAlign: "center" }}>
+          <div style={{ fontSize: 13, color: C.brand, fontWeight: 600 }}>Universidad · Campus Central</div>
           <div style={{ fontSize: 12, color: C.textSec, marginTop: 4 }}>2 locales activos · Lunes–Viernes, 8–15 h</div>
         </div>
 
@@ -161,7 +139,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 // ─── BALANCE HEADER ────────────────────────────────────────────────────────────
 function BalanceHeader({ balance, name, onRecharge }: { balance: number; name: string; onRecharge: () => void }) {
   return (
-    <div style={{ background: C.orange, padding: "48px 20px 20px", borderRadius: "0 0 20px 20px" }}>
+    <div style={{ background: C.brand, padding: "48px 20px 20px", borderRadius: "0 0 20px 20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 2 }}>Hola, {name}</div>
@@ -204,9 +182,9 @@ function MenuScreen({ onDishTap, onRecharge }: { onDishTap: (dish: MenuItem) => 
               key={l.id}
               onClick={() => setSelectedLocal(l.id)}
               style={{
-                padding: "7px 16px", borderRadius: 999, border: `1px solid ${selectedLocal === l.id ? C.orange : C.border}`,
-                background: selectedLocal === l.id ? C.orangeBg : C.card,
-                color: selectedLocal === l.id ? C.orange : C.textSec,
+                padding: "7px 16px", borderRadius: 999, border: `1px solid ${selectedLocal === l.id ? C.brand : C.border}`,
+                background: selectedLocal === l.id ? C.brandBg : C.card,
+                color: selectedLocal === l.id ? C.brand : C.textSec,
                 fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
               }}
             >
@@ -239,7 +217,7 @@ function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 48, height: 48, borderRadius: 12, background: C.orangeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
+        <div style={{ width: 48, height: 48, borderRadius: 12, background: C.brandBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
           {dish.imageEmoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -266,7 +244,7 @@ function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
           </div>
         </div>
         {!soldOut && (
-          <div style={{ width: 32, height: 32, borderRadius: 999, background: C.orange, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 999, background: C.brand, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <ChevronRight size={16} color="#fff" />
           </div>
         )}
@@ -284,7 +262,7 @@ function DishDetailScreen({ dish, onBack, onConfirm }: { dish: MenuItem; onBack:
   return (
     <div style={{ flex: 1, overflowY: "auto", background: C.pageBg, display: "flex", flexDirection: "column" }}>
       {/* Hero */}
-      <div style={{ background: C.orangeBg, padding: "52px 20px 32px", textAlign: "center", position: "relative" }}>
+      <div style={{ background: C.brandBg, padding: "52px 20px 32px", textAlign: "center", position: "relative" }}>
         <div style={{ position: "absolute", top: 16, left: 16 }}>
           <BackBtn onClick={onBack} />
         </div>
@@ -360,7 +338,7 @@ function ConfirmPurchaseScreen({ dish, onBack, onPurchase }: { dish: MenuItem; o
         <Card style={{ padding: "16px" }}>
           <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 10 }}>DETALLE DE TU PEDIDO</div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: C.orangeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: C.brandBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
               {dish.imageEmoji}
             </div>
             <div style={{ flex: 1 }}>
@@ -555,8 +533,8 @@ function RechargeScreen({ onBack }: { onBack: () => void }) {
 
       <div style={{ padding: "20px 20px 100px", display: "flex", flexDirection: "column", gap: 16 }}>
         {/* Balance */}
-        <Card style={{ padding: "18px", textAlign: "center", background: C.orangeBg, border: `1px solid ${C.orange}` }}>
-          <div style={{ fontSize: 13, color: C.orange, fontWeight: 600, marginBottom: 4 }}>Saldo actual</div>
+        <Card style={{ padding: "18px", textAlign: "center", background: C.brandBg, border: `1px solid ${C.brand}` }}>
+          <div style={{ fontSize: 13, color: C.brand, fontWeight: 600, marginBottom: 4 }}>Saldo actual</div>
           <div style={{ fontSize: 36, fontWeight: 800, color: C.text }}>${studentBalance.toFixed(2)}</div>
           <PendingBadge label="¿El saldo se recarga en tiempo real o requiere confirmación bancaria? Pendiente de integración de pagos." />
         </Card>
@@ -571,9 +549,9 @@ function RechargeScreen({ onBack }: { onBack: () => void }) {
                 onClick={() => setSelected(a)}
                 style={{
                   padding: "14px 0", borderRadius: 12,
-                  border: `2px solid ${selected === a ? C.orange : C.border}`,
-                  background: selected === a ? C.orangeBg : C.card,
-                  color: selected === a ? C.orange : C.text,
+                  border: `2px solid ${selected === a ? C.brand : C.border}`,
+                  background: selected === a ? C.brandBg : C.card,
+                  color: selected === a ? C.brand : C.text,
                   fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 18, cursor: "pointer",
                 }}
               >
@@ -602,7 +580,7 @@ function RechargeScreen({ onBack }: { onBack: () => void }) {
                 {m.icon}
               </div>
               <span style={{ flex: 1, fontSize: 14, color: C.text, fontFamily: "Inter, sans-serif" }}>{m.label}</span>
-              <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${method === m.key ? C.orange : C.borderStrong}`, background: method === m.key ? C.orange : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${method === m.key ? C.brand : C.borderStrong}`, background: method === m.key ? C.brand : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {method === m.key && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff" }} />}
               </div>
             </button>
@@ -657,7 +635,7 @@ function OrdersScreen({ onShowCode }: { onShowCode: (order: Order) => void }) {
               <div>
                 <span style={{ fontSize: 13, color: C.textMuted }}>{o.id}</span>
                 {o.status === "pendiente" && (
-                  <div style={{ fontSize: 11, color: C.orange, fontWeight: 600, marginTop: 2 }}>Código: {o.pickupCode}</div>
+                  <div style={{ fontSize: 11, color: C.brand, fontWeight: 600, marginTop: 2 }}>Código: {o.pickupCode}</div>
                 )}
               </div>
               <div style={{ textAlign: "right" }}>
@@ -670,7 +648,7 @@ function OrdersScreen({ onShowCode }: { onShowCode: (order: Order) => void }) {
             {o.status === "pendiente" && (
               <button
                 onClick={() => onShowCode(o)}
-                style={{ marginTop: 10, width: "100%", background: C.orangeBg, border: `1px solid ${C.orange}`, borderRadius: 10, padding: "8px 0", color: C.orange, fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                style={{ marginTop: 10, width: "100%", background: C.brandBg, border: `1px solid ${C.brand}`, borderRadius: 10, padding: "8px 0", color: C.brand, fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
               >
                 Ver código de retiro
               </button>
@@ -723,16 +701,16 @@ function CartillaScreen({ onRedeem }: { onRedeem: (localId: string) => void }) {
       <style>{`
         @keyframes selloLlenando {
           0%   { transform: scale(0.4); background: ${C.sunken}; border-color: ${C.border}; }
-          55%  { transform: scale(1.28); background: ${C.orange}; border-color: ${C.orange}; }
-          100% { transform: scale(1);    background: ${C.orange}; border-color: ${C.orange}; }
+          55%  { transform: scale(1.28); background: ${C.brand}; border-color: ${C.brand}; }
+          100% { transform: scale(1);    background: ${C.brand}; border-color: ${C.brand}; }
         }
         @keyframes selloCheck {
           0%, 35% { opacity: 0; transform: scale(0.2); }
           100%    { opacity: 1; transform: scale(1); }
         }
         @keyframes selloHalo {
-          0%   { box-shadow: 0 0 0 0 rgba(224,84,35,0.55); }
-          100% { box-shadow: 0 0 0 14px rgba(224,84,35,0); }
+          0%   { box-shadow: 0 0 0 0 rgba(70,131,59,0.55); }
+          100% { box-shadow: 0 0 0 14px rgba(70,131,59,0); }
         }
       `}</style>
     </div>
@@ -751,12 +729,12 @@ function LoyaltyCardItem({ local, card, isComplete, nuevoSello, onRedeem }: {
   return (
     <Card style={{ padding: "16px", overflow: "hidden", position: "relative" }}>
       {isComplete && (
-        <div style={{ position: "absolute", top: 0, right: 0, background: C.orange, color: "#fff", fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: "0 16px 0 12px" }}>
+        <div style={{ position: "absolute", top: 0, right: 0, background: C.brand, color: "#fff", fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: "0 16px 0 12px" }}>
           COMPLETA ✓
         </div>
       )}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: C.orangeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: C.brandBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
           {local.emoji}
         </div>
         <div>
@@ -776,8 +754,8 @@ function LoyaltyCardItem({ local, card, isComplete, nuevoSello, onRedeem }: {
               key={esNuevo ? `${i}-${nuevoSello!.at}` : i}
               style={{
                 width: 36, height: 36, borderRadius: "50%",
-                background: filled ? C.orange : C.sunken,
-                border: `2px solid ${filled ? C.orange : C.border}`,
+                background: filled ? C.brand : C.sunken,
+                border: `2px solid ${filled ? C.brand : C.border}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 animation: esNuevo
                   ? "selloLlenando 0.55s cubic-bezier(0.34,1.56,0.64,1) both, selloHalo 0.9s ease-out 0.2s"
@@ -798,8 +776,8 @@ function LoyaltyCardItem({ local, card, isComplete, nuevoSello, onRedeem }: {
       </div>
       {nuevoSello && (
         <div style={{
-          background: C.orangeBg, borderRadius: 10, padding: "8px 12px", marginBottom: 12,
-          fontSize: 12, fontWeight: 600, color: C.orange,
+          background: C.brandBg, borderRadius: 10, padding: "8px 12px", marginBottom: 12,
+          fontSize: 12, fontWeight: 600, color: C.brand,
         }}>
           + 1 sello acreditado al confirmarse tu entrega
         </div>
@@ -850,7 +828,7 @@ function RedeemRewardScreen({ localId, onBack, onSuccess }: { localId: string; o
         <p style={{ textAlign: "center", fontSize: 14, color: C.textSec, marginBottom: 24 }}>
           Se creó una orden de $0.00. Muestra el código al operador para recibir tu premio.
         </p>
-        <div style={{ fontSize: 32, fontWeight: 800, color: C.orange, letterSpacing: 4, marginBottom: 24 }}>
+        <div style={{ fontSize: 32, fontWeight: 800, color: C.brand, letterSpacing: 4, marginBottom: 24 }}>
           {order.pickupCode}
         </div>
         <PrimaryBtn onClick={() => onSuccess(order)}>Ver código de retiro</PrimaryBtn>
@@ -904,7 +882,7 @@ function ProfileScreen({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div style={{ flex: 1, overflowY: "auto", background: C.pageBg, display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "52px 20px 20px", background: C.orange }}>
+      <div style={{ padding: "52px 20px 20px", background: C.brand }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>👤</div>
           <div>
@@ -920,7 +898,7 @@ function ProfileScreen({ onLogout }: { onLogout: () => void }) {
             <div style={{ fontSize: 13, color: C.textSec }}>Saldo disponible</div>
             <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>${studentBalance.toFixed(2)}</div>
           </div>
-          <CreditCard size={28} color={C.orange} />
+          <CreditCard size={28} color={C.brand} />
         </Card>
 
         {[
@@ -967,7 +945,7 @@ function TabBar({ active, onChange }: { active: StudentTab; onChange: (t: Studen
           style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             gap: 2, border: "none", background: "none", cursor: "pointer",
-            color: active === t.id ? C.orange : C.textMuted,
+            color: active === t.id ? C.brand : C.textMuted,
           }}
         >
           {t.icon}

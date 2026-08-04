@@ -28,7 +28,7 @@ Credenciales ya precargadas en los formularios de Proveedor y Operador.
 
 ## 🎨 Mockups
 
-Diseño aprobado del que salió el prototipo. Archivo fuente en Figma: [Aliflow · Mockups v2](https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt). Detalle de cada pantalla en **[Mockups-Prototipo.md](Mockups-Prototipo.md)**.
+Diseño aprobado del que salió el prototipo. La identidad visual sale del logo de Aliflow (verde `#74AB68`, azul `#7AB7D3`) — ver **[mockups/marca/](mockups/marca/)** para la paleta completa y por qué el verde del logo no se usa en botones. Archivo fuente en Figma: [Aliflow · Mockups v2](https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt). Detalle de cada pantalla en **[Mockups-Prototipo.md](Mockups-Prototipo.md)**.
 
 ### Estudiante
 ![Pantallas del Estudiante](mockups/01-estudiante.png)

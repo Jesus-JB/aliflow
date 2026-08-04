@@ -1,0 +1,27 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aliflow">
+  <!-- Líneas de velocidad, en el azul del logo. Pasan por el corte del
+       lateral izquierdo de la bolsa. -->
+  <g stroke="#7AB7D3" stroke-width="7" stroke-linecap="round" fill="none">
+    <path d="M15 57 H32" />
+    <path d="M5 65 H28" />
+    <path d="M16 73 H26" />
+  </g>
+
+  <!-- Asa -->
+  <path d="M36 31 V26 A14 14 0 0 1 64 26 V31"
+        stroke="#74AB68" stroke-width="7" stroke-linecap="round" fill="none" />
+
+  <!-- Cuerpo de la bolsa. Se dibuja en un solo trazo dejando abierto el
+       lateral izquierdo entre y=52 e y=77, que es por donde entran las
+       líneas de velocidad. -->
+  <path d="M25 52 L25 31 L79 31 L82 86 L25 86 L25 77"
+        stroke="#74AB68" stroke-width="7" stroke-linejoin="round"
+        stroke-linecap="round" fill="none" />
+
+  <!-- Campana cubreplatos -->
+  <g fill="#74AB68">
+    <rect x="47" y="52" width="6" height="7" rx="3" />
+    <path d="M34 72 A16 16 0 0 1 66 72 Z" />
+    <rect x="30" y="72" width="40" height="7" rx="3.5" />
+  </g>
+</svg>

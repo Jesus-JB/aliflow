@@ -12,10 +12,10 @@ import { SuperAdminApp } from "./components/SuperAdminApp";
 type Role = "estudiante" | "proveedor" | "operador" | "superadmin";
 
 const ROLE_LABELS: Record<Role, { label: string; emoji: string; color: string }> = {
-  estudiante: { label: "Estudiante", emoji: "🎓", color: "#E05423" },
-  proveedor:  { label: "Proveedor",  emoji: "🍳", color: "#2B5CE6" },
-  operador:   { label: "Operador",   emoji: "🏷",  color: "#12805C" },
-  superadmin: { label: "Super-Admin", emoji: "🛡", color: "#5B3DF5" },
+  estudiante: { label: "Estudiante", emoji: "🎓", color: "#46833B" },
+  proveedor:  { label: "Proveedor",  emoji: "🍳", color: "#74AB68" },
+  operador:   { label: "Operador",   emoji: "🏷",  color: "#0F7B62" },
+  superadmin: { label: "Super-Admin", emoji: "🛡", color: "#2C5F73" },
 };
 
 // ─── Role Switcher ────────────────────────────────────────────────────────────
@@ -252,7 +252,7 @@ export default function App() {
               display: "flex",
               alignItems: "center",
               gap: 6,
-              background: justReset ? "#12805C" : "#14161A",
+              background: justReset ? "#0F7B62" : "#14161A",
               color: "#fff",
               border: "none",
               borderRadius: 999,

@@ -4,30 +4,9 @@ import {
   ShieldCheck, Database, AlertTriangle,
 } from "lucide-react";
 import { useStore, Local } from "../store";
+import { C } from "../tokens";
+import { AliflowLogoMark } from "./AliflowLogo";
 
-// ─── Tokens ───────────────────────────────────────────────────────────────────
-const C = {
-  orange: "#E05423",
-  orangeBg: "#FDEAE1",
-  text: "#14161A",
-  textSec: "#5A6472",
-  textMuted: "#98A1AE",
-  pageBg: "#F5F6F8",
-  card: "#FFFFFF",
-  sunken: "#EDEFF3",
-  border: "#E4E7EC",
-  borderStrong: "#C6CCD6",
-  successBg: "#DCF5EB",
-  successText: "#12805C",
-  warnBg: "#FDF0DC",
-  warnText: "#9A5B00",
-  errorBg: "#FCE6E2",
-  errorText: "#C4321F",
-  infoBg: "#E4EBFD",
-  infoText: "#2B5CE6",
-  purple: "#5B3DF5",
-  purpleBg: "#EDE9FE",
-};
 
 type Tab = "locales" | "soporte" | "plataforma";
 
@@ -65,11 +44,15 @@ function SuperAdminLogin() {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 32px", background: C.pageBg }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28 }}>
-        <div style={{
-          width: 84, height: 84, borderRadius: 24, background: C.purple,
-          display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20,
-        }}>
-          <ShieldCheck size={40} color="#fff" strokeWidth={2.2} />
+        <div style={{ position: "relative", marginBottom: 20 }}>
+          <AliflowLogoMark size={84} fondo={C.admin} sobreOscuro />
+          <div style={{
+            position: "absolute", right: -6, bottom: -6, width: 32, height: 32,
+            borderRadius: 999, background: "#fff", border: `2px solid ${C.admin}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <ShieldCheck size={17} color={C.admin} strokeWidth={2.4} />
+          </div>
         </div>
         <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: C.text }}>Aliflow Admin</h2>
         <div style={{ fontSize: 13, color: C.textSec, marginTop: 6, textAlign: "center", maxWidth: 280 }}>
@@ -99,7 +82,7 @@ function SuperAdminLogin() {
       <button
         onClick={handle}
         style={{
-          background: C.purple, color: "#fff", border: "none", borderRadius: 14,
+          background: C.admin, color: "#fff", border: "none", borderRadius: 14,
           padding: "16px 0", fontSize: 16, fontWeight: 700, cursor: "pointer",
           fontFamily: "Inter, sans-serif",
         }}
@@ -137,7 +120,7 @@ function LocalesTab() {
         <button
           onClick={() => setAbriendo((v) => !v)}
           style={{
-            display: "flex", alignItems: "center", gap: 6, background: abriendo ? C.sunken : C.purple,
+            display: "flex", alignItems: "center", gap: 6, background: abriendo ? C.sunken : C.admin,
             color: abriendo ? C.text : "#fff", border: "none", borderRadius: 999,
             padding: "9px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif",
           }}
@@ -148,8 +131,8 @@ function LocalesTab() {
       </div>
 
       {abriendo && (
-        <Card style={{ borderColor: C.purple, background: C.purpleBg }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.purple, marginBottom: 10 }}>
+        <Card style={{ borderColor: C.admin, background: C.adminBg }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.admin, marginBottom: 10 }}>
             UC18 · Dar de alta un local nuevo
           </div>
           <input
@@ -166,11 +149,11 @@ function LocalesTab() {
           />
           <button
             onClick={crear}
-            style={{ width: "100%", background: C.purple, color: "#fff", border: "none", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+            style={{ width: "100%", background: C.admin, color: "#fff", border: "none", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
           >
             Crear local y su vista de proveedor
           </button>
-          <div style={{ fontSize: 11, color: C.purple, marginTop: 8, lineHeight: 1.45 }}>
+          <div style={{ fontSize: 11, color: C.admin, marginTop: 8, lineHeight: 1.45 }}>
             Al crearlo se genera su vista de proveedor y queda pendiente configurar
             su integración con el ERP (UC7).
           </div>
@@ -194,7 +177,7 @@ function LocalRow({ local, platos, ordenes, onToggle }: {
   return (
     <Card>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 12, background: C.orangeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 12, background: C.brandBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
           {local.emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -252,7 +235,7 @@ function SoporteTab() {
       <div style={{ display: "flex", gap: 8 }}>
         {[
           { label: "Locales", value: locals.length, color: C.infoText, bg: C.infoBg },
-          { label: "Órdenes activas", value: pendientes, color: C.orange, bg: C.orangeBg },
+          { label: "Órdenes activas", value: pendientes, color: C.brand, bg: C.brandBg },
           { label: "Sync fallidas", value: fallidos.length, color: C.errorText, bg: C.errorBg },
         ].map((k) => (
           <div key={k.label} style={{ flex: 1, background: k.bg, borderRadius: 12, padding: "12px 10px" }}>
@@ -373,7 +356,7 @@ function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void 
           style={{
             display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
             border: "none", background: "none", cursor: "pointer",
-            color: active === t.id ? C.purple : C.textMuted,
+            color: active === t.id ? C.admin : C.textMuted,
           }}
         >
           {t.icon}
@@ -396,7 +379,7 @@ export function SuperAdminApp() {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: C.pageBg }}>
       <div style={{
-        padding: "52px 20px 14px", background: C.purple,
+        padding: "52px 20px 14px", background: C.admin,
         display: "flex", justifyContent: "space-between", alignItems: "center",
       }}>
         <div>

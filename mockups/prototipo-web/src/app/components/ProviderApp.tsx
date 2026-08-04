@@ -6,29 +6,9 @@ import {
   Clock, ShoppingBag, AlertCircle,
 } from "lucide-react";
 import { useStore, MenuItem, ERPEvent, Order, cupoDisponible } from "../store";
+import { C } from "../tokens";
+import { AliflowLogoMark } from "./AliflowLogo";
 
-// ─── Tokens ───────────────────────────────────────────────────────────────────
-const C = {
-  orange: "#E05423",
-  orangeLight: "#F2743F",
-  orangeBg: "#FDEAE1",
-  text: "#14161A",
-  textSec: "#5A6472",
-  textMuted: "#98A1AE",
-  pageBg: "#F5F6F8",
-  card: "#FFFFFF",
-  sunken: "#EDEFF3",
-  border: "#E4E7EC",
-  borderStrong: "#C6CCD6",
-  successBg: "#DCF5EB",
-  successText: "#12805C",
-  warnBg: "#FDF0DC",
-  warnText: "#9A5B00",
-  errorBg: "#FCE6E2",
-  errorText: "#C4321F",
-  infoBg: "#E4EBFD",
-  infoText: "#2B5CE6",
-};
 
 type ProviderTab = "panel" | "menu" | "erp" | "fidelidad";
 const LOCAL_ID = "baru"; // This provider manages Barú
@@ -101,7 +81,7 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       onClick={onToggle}
       style={{
         width: 44, height: 26, borderRadius: 999, border: "none", cursor: "pointer", flexShrink: 0,
-        background: on ? C.orange : C.borderStrong,
+        background: on ? C.brand : C.borderStrong,
         position: "relative", transition: "background 0.2s",
       }}
     >
@@ -141,12 +121,7 @@ function ProviderLogin({ onLogin }: { onLogin: () => void }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 28px", gap: 28 }}>
         {/* Logo */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: 22,
-            background: `linear-gradient(145deg, ${C.orange}, #C03A12)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 8px 24px rgba(224,84,35,0.35)", fontSize: 30,
-          }}>🍽</div>
+          <AliflowLogoMark size={76} fondo={C.brand} sobreOscuro />
           <div style={{ textAlign: "center" }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: 22, color: C.text }}>Panel del local</div>
             <div style={{ fontSize: 13, color: C.textSec, marginTop: 3 }}>Acceso para Proveedores</div>
@@ -190,10 +165,10 @@ const inputSt: React.CSSProperties = {
 };
 
 const primaryBtnSt: React.CSSProperties = {
-  background: C.orange, color: "#fff", border: "none", borderRadius: 14,
+  background: C.brand, color: "#fff", border: "none", borderRadius: 14,
   padding: "16px 0", cursor: "pointer", fontFamily: "Inter, sans-serif",
   fontWeight: 700, fontSize: 16, width: "100%",
-  boxShadow: "0 4px 16px rgba(224,84,35,0.3)",
+  boxShadow: "0 4px 16px rgba(70,131,59,0.3)",
 };
 
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -246,7 +221,7 @@ function PanelTab() {
   return (
     <div style={{ flex: 1, overflowY: "auto", background: C.pageBg, paddingBottom: 20 }}>
       {/* Header */}
-      <div style={{ background: `linear-gradient(160deg, ${C.orange} 0%, ${C.orangeLight} 100%)`, padding: "48px 20px 22px" }}>
+      <div style={{ background: `linear-gradient(160deg, ${C.brand} 0%, ${C.brandLight} 100%)`, padding: "48px 20px 22px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", textTransform: "capitalize" }}>{dateLabel}</div>
@@ -278,10 +253,10 @@ function PanelTab() {
         {/* ── KPI row ────────────────────────────────────────────────── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           <KpiCard
-            icon={<ShoppingBag size={16} color={C.orange} />}
+            icon={<ShoppingBag size={16} color={C.brand} />}
             label="Ventas hoy"
             value={String(ventasHoy)}
-            bg={C.orangeBg}
+            bg={C.brandBg}
           />
           <KpiCard
             icon={<Check size={16} color={C.successText} />}
@@ -350,7 +325,7 @@ function PanelTab() {
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                       <span style={{
                         width: 18, height: 18, borderRadius: 999,
-                        background: i === 0 ? C.orange : C.sunken,
+                        background: i === 0 ? C.brand : C.sunken,
                         color: i === 0 ? "#fff" : C.textMuted,
                         fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center",
                         flexShrink: 0,
@@ -363,7 +338,7 @@ function PanelTab() {
                   <div style={{ height: 4, borderRadius: 99, background: C.sunken, overflow: "hidden" }}>
                     <div style={{
                       height: "100%", borderRadius: 99,
-                      background: i === 0 ? C.orange : C.borderStrong,
+                      background: i === 0 ? C.brand : C.borderStrong,
                       width: `${Math.round((d.count / maxCount) * 100)}%`,
                       transition: "width 0.4s ease",
                     }} />
@@ -471,7 +446,7 @@ function MenuTab() {
           <div style={{ fontWeight: 700, fontSize: 18, color: C.text }}>Menú del día</div>
           <div style={{ fontSize: 12, color: C.textSec, marginTop: 2, textTransform: "capitalize" }}>Barú · {today}</div>
         </div>
-        <button style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
+        <button style={{ background: C.brand, color: "#fff", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 5 }}>
           <Plus size={14} /> Plato
         </button>
       </div>
@@ -481,7 +456,7 @@ function MenuTab() {
         <Card style={{ padding: "14px 16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Clock size={16} color={C.orange} />
+              <Clock size={16} color={C.brand} />
               <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Hora máxima de retiro</span>
             </div>
             <input
@@ -531,7 +506,7 @@ function MenuDishCard({ dish, soldToday, onCupoChange, onToggle }: {
     <Card style={{ padding: "14px 16px" }}>
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 11, background: C.orangeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 11, background: C.brandBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
           {dish.imageEmoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -552,12 +527,12 @@ function MenuDishCard({ dish, soldToday, onCupoChange, onToggle }: {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button onClick={() => onCupoChange(-1)} style={adjBtn}><Minus size={14} /></button>
           <div style={{ textAlign: "center", minWidth: 46 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: disponible === 0 ? C.errorText : C.orange, lineHeight: 1 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: disponible === 0 ? C.errorText : C.brand, lineHeight: 1 }}>
               {disponible}
             </div>
             <div style={{ fontSize: 9, color: C.textMuted }}>cupo Aliflow</div>
           </div>
-          <button onClick={() => onCupoChange(1)} style={{ ...adjBtn, background: C.orange, border: "none" }}>
+          <button onClick={() => onCupoChange(1)} style={{ ...adjBtn, background: C.brand, border: "none" }}>
             <Plus size={14} color="#fff" />
           </button>
         </div>
@@ -623,7 +598,7 @@ function ERPTab() {
         </div>
         <button
           onClick={handleForce}
-          style={{ background: forcing ? C.borderStrong : C.orange, color: "#fff", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 5, transition: "background 0.2s" }}
+          style={{ background: forcing ? C.borderStrong : C.brand, color: "#fff", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 5, transition: "background 0.2s" }}
         >
           <RefreshCw size={14} style={{ animation: forcing ? "spin 0.8s linear infinite" : "none" }} />
           {forcing ? "Forzando…" : "Forzar"}
@@ -752,7 +727,7 @@ function LoyaltyTab() {
 
         {/* Activity summary */}
         <div style={{ display: "flex", gap: 8 }}>
-          <ChipCount label="Sellos entregados" value={stampsGiven} color={C.orange}       bg={C.orangeBg}   />
+          <ChipCount label="Sellos entregados" value={stampsGiven} color={C.brand}       bg={C.brandBg}   />
           <ChipCount label="Premios canjeados" value={canjesCount} color={C.successText}  bg={C.successBg}  />
         </div>
 
@@ -800,8 +775,8 @@ function LoyaltyTab() {
                 key={i}
                 style={{
                   width: 28, height: 28, borderRadius: "50%",
-                  background: i < previewFilled ? C.orange : C.sunken,
-                  border: `2px solid ${i < previewFilled ? C.orange : C.borderStrong}`,
+                  background: i < previewFilled ? C.brand : C.sunken,
+                  border: `2px solid ${i < previewFilled ? C.brand : C.borderStrong}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   flexShrink: 0,
                 }}
@@ -849,7 +824,7 @@ function Stepper({ value, min, max, step = 1, onChange }: {
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <button onClick={() => onChange(Math.max(min, value - step))} style={adjBtn}><Minus size={14} /></button>
       <span style={{ fontWeight: 800, fontSize: 20, color: C.text, minWidth: 36, textAlign: "center" }}>{value}</span>
-      <button onClick={() => onChange(Math.min(max, value + step))} style={{ ...adjBtn, background: C.orange, border: "none" }}>
+      <button onClick={() => onChange(Math.min(max, value + step))} style={{ ...adjBtn, background: C.brand, border: "none" }}>
         <Plus size={14} color="#fff" />
       </button>
     </div>
@@ -890,7 +865,7 @@ function ProviderTabBar({ active, onChange, pendingOrders }: {
             style={{
               flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
               justifyContent: "center", gap: 3, border: "none", background: "none",
-              cursor: "pointer", color: isActive ? C.orange : C.textMuted,
+              cursor: "pointer", color: isActive ? C.brand : C.textMuted,
               position: "relative",
             }}
           >
@@ -902,7 +877,7 @@ function ProviderTabBar({ active, onChange, pendingOrders }: {
               <span style={{
                 position: "absolute", top: 6, right: "calc(50% - 14px)",
                 width: 8, height: 8, borderRadius: "50%",
-                background: C.orange, border: `2px solid ${C.card}`,
+                background: C.brand, border: `2px solid ${C.card}`,
               }} />
             )}
           </button>

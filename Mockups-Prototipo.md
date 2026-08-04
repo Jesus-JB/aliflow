@@ -105,7 +105,8 @@ Cada marca amarilla corresponde a una decisión abierta del documento de decisio
 
 A diferencia del prototipo anterior, las pantallas **no** son frames sueltos: se componen a partir de un sistema de diseño real en el mismo archivo.
 
-- **2 colecciones de variables:** `Aliflow · Color` (20 variables) y `Aliflow · Scale` (12: espaciado y radios).
+- **Identidad derivada del logo** (verde `#74AB68`, azul `#7AB7D3`). El verde del logo **no** se usa en botones con texto blanco porque da 2.6:1 de contraste; las acciones usan un verde más profundo. Y el color de "éxito" pasó a teal, porque con una marca verde un badge verde deja de leerse como estado. Detalle en [`mockups/marca/`](mockups/marca/).
+- **2 colecciones de variables:** `Aliflow · Color` (24 variables) y `Aliflow · Scale` (12: espaciado y radios). Cambiar un valor recolorea todas las pantallas ligadas — así se aplicó el cambio de marca completo.
 - **10 estilos de texto** sobre la familia Inter, incluido uno específico para el código de 6 dígitos.
 - **10 componentes**, varios con variantes: `StatusBar`, `Button` (4), `Badge` (6 estados), `AppBar`, `TabBar` (4), `TabBarProveedor` (4), `Sello` (lleno/vacío), `Tecla`, `InputField`, `PlatoCard`.
 

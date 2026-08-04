@@ -1,30 +1,9 @@
 import { useState } from "react";
 import { Check, X, AlertCircle, Delete, ChevronDown, Clock } from "lucide-react";
 import { useStore, Order } from "../store";
+import { C } from "../tokens";
+import { AliflowLogo } from "./AliflowLogo";
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const C = {
-  orange: "#E05423",
-  orangeBg: "#FDEAE1",
-  text: "#14161A",
-  textSec: "#5A6472",
-  textMuted: "#98A1AE",
-  pageBg: "#F5F6F8",
-  card: "#FFFFFF",
-  sunken: "#EDEFF3",
-  border: "#E4E7EC",
-  borderStrong: "#C6CCD6",
-  successBg: "#DCF5EB",
-  successText: "#12805C",
-  successDark: "#0A5C3E",
-  warnBg: "#FDF0DC",
-  warnText: "#9A5B00",
-  errorBg: "#FCE6E2",
-  errorText: "#C4321F",
-  errorDark: "#9A1E0E",
-  infoBg: "#E4EBFD",
-  infoText: "#2B5CE6",
-};
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 const OPERATOR_POINTS = [
@@ -57,11 +36,12 @@ function OperatorLogin({ onLogin }: { onLogin: () => void }) {
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
           <div style={{
             width: 76, height: 76, borderRadius: 22,
-            background: `linear-gradient(145deg, ${C.orange}, #C03A12)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 8px 24px rgba(224,84,35,0.35)",
+            background: `linear-gradient(145deg, ${C.brand}, ${C.brandDeep})`,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+            boxShadow: "0 8px 24px rgba(70,131,59,0.35)",
           }}>
-            <span style={{ fontSize: 30, fontWeight: 900, color: "#fff", fontFamily: "Inter, sans-serif", letterSpacing: -1 }}>123</span>
+            <AliflowLogo size={34} verde="#FFFFFF" azul={C.accent} />
+            <span style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.85)", fontFamily: "Inter, sans-serif", letterSpacing: 1 }}>123</span>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: 24, color: C.text, letterSpacing: -0.5 }}>Entregas</div>
@@ -110,10 +90,10 @@ function OperatorLogin({ onLogin }: { onLogin: () => void }) {
           <button
             onClick={handleLogin}
             style={{
-              marginTop: 4, background: C.orange, color: "#fff", border: "none",
+              marginTop: 4, background: C.brand, color: "#fff", border: "none",
               borderRadius: 14, padding: "16px 0", cursor: "pointer",
               fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 16,
-              boxShadow: "0 4px 16px rgba(224,84,35,0.3)",
+              boxShadow: "0 4px 16px rgba(70,131,59,0.3)",
             }}
           >
             Ingresar
@@ -233,7 +213,7 @@ function ValidatorScreen({ onLogout }: { onLogout: () => void }) {
           <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 2 }}>
             Operador: <strong style={{ color: C.textSec }}>{operatorName}</strong>
             {pending > 0 && (
-              <span style={{ marginLeft: 6, background: C.orange, color: "#fff", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 6px" }}>
+              <span style={{ marginLeft: 6, background: C.brand, color: "#fff", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 6px" }}>
                 {pending} pendiente{pending !== 1 ? "s" : ""}
               </span>
             )}
@@ -270,12 +250,12 @@ function ValidatorScreen({ onLogout }: { onLogout: () => void }) {
                 key={i}
                 style={{
                   width: 48, height: 60, borderRadius: 12,
-                  border: `2px solid ${isActive ? C.orange : isFilled ? C.text : C.borderStrong}`,
+                  border: `2px solid ${isActive ? C.brand : isFilled ? C.text : C.borderStrong}`,
                   background: isFilled ? C.card : C.sunken,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 28, fontWeight: 800, color: C.text,
                   fontFamily: "Inter, sans-serif",
-                  boxShadow: isActive ? `0 0 0 3px ${C.orangeBg}` : "none",
+                  boxShadow: isActive ? `0 0 0 3px ${C.brandBg}` : "none",
                   transition: "border-color 0.12s, box-shadow 0.12s",
                 }}
               >
@@ -316,10 +296,10 @@ function ValidatorScreen({ onLogout }: { onLogout: () => void }) {
           onClick={handleValidate}
           style={{
             width: "100%", padding: "18px 0",
-            background: ready ? C.orange : C.borderStrong,
+            background: ready ? C.brand : C.borderStrong,
             color: "#fff", border: "none", borderRadius: 14, cursor: ready ? "pointer" : "not-allowed",
             fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 17,
-            boxShadow: ready ? "0 4px 16px rgba(224,84,35,0.35)" : "none",
+            boxShadow: ready ? "0 4px 16px rgba(70,131,59,0.35)" : "none",
             transition: "background 0.2s, box-shadow 0.2s",
           }}
         >
@@ -496,7 +476,7 @@ function ConfirmedScreen({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Sello acreditado</span>
               <span style={{
-                background: C.orangeBg, color: C.orange,
+                background: C.brandBg, color: C.brand,
                 borderRadius: 999, fontSize: 12, fontWeight: 800, padding: "3px 12px",
               }}>
                 {stampsNow}/{stampsTotal}
@@ -508,8 +488,8 @@ function ConfirmedScreen({
                   key={i}
                   style={{
                     width: 32, height: 32, borderRadius: "50%",
-                    background: i < stampsNow ? C.orange : C.sunken,
-                    border: `2px solid ${i < stampsNow ? C.orange : C.borderStrong}`,
+                    background: i < stampsNow ? C.brand : C.sunken,
+                    border: `2px solid ${i < stampsNow ? C.brand : C.borderStrong}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     // Newest stamp pulses
                     animation: i === stampsNow - 1 ? "stampPop 0.4s ease" : "none",
@@ -523,7 +503,7 @@ function ConfirmedScreen({
               Al confirmar la entrega se acredita 1 sello. Máximo 1 sello por día.
             </div>
             {stampsNow >= stampsTotal && (
-              <div style={{ marginTop: 10, background: C.orangeBg, borderRadius: 10, padding: "8px 12px", fontSize: 12, color: C.orange, fontWeight: 600 }}>
+              <div style={{ marginTop: 10, background: C.brandBg, borderRadius: 10, padding: "8px 12px", fontSize: 12, color: C.brand, fontWeight: 600 }}>
                 🎉 ¡Cartilla completa! El estudiante puede canjear su premio.
               </div>
             )}
@@ -543,10 +523,10 @@ function ConfirmedScreen({
         <button
           onClick={onAnother}
           style={{
-            background: C.orange, color: "#fff", border: "none", borderRadius: 14,
+            background: C.brand, color: "#fff", border: "none", borderRadius: 14,
             padding: "17px 0", cursor: "pointer",
             fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 16,
-            boxShadow: "0 4px 16px rgba(224,84,35,0.3)",
+            boxShadow: "0 4px 16px rgba(70,131,59,0.3)",
           }}
         >
           Validar otro código
@@ -736,7 +716,7 @@ function ExpiredScreen({ order, onAnother }: { order: Order; onAnother: () => vo
         <button
           onClick={onAnother}
           style={{
-            width: "100%", background: C.orange, color: "#fff", border: "none", borderRadius: 14,
+            width: "100%", background: C.brand, color: "#fff", border: "none", borderRadius: 14,
             padding: "17px 0", cursor: "pointer",
             fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 16,
           }}
@@ -783,7 +763,7 @@ function InvalidScreen({ code, onAnother }: { code: string; onAnother: () => voi
             "El estudiante no ha completado la compra.",
           ].map((t, i) => (
             <div key={i} style={{ display: "flex", gap: 8, padding: "6px 0", borderBottom: i < 3 ? `1px solid ${C.border}` : "none" }}>
-              <span style={{ color: C.orange, fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{i + 1}.</span>
+              <span style={{ color: C.brand, fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{i + 1}.</span>
               <span style={{ fontSize: 12, color: C.textSec, lineHeight: 1.5 }}>{t}</span>
             </div>
           ))}
