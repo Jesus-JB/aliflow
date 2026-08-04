@@ -3,7 +3,14 @@ import { createContext, useContext } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type OrderStatus = "pendiente" | "listo" | "entregado" | "canjeado";
+export type OrderStatus = "pendiente" | "listo" | "entregado" | "canjeado" | "vencido";
+
+/**
+ * Estados oficiales del código de retiro (acta 30-jul-2026 §6.3).
+ * El código vale ÚNICAMENTE el día de la compra: si se presenta otro día,
+ * el sistema debe mostrarlo como vencido.
+ */
+export type EstadoCodigo = "VALIDO" | "UTILIZADO" | "VENCIDO";
 
 export interface OrderItem {
   dishId: string;
@@ -17,6 +24,10 @@ export interface OrderItem {
 export interface Order {
   id: string;
   pickupCode: string;
+  /** Estado del código de retiro: VALIDO / UTILIZADO / VENCIDO. */
+  codigoEstado: EstadoCodigo;
+  /** Hora máxima de retiro heredada del local al momento de comprar. */
+  horaMaximaRetiro: string;
   studentId: string;
   items: OrderItem[];
   total: number;
@@ -34,9 +45,28 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
+  /**
+   * Espejo informativo del stock del ERP del local. NO es lo que decide si
+   * Aliflow puede vender — sirve para conciliar y para que el proveedor
+   * decida cuánto cupo asignar.
+   */
   stock: number;
+  /**
+   * Cupo reservado EXCLUSIVAMENTE para Aliflow (acta 30-jul-2026 §1.3).
+   * De 100 almuerzos el local puede asignar 75 a caja y 25 a Aliflow.
+   * La compra se valida contra `cupoAliflow - cupoConsumido`, no contra
+   * `stock`: así Aliflow deja de competir con la caja por el mismo dato y
+   * la sobreventa se elimina por diseño, no sincronizando más seguido.
+   */
+  cupoAliflow: number;
+  cupoConsumido: number;
   published: boolean;
   imageEmoji: string;
+}
+
+/** Unidades que a Aliflow todavía le quedan por vender de este plato. */
+export function cupoDisponible(m: MenuItem): number {
+  return Math.max(0, m.cupoAliflow - m.cupoConsumido);
 }
 
 export interface Local {
@@ -44,6 +74,14 @@ export interface Local {
   name: string;
   description: string;
   emoji: string;
+  /**
+   * Hora máxima de retiro, configurable por cada local (acta §6.1).
+   * NO es constante del sistema: el mensaje que ve el estudiante tras
+   * comprar se arma con este valor, y de aquí sale la expiración del
+   * código de retiro.
+   */
+  horaMaximaRetiro: string;
+  activo: boolean;
 }
 
 export interface LoyaltyCard {
@@ -86,6 +124,9 @@ export interface StoreData {
   operatorLoggedIn: boolean;
   operatorName: string;
   operatorPoint: string;
+  /** Cuarto rol, acordado el 30-jul-2026: administrador del lado de Aliflow. */
+  superAdminLoggedIn: boolean;
+  superAdminName: string;
   /**
    * Marca el sello recién acreditado para que la cartilla del Estudiante pueda
    * animarlo una sola vez. `at` cambia en cada acreditación, así que sirve como
@@ -99,11 +140,20 @@ export interface StoreData {
 export interface AppState extends StoreData {
   purchaseDish: (item: MenuItem) => { success: boolean; order?: Order; error?: string };
   rechargeBalance: (amount: number) => void;
-  validateCode: (code: string) => { success: boolean; order?: Order; error?: string; alreadyUsed?: boolean };
+  validateCode: (code: string) => { success: boolean; order?: Order; error?: string; alreadyUsed?: boolean; expired?: boolean };
   redeemLoyalty: (localId: string) => { success: boolean; order?: Order; error?: string };
   updateStock: (dishId: string, delta: number) => void;
+  /** Asigna, aumenta o reduce el cupo exclusivo de Aliflow (UC16). */
+  updateCupoAliflow: (dishId: string, delta: number) => void;
+  /** Configura la hora máxima de retiro del local (UC17). */
+  updateHoraMaximaRetiro: (localId: string, hora: string) => void;
   togglePublished: (dishId: string) => void;
   updateLoyaltyConfig: (localId: string, config: Partial<LoyaltyCard>) => void;
+  /** Da de alta un local nuevo — solo el Super-Admin (UC18). */
+  altaLocal: (nombre: string, descripcion: string, emoji: string) => void;
+  toggleLocalActivo: (localId: string) => void;
+  superAdminLogin: (user: string, pass: string) => boolean;
+  superAdminLogout: () => void;
   studentLogin: () => void;
   studentLogout: () => void;
   providerLogin: (user: string, pass: string) => boolean;
@@ -132,22 +182,41 @@ export function createInitialData(): StoreData {
   return {
     studentBalance: 12.40,
     studentName: "Ana M.",
-    orders: [],
+    // Orden sembrada de AYER, ya vencida: permite demostrar el tercer estado
+    // del código (VENCIDO) sin tener que esperar a que pase un día.
+    // Teclear 200315 en la pantalla del Operador muestra ese caso.
+    orders: [
+      {
+        id: "A-20031",
+        pickupCode: "200315",
+        codigoEstado: "VENCIDO",
+        horaMaximaRetiro: "14:00",
+        studentId: "student-1",
+        items: [{ dishId: "baru-2", dishName: "Encebollado", localId: "baru", localName: "Barú", price: 3.00, quantity: 1 }],
+        total: 3.00,
+        status: "vencido",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 26),
+        isRedemption: false,
+      },
+    ],
     loyaltyCards: {
       baru: { localId: "baru", stampsEarned: 6, stampsRequired: 8, reward: "Un almuerzo del día gratis", rewardPrice: 3.25, maxStampsPerDay: 1, expiryDays: 90 },
       caramel: { localId: "caramel", stampsEarned: 5, stampsRequired: 5, reward: "Café pequeño + quesito", rewardPrice: 0, maxStampsPerDay: 1, expiryDays: 90 },
     },
     locals: [
-      { id: "baru", name: "Barú", description: "Comida casera ecuatoriana", emoji: "🍲" },
-      { id: "caramel", name: "Caramel Coffee", description: "Café y sánduches artesanales", emoji: "☕" },
+      { id: "baru", name: "Barú", description: "Comida casera ecuatoriana", emoji: "🍲", horaMaximaRetiro: "14:00", activo: true },
+      { id: "caramel", name: "Caramel Coffee", description: "Café y sánduches artesanales", emoji: "☕", horaMaximaRetiro: "16:30", activo: true },
     ],
+    // `stock` = espejo del ERP (lo que tiene el local en total).
+    // `cupoAliflow` = unidades apartadas SOLO para Aliflow (acta §1.3).
+    // Ej. Seco de pollo: el ERP reporta 12, pero el local apartó 5 para Aliflow.
     menu: [
-      { id: "baru-1", localId: "baru", name: "Seco de pollo", description: "Pollo guisado con arroz, menestra, ensalada fresca y ají", price: 3.50, stock: 12, published: true, imageEmoji: "🍗" },
-      { id: "baru-2", localId: "baru", name: "Encebollado", description: "Caldo tradicional con atún, yuca y curtido de cebolla", price: 3.00, stock: 5, published: true, imageEmoji: "🍜" },
-      { id: "baru-3", localId: "baru", name: "Almuerzo del día", description: "Sopa + segundo + jugo. Varía cada día según disponibilidad", price: 3.25, stock: 2, published: true, imageEmoji: "🥘" },
-      { id: "baru-4", localId: "baru", name: "Bowl de quinua", description: "Quinua con vegetales salteados, aguacate y aderezo", price: 4.00, stock: 0, published: true, imageEmoji: "🥗" },
-      { id: "caramel-1", localId: "caramel", name: "Sánduche de pernil", description: "Pan artesanal con pernil, queso crema y vegetales frescos", price: 2.75, stock: 8, published: true, imageEmoji: "🥪" },
-      { id: "caramel-2", localId: "caramel", name: "Café mediano", description: "Espresso con leche de su elección, caliente o frío", price: 1.50, stock: 20, published: true, imageEmoji: "☕" },
+      { id: "baru-1", localId: "baru", name: "Seco de pollo", description: "Pollo guisado con arroz, menestra, ensalada fresca y ají", price: 3.50, stock: 12, cupoAliflow: 5, cupoConsumido: 0, published: true, imageEmoji: "🍗" },
+      { id: "baru-2", localId: "baru", name: "Encebollado", description: "Caldo tradicional con atún, yuca y curtido de cebolla", price: 3.00, stock: 5, cupoAliflow: 3, cupoConsumido: 0, published: true, imageEmoji: "🍜" },
+      { id: "baru-3", localId: "baru", name: "Almuerzo del día", description: "Sopa + segundo + jugo. Varía cada día según disponibilidad", price: 3.25, stock: 20, cupoAliflow: 2, cupoConsumido: 0, published: true, imageEmoji: "🥘" },
+      { id: "baru-4", localId: "baru", name: "Bowl de quinua", description: "Quinua con vegetales salteados, aguacate y aderezo", price: 4.00, stock: 6, cupoAliflow: 0, cupoConsumido: 0, published: true, imageEmoji: "🥗" },
+      { id: "caramel-1", localId: "caramel", name: "Sánduche de pernil", description: "Pan artesanal con pernil, queso crema y vegetales frescos", price: 2.75, stock: 8, cupoAliflow: 4, cupoConsumido: 0, published: true, imageEmoji: "🥪" },
+      { id: "caramel-2", localId: "caramel", name: "Café mediano", description: "Espresso con leche de su elección, caliente o frío", price: 1.50, stock: 20, cupoAliflow: 10, cupoConsumido: 0, published: true, imageEmoji: "☕" },
     ],
     erpEvents: [
       { id: "evt-1", type: "notifySale", payload: "orden A-10432 · Seco de pollo", status: "sincronizado", timestamp: new Date(Date.now() - 1000 * 60 * 30) },
@@ -160,6 +229,8 @@ export function createInitialData(): StoreData {
     operatorLoggedIn: false,
     operatorName: "",
     operatorPoint: "",
+    superAdminLoggedIn: false,
+    superAdminName: "",
     lastStamp: null,
   };
 }
@@ -174,13 +245,19 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
     purchaseDish(item: MenuItem): { success: boolean; order?: Order; error?: string } {
       const s = get();
       const menuItem = s.menu.find((m) => m.id === item.id);
-      if (!menuItem || menuItem.stock <= 0) return { success: false, error: "Sin stock disponible" };
+      // La disponibilidad se valida contra el CUPO RESERVADO de Aliflow,
+      // no contra el stock del ERP (acta 30-jul-2026 §1.3).
+      if (!menuItem || cupoDisponible(menuItem) <= 0) {
+        return { success: false, error: "Sin cupo disponible en Aliflow" };
+      }
       if (s.studentBalance < item.price) return { success: false, error: "Saldo insuficiente" };
 
       const local = s.locals.find((l) => l.id === item.localId)!;
       const order: Order = {
         id: generateOrderId(),
         pickupCode: generatePickupCode(),
+        codigoEstado: "VALIDO",
+        horaMaximaRetiro: local.horaMaximaRetiro,
         studentId: "student-1",
         items: [{ dishId: item.id, dishName: item.name, localId: item.localId, localName: local.name, price: item.price, quantity: 1 }],
         total: item.price,
@@ -193,7 +270,10 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
         ...s,
         studentBalance: Math.round((s.studentBalance - item.price) * 100) / 100,
         orders: [order, ...s.orders],
-        menu: s.menu.map((m) => m.id === item.id ? { ...m, stock: m.stock - 1 } : m),
+        // Se consume el cupo de Aliflow y se refleja también en el espejo del ERP.
+        menu: s.menu.map((m) => m.id === item.id
+          ? { ...m, cupoConsumido: m.cupoConsumido + 1, stock: Math.max(0, m.stock - 1) }
+          : m),
         erpEvents: [
           { id: `evt-${Date.now()}`, type: "notifySale", payload: `orden ${order.id} · ${item.name}`, status: "sincronizado", timestamp: new Date() },
           ...s.erpEvents,
@@ -208,17 +288,22 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
       set({ ...s, studentBalance: Math.round((s.studentBalance + amount) * 100) / 100 });
     },
 
-    validateCode(code: string): { success: boolean; order?: Order; error?: string; alreadyUsed?: boolean } {
+    validateCode(code: string): { success: boolean; order?: Order; error?: string; alreadyUsed?: boolean; expired?: boolean } {
       const s = get();
       const order = s.orders.find((o) => o.pickupCode === code);
       if (!order) return { success: false, error: "Código inválido" };
-      if (order.status === "entregado" || order.status === "canjeado") {
+      if (order.codigoEstado === "UTILIZADO") {
         return { success: false, alreadyUsed: true, order, error: "Código ya utilizado" };
+      }
+      // Tercer estado del acta §6.3: el código vale solo el día de la compra.
+      if (order.codigoEstado === "VENCIDO") {
+        return { success: false, expired: true, order, error: "Código vencido" };
       }
 
       const now = new Date();
       const updatedOrder: Order = {
         ...order,
+        codigoEstado: "UTILIZADO",
         status: order.isRedemption ? "canjeado" : "entregado",
         deliveredAt: now,
         deliveredBy: s.operatorName,
@@ -261,13 +346,16 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
         return { success: false, error: "No tienes sellos suficientes" };
       }
 
-      const rewardDish = s.menu.find((m) => m.localId === localId && m.stock > 0);
-      if (!rewardDish) return { success: false, error: "Sin stock disponible para el premio" };
+      // El premio también sale del cupo reservado de Aliflow, no del stock del ERP.
+      const rewardDish = s.menu.find((m) => m.localId === localId && cupoDisponible(m) > 0);
+      if (!rewardDish) return { success: false, error: "Sin cupo disponible para el premio" };
 
       const local = s.locals.find((l) => l.id === localId)!;
       const order: Order = {
         id: generateOrderId(),
         pickupCode: generatePickupCode(),
+        codigoEstado: "VALIDO",
+        horaMaximaRetiro: local.horaMaximaRetiro,
         studentId: "student-1",
         items: [{ dishId: rewardDish.id, dishName: card.reward, localId, localName: local.name, price: 0, quantity: 1 }],
         total: 0,
@@ -280,7 +368,9 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
         ...s,
         orders: [order, ...s.orders],
         loyaltyCards: { ...s.loyaltyCards, [localId]: { ...card, stampsEarned: 0, lastStampDate: undefined } },
-        menu: s.menu.map((m) => m.id === rewardDish.id ? { ...m, stock: m.stock - 1 } : m),
+        menu: s.menu.map((m) => m.id === rewardDish.id
+          ? { ...m, cupoConsumido: m.cupoConsumido + 1, stock: Math.max(0, m.stock - 1) }
+          : m),
       });
 
       return { success: true, order };
@@ -337,6 +427,59 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
     operatorLogout() {
       const s = get();
       set({ ...s, operatorLoggedIn: false, operatorName: "", operatorPoint: "" });
+    },
+
+    // ── Acta 30-jul-2026 ──────────────────────────────────────────────────
+    updateCupoAliflow(dishId: string, delta: number) {
+      const s = get();
+      set({
+        ...s,
+        menu: s.menu.map((m) => {
+          if (m.id !== dishId) return m;
+          // El cupo no puede bajar de lo ya consumido ni superar el stock del ERP.
+          const nuevo = Math.min(m.stock, Math.max(m.cupoConsumido, m.cupoAliflow + delta));
+          return { ...m, cupoAliflow: nuevo };
+        }),
+      });
+    },
+
+    updateHoraMaximaRetiro(localId: string, hora: string) {
+      const s = get();
+      set({
+        ...s,
+        locals: s.locals.map((l) => l.id === localId ? { ...l, horaMaximaRetiro: hora } : l),
+      });
+    },
+
+    // ── Super-Admin (cuarto rol) ──────────────────────────────────────────
+    altaLocal(nombre: string, descripcion: string, emoji: string) {
+      const s = get();
+      const id = nombre.toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 20) || `local-${s.locals.length + 1}`;
+      if (s.locals.some((l) => l.id === id)) return;
+      set({
+        ...s,
+        locals: [...s.locals, { id, name: nombre, description: descripcion, emoji, horaMaximaRetiro: "14:00", activo: true }],
+        loyaltyCards: s.loyaltyCards,
+      });
+    },
+
+    toggleLocalActivo(localId: string) {
+      const s = get();
+      set({ ...s, locals: s.locals.map((l) => l.id === localId ? { ...l, activo: !l.activo } : l) });
+    },
+
+    superAdminLogin(user: string, pass: string): boolean {
+      if (user && pass) {
+        const s = get();
+        set({ ...s, superAdminLoggedIn: true, superAdminName: user.split("@")[0] });
+        return true;
+      }
+      return false;
+    },
+
+    superAdminLogout() {
+      const s = get();
+      set({ ...s, superAdminLoggedIn: false, superAdminName: "" });
     },
 
     resetDemo() {

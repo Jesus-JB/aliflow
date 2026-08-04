@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { UtensilsCrossed, BookOpen, ClipboardList, User, ArrowLeft, ChevronRight, Check, CreditCard, AlertTriangle, Info } from "lucide-react";
-import { useStore, MenuItem, Order, Local, LoyaltyCard as LoyaltyCardType } from "../store";
+import { UtensilsCrossed, BookOpen, ClipboardList, User, ArrowLeft, ChevronRight, Check, CreditCard, AlertTriangle, Info, Clock } from "lucide-react";
+import { useStore, MenuItem, Order, Local, LoyaltyCard as LoyaltyCardType, EstadoCodigo, cupoDisponible } from "../store";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -99,11 +99,15 @@ function BackBtn({ onClick }: { onClick: () => void }) {
 
 // ─── Status chip ──────────────────────────────────────────────────────────────
 function StatusTag({ status }: { status: Order["status"] }) {
-  const map = {
+  // Tipado explícito: si se agrega un estado nuevo al store y no se mapea aquí,
+  // falla la compilación en vez de romper en tiempo de ejecución.
+  const map: Record<Order["status"], { label: string; color: string; bg: string }> = {
     pendiente: { label: "Pendiente", color: C.warnText, bg: C.warnBg },
     listo: { label: "Listo", color: C.infoText, bg: C.infoBg },
     entregado: { label: "Entregado", color: C.successText, bg: C.successBg },
     canjeado: { label: "Canjeado", color: C.successText, bg: C.successBg },
+    // Acta 30-jul-2026: la orden vence al terminar el día de la compra.
+    vencido: { label: "Vencido", color: C.errorText, bg: C.errorBg },
   };
   const s = map[status];
   return <Tag color={s.color} bg={s.bg}>{s.label}</Tag>;
@@ -215,7 +219,7 @@ function MenuScreen({ onDishTap, onRecharge }: { onDishTap: (dish: MenuItem) => 
       <div style={{ padding: "12px 16px 100px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: C.textSec, marginBottom: 2 }}>Menú del día</div>
         {filteredMenu.map((dish) => (
-          <DishCard key={dish.id} dish={dish} onTap={() => dish.stock > 0 && onDishTap(dish)} />
+          <DishCard key={dish.id} dish={dish} onTap={() => cupoDisponible(dish) > 0 && onDishTap(dish)} />
         ))}
       </div>
     </div>
@@ -223,7 +227,8 @@ function MenuScreen({ onDishTap, onRecharge }: { onDishTap: (dish: MenuItem) => 
 }
 
 function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
-  const soldOut = dish.stock === 0;
+  // Agotado = sin cupo de Aliflow, aunque el ERP reporte stock (acta §1.3).
+  const soldOut = cupoDisponible(dish) === 0;
   return (
     <div
       onClick={soldOut ? undefined : onTap}
@@ -256,7 +261,7 @@ function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
             {soldOut ? (
               <Tag color={C.errorText} bg={C.errorBg}>Agotado</Tag>
             ) : (
-              <span style={{ fontSize: 11, color: C.textMuted }}>{dish.stock} disp.</span>
+              <span style={{ fontSize: 11, color: C.textMuted }}>{cupoDisponible(dish)} disp.</span>
             )}
           </div>
         </div>
@@ -273,7 +278,7 @@ function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
 // ─── DISH DETAIL ──────────────────────────────────────────────────────────────
 function DishDetailScreen({ dish, onBack, onConfirm }: { dish: MenuItem; onBack: () => void; onConfirm: () => void }) {
   const { studentBalance } = useStore();
-  const canBuy = studentBalance >= dish.price && dish.stock > 0;
+  const canBuy = studentBalance >= dish.price && cupoDisponible(dish) > 0;
   const local = dish.localId === "baru" ? "Barú" : "Caramel Coffee";
 
   return (
@@ -301,7 +306,7 @@ function DishDetailScreen({ dish, onBack, onConfirm }: { dish: MenuItem; onBack:
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontSize: 13, color: C.textSec }}>Stock</span>
-            <span style={{ fontSize: 13, color: C.text }}>{dish.stock} disponibles</span>
+            <span style={{ fontSize: 13, color: C.text }}>{cupoDisponible(dish)} disponibles</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
             <span style={{ fontSize: 13, color: C.textSec }}>Punto de entrega</span>
@@ -398,6 +403,28 @@ function ConfirmPurchaseScreen({ dish, onBack, onPurchase }: { dish: MenuItem; o
   );
 }
 
+/**
+ * Los tres estados oficiales del código de retiro (acta 30-jul-2026 §6.3).
+ * Se muestran con el mismo lenguaje visual en Estudiante y Operador.
+ */
+function EstadoCodigoTag({ estado }: { estado: EstadoCodigo }) {
+  const cfg = {
+    VALIDO:    { label: "Válido",    bg: C.successBg, color: C.successText },
+    UTILIZADO: { label: "Utilizado", bg: C.sunken,    color: C.textMuted },
+    VENCIDO:   { label: "Vencido",   bg: C.errorBg,   color: C.errorText },
+  }[estado];
+  return (
+    <span style={{
+      background: cfg.bg, color: cfg.color, borderRadius: 999,
+      fontSize: 11, fontWeight: 700, padding: "4px 12px",
+      display: "inline-flex", alignItems: "center", gap: 6,
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: 999, background: cfg.color, display: "inline-block" }} />
+      {cfg.label}
+    </span>
+  );
+}
+
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -418,18 +445,37 @@ function PickupCodeScreen({ order, onViewOrders, onBack }: { order: Order; onVie
         <h3 style={{ margin: 0 }}>Código de retiro</h3>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px" }}>
-        {/* Big circle */}
-        <div style={{ width: 120, height: 120, borderRadius: "50%", background: C.orangeBg, border: `3px solid ${C.orange}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28 }}>
-          <span style={{ fontSize: 52 }}>🍽</span>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 24px 0" }}>
+        {/* Confirmación de compra con animación (acta 30-jul-2026 §6.1). */}
+        <div style={{
+          width: 96, height: 96, borderRadius: "50%", background: C.successText,
+          display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16,
+          animation: "compraOk 0.6s cubic-bezier(0.34,1.56,0.64,1) both",
+        }}>
+          <Check size={46} color="#fff" strokeWidth={3} />
         </div>
 
-        {/* El código se dicta de viva voz: no se escanea ni se muestra una
-            pantalla al operador (decisión de Negocios del 28-jul-2026). */}
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 6, textAlign: "center" }}>
+          ¡Compra realizada con éxito!
+        </div>
+
+        {/* El horario NO está fijo en el código: sale de la configuración del
+            local (Proveedor.horaMaximaRetiro) y el mensaje se arma con él. */}
+        <div style={{
+          background: C.warnBg, borderRadius: 12, padding: "12px 16px", marginBottom: 22,
+          display: "flex", gap: 10, alignItems: "center", maxWidth: 320,
+        }}>
+          <Clock size={18} color={C.warnText} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: C.warnText, lineHeight: 1.45 }}>
+            Recuerda que puedes retirar tu almuerzo <strong>hasta las {order.horaMaximaRetiro}</strong> de hoy.
+          </span>
+        </div>
+
+        {/* El código se dicta de viva voz: no se escanea (decisión 28-jul-2026). */}
         <div style={{ fontSize: 14, color: C.textSec, marginBottom: 8, textAlign: "center" }}>Díctale este código al operador</div>
 
         {/* 6-digit code */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           {digits.map((d, i) => (
             <div
               key={i}
@@ -437,6 +483,7 @@ function PickupCodeScreen({ order, onViewOrders, onBack }: { order: Order; onVie
                 width: 44, height: 54, borderRadius: 10, background: C.card, border: `1px solid ${C.border}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 28, fontWeight: 800, color: C.text, fontFamily: "Inter, sans-serif",
+                animation: `digitoEntra 0.35s ease-out ${0.25 + i * 0.05}s both`,
               }}
             >
               {d}
@@ -444,20 +491,33 @@ function PickupCodeScreen({ order, onViewOrders, onBack }: { order: Order; onVie
           ))}
         </div>
 
-        <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 10, textAlign: "center", maxWidth: 280 }}>
+        <EstadoCodigoTag estado={order.codigoEstado} />
+
+        <div style={{ fontSize: 12, color: C.textMuted, margin: "10px 0 14px", textAlign: "center", maxWidth: 290, lineHeight: 1.45 }}>
           6 dígitos numéricos. No se escanea nada: el operador lo teclea en su
-          pantalla de validación.
+          pantalla de validación. <strong>Vale solo hoy</strong> — mañana aparece como vencido.
         </div>
 
-        <PendingBadge label="Regla de expiración del código (ej. válido por 4 horas) pendiente de definición" />
-
-        <Card style={{ width: "100%", marginTop: 20, padding: "14px 16px" }}>
+        <Card style={{ width: "100%", padding: "14px 16px", marginBottom: 20 }}>
           <Row label="Orden" value={order.id} />
           <Row label="Plato" value={order.items[0]?.dishName} />
           <Row label="Monto" value={`$${order.total.toFixed(2)}`} />
+          <Row label="Retirar hasta" value={`Hoy ${order.horaMaximaRetiro}`} bold />
           <Row label="Punto de entrega" value={`${order.items[0]?.localName} · Planta baja`} />
         </Card>
       </div>
+
+      <style>{`
+        @keyframes compraOk {
+          0%   { transform: scale(0.3) rotate(-12deg); opacity: 0; }
+          60%  { transform: scale(1.15) rotate(3deg); }
+          100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        @keyframes digitoEntra {
+          0%   { transform: translateY(10px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
 
       <div style={{ padding: "0 20px 32px" }}>
         <button

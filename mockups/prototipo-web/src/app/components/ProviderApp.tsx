@@ -5,7 +5,7 @@ import {
   X, Save, TrendingUp, Package,
   Clock, ShoppingBag, AlertCircle,
 } from "lucide-react";
-import { useStore, MenuItem, ERPEvent, Order } from "../store";
+import { useStore, MenuItem, ERPEvent, Order, cupoDisponible } from "../store";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 const C = {
@@ -235,8 +235,8 @@ function PanelTab() {
   const maxCount = dishCount[0]?.count ?? 1;
 
   // Stock alerts
-  const lowStock  = menu.filter((m) => m.localId === LOCAL_ID && m.published && m.stock > 0 && m.stock <= 2);
-  const zeroStock = menu.filter((m) => m.localId === LOCAL_ID && m.published && m.stock === 0);
+  const lowStock  = menu.filter((m) => m.localId === LOCAL_ID && m.published && cupoDisponible(m) > 0 && cupoDisponible(m) <= 2);
+  const zeroStock = menu.filter((m) => m.localId === LOCAL_ID && m.published && cupoDisponible(m) === 0);
 
   // Recent orders (last 5)
   const recent = [...allLocal].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5);
@@ -329,7 +329,7 @@ function PanelTab() {
               <div key={d.id} style={{ background: C.warnBg, borderRadius: 12, padding: "10px 14px", display: "flex", gap: 8, alignItems: "center" }}>
                 <Package size={14} color={C.warnText} style={{ flexShrink: 0 }} />
                 <span style={{ flex: 1, fontSize: 13, color: C.warnText, fontWeight: 600 }}>{d.name}</span>
-                <Pill color={C.warnText} bg="#fff">{d.stock} disp.</Pill>
+                <Pill color={C.warnText} bg="#fff">{cupoDisponible(d)} en cupo</Pill>
               </div>
             ))}
           </div>
@@ -419,11 +419,13 @@ function KpiCard({ icon, label, value, bg, highlight }: {
 }
 
 function RecentOrderRow({ order }: { order: Order }) {
-  const statusMap = {
+  const statusMap: Record<Order["status"], { label: string; color: string; bg: string }> = {
     pendiente: { label: "Pendiente", color: C.warnText, bg: C.warnBg },
     listo:     { label: "Listo",     color: C.infoText, bg: C.infoBg },
     entregado: { label: "Entregado", color: C.successText, bg: C.successBg },
     canjeado:  { label: "Canjeado",  color: C.successText, bg: C.successBg },
+    // Acta 30-jul-2026: la orden vence al terminar el día de la compra.
+    vencido:   { label: "Vencido",   color: C.errorText, bg: C.errorBg },
   };
   const st = statusMap[order.status];
   return (
@@ -448,8 +450,9 @@ function RecentOrderRow({ order }: { order: Order }) {
 
 // ─── MENU TAB ─────────────────────────────────────────────────────────────────
 function MenuTab() {
-  const { menu, orders, updateStock, togglePublished } = useStore();
+  const { menu, orders, locals, updateCupoAliflow, updateHoraMaximaRetiro, togglePublished } = useStore();
   const baruMenu = menu.filter((m) => m.localId === LOCAL_ID);
+  const local = locals.find((l) => l.id === LOCAL_ID)!;
   const today = new Date().toLocaleDateString("es-EC", { weekday: "long", day: "numeric", month: "short" });
 
   // How many of each dish were sold today
@@ -474,8 +477,36 @@ function MenuTab() {
       </div>
 
       <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ background: C.warnBg, borderRadius: 10, padding: "9px 12px", fontSize: 11, color: C.warnText, lineHeight: 1.5 }}>
-          Antes de publicar valida: nombre no vacío, precio &gt; 0 y stock &gt; 0. Sin estas condiciones el plato no aparece a los estudiantes.
+        {/* UC17 — horario máximo de retiro, configurable por el local. */}
+        <Card style={{ padding: "14px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Clock size={16} color={C.orange} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Hora máxima de retiro</span>
+            </div>
+            <input
+              type="time"
+              value={local.horaMaximaRetiro}
+              onChange={(e) => updateHoraMaximaRetiro(LOCAL_ID, e.target.value)}
+              style={{
+                border: `1px solid ${C.borderStrong}`, borderRadius: 8, padding: "6px 10px",
+                fontSize: 14, fontWeight: 700, color: C.text, fontFamily: "Inter, sans-serif",
+              }}
+            />
+          </div>
+          <div style={{ fontSize: 11, color: C.textSec, lineHeight: 1.5 }}>
+            El mensaje que ve el estudiante al comprar se arma con este valor, y de
+            aquí sale la expiración del código de retiro. <strong>No está fijo en el
+            código</strong>: cada local define el suyo.
+          </div>
+        </Card>
+
+        {/* UC16 — inventario reservado. Es el cambio de fondo del acta. */}
+        <div style={{ background: C.infoBg, borderRadius: 10, padding: "10px 12px", fontSize: 11, color: C.infoText, lineHeight: 1.5 }}>
+          <strong>Cupo de Aliflow.</strong> Las unidades que aparta aquí son
+          exclusivas para venta por la app. Aliflow vende contra este cupo, no
+          contra el stock total de su ERP — así la app nunca vende algo que ya
+          se vendió en caja.
         </div>
 
         {baruMenu.map((dish) => (
@@ -483,7 +514,7 @@ function MenuTab() {
             key={dish.id}
             dish={dish}
             soldToday={soldToday[dish.id] ?? 0}
-            onStockChange={(d) => updateStock(dish.id, d)}
+            onCupoChange={(d) => updateCupoAliflow(dish.id, d)}
             onToggle={() => togglePublished(dish.id)}
           />
         ))}
@@ -492,9 +523,10 @@ function MenuTab() {
   );
 }
 
-function MenuDishCard({ dish, soldToday, onStockChange, onToggle }: {
-  dish: MenuItem; soldToday: number; onStockChange: (d: number) => void; onToggle: () => void;
+function MenuDishCard({ dish, soldToday, onCupoChange, onToggle }: {
+  dish: MenuItem; soldToday: number; onCupoChange: (d: number) => void; onToggle: () => void;
 }) {
+  const disponible = cupoDisponible(dish);
   return (
     <Card style={{ padding: "14px 16px" }}>
       {/* Header row */}
@@ -514,39 +546,52 @@ function MenuDishCard({ dish, soldToday, onStockChange, onToggle }: {
         </div>
       </div>
 
-      {/* Stock + sold row */}
+      {/* Cupo de Aliflow + stock del ERP + vendidos */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {/* Stepper */}
+        {/* Stepper del cupo reservado — lo que el proveedor sí administra */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => onStockChange(-1)} style={adjBtn}><Minus size={14} /></button>
-          <div style={{ textAlign: "center", minWidth: 40 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: dish.stock === 0 ? C.errorText : C.text, lineHeight: 1 }}>{dish.stock}</div>
-            <div style={{ fontSize: 9, color: C.textMuted }}>en stock</div>
+          <button onClick={() => onCupoChange(-1)} style={adjBtn}><Minus size={14} /></button>
+          <div style={{ textAlign: "center", minWidth: 46 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: disponible === 0 ? C.errorText : C.orange, lineHeight: 1 }}>
+              {disponible}
+            </div>
+            <div style={{ fontSize: 9, color: C.textMuted }}>cupo Aliflow</div>
           </div>
-          <button onClick={() => onStockChange(1)} style={{ ...adjBtn, background: C.orange, border: "none" }}>
+          <button onClick={() => onCupoChange(1)} style={{ ...adjBtn, background: C.orange, border: "none" }}>
             <Plus size={14} color="#fff" />
           </button>
         </div>
 
-        {/* Divider */}
         <div style={{ width: 1, height: 32, background: C.border }} />
 
-        {/* Sold today */}
+        {/* Stock del ERP: informativo, no decide la venta */}
         <div style={{ textAlign: "center", flex: 1 }}>
-          <div style={{ fontSize: 18, fontWeight: 800, color: C.orange, lineHeight: 1 }}>{soldToday}</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.textSec, lineHeight: 1 }}>{dish.stock}</div>
+          <div style={{ fontSize: 9, color: C.textMuted }}>stock ERP</div>
+        </div>
+
+        <div style={{ width: 1, height: 32, background: C.border }} />
+
+        <div style={{ textAlign: "center", flex: 1 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.successText, lineHeight: 1 }}>{soldToday}</div>
           <div style={{ fontSize: 9, color: C.textMuted }}>vendidos hoy</div>
         </div>
       </div>
 
-      {/* Alerts */}
-      {dish.stock === 0 && dish.published && (
-        <div style={{ marginTop: 10, background: C.errorBg, borderRadius: 8, padding: "6px 10px", fontSize: 11, color: C.errorText, fontWeight: 600 }}>
-          ⚠ Sin stock — oculto automáticamente para estudiantes
+      {/* Alertas — ahora sobre el cupo, no sobre el stock del ERP */}
+      {disponible === 0 && dish.published && dish.stock > 0 && (
+        <div style={{ marginTop: 10, background: C.warnBg, borderRadius: 8, padding: "6px 10px", fontSize: 11, color: C.warnText, fontWeight: 600 }}>
+          ⚠ Sin cupo en Aliflow, pero su ERP reporta {dish.stock} unidades — está perdiendo ventas
         </div>
       )}
-      {dish.stock > 0 && dish.stock <= 2 && (
+      {disponible === 0 && dish.stock === 0 && dish.published && (
+        <div style={{ marginTop: 10, background: C.errorBg, borderRadius: 8, padding: "6px 10px", fontSize: 11, color: C.errorText, fontWeight: 600 }}>
+          ⚠ Agotado — oculto automáticamente para estudiantes
+        </div>
+      )}
+      {disponible > 0 && disponible <= 2 && (
         <div style={{ marginTop: 10, background: C.warnBg, borderRadius: 8, padding: "6px 10px", fontSize: 11, color: C.warnText }}>
-          ⚡ Pocas unidades — considera aumentar el stock
+          ⚡ Quedan {disponible} en el cupo de Aliflow — considere aumentarlo
         </div>
       )}
     </Card>

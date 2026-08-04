@@ -4,14 +4,18 @@ import { AppContext, StoreData, createInitialData, createActions } from "./store
 import { StudentApp } from "./components/StudentApp";
 import { ProviderApp } from "./components/ProviderApp";
 import { OperatorApp } from "./components/OperatorApp";
+import { SuperAdminApp } from "./components/SuperAdminApp";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Role = "estudiante" | "proveedor" | "operador";
+// Cuatro roles desde el 30-jul-2026. Los tres primeros operan dentro de un
+// local; el Super-Admin es de Aliflow y es el único con visibilidad sobre todos.
+type Role = "estudiante" | "proveedor" | "operador" | "superadmin";
 
 const ROLE_LABELS: Record<Role, { label: string; emoji: string; color: string }> = {
   estudiante: { label: "Estudiante", emoji: "🎓", color: "#E05423" },
   proveedor:  { label: "Proveedor",  emoji: "🍳", color: "#2B5CE6" },
   operador:   { label: "Operador",   emoji: "🏷",  color: "#12805C" },
+  superadmin: { label: "Super-Admin", emoji: "🛡", color: "#5B3DF5" },
 };
 
 // ─── Role Switcher ────────────────────────────────────────────────────────────
@@ -95,7 +99,7 @@ function RoleSwitcher({ active, onChange }: { active: Role; onChange: (r: Role) 
               </button>
             ))}
             <div style={{ padding: "8px 14px 10px", fontSize: 10, color: "#98A1AE", lineHeight: 1.4, borderTop: "1px solid #E4E7EC" }}>
-              Estado compartido en memoria. Los 3 roles operan sobre los mismos datos.
+              Estado compartido en memoria. Los 4 roles operan sobre los mismos datos.
             </div>
           </div>
         </>
@@ -209,6 +213,7 @@ export default function App() {
               {role === "estudiante" && <StudentApp />}
               {role === "proveedor" && <ProviderApp />}
               {role === "operador" && <OperatorApp />}
+              {role === "superadmin" && <SuperAdminApp />}
             </div>
           </div>
 
@@ -238,7 +243,7 @@ export default function App() {
           <span style={{ fontSize: 12, color: "#5A6472" }}>
             {justReset
               ? "Demo reiniciada · saldo $12.40, sin órdenes"
-              : "Aliflow Prototipo · Estado compartido en memoria entre los 3 roles"}
+              : "Aliflow Prototipo · Estado compartido en memoria entre los 4 roles"}
           </span>
           <button
             onClick={handleReset}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, AlertCircle, Delete, ChevronDown } from "lucide-react";
+import { Check, X, AlertCircle, Delete, ChevronDown, Clock } from "lucide-react";
 import { useStore, Order } from "../store";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -150,6 +150,9 @@ type ValidatorResult =
   | null
   | { type: "success"; order: Order }
   | { type: "already_used"; order: Order }
+  // Tercer estado del acta 30-jul-2026 §6.3: el código valía solo el día
+  // de la compra y se presentó después.
+  | { type: "expired"; order: Order }
   | { type: "invalid"; code: string };
 
 function ValidatorScreen({ onLogout }: { onLogout: () => void }) {
@@ -186,6 +189,9 @@ function ValidatorScreen({ onLogout }: { onLogout: () => void }) {
     } else if (res.alreadyUsed && res.order) {
       setResult({ type: "already_used", order: res.order });
       triggerShake();
+    } else if (res.expired && res.order) {
+      setResult({ type: "expired", order: res.order });
+      triggerShake();
     } else {
       setResult({ type: "invalid", code: input });
       triggerShake();
@@ -204,6 +210,9 @@ function ValidatorScreen({ onLogout }: { onLogout: () => void }) {
   }
   if (result?.type === "already_used") {
     return <AlreadyUsedScreen order={result.order} onAnother={reset} />;
+  }
+  if (result?.type === "expired") {
+    return <ExpiredScreen order={result.order} onAnother={reset} />;
   }
   if (result?.type === "invalid") {
     return <InvalidScreen code={result.code} onAnother={reset} />;
@@ -646,6 +655,93 @@ function AlreadyUsedScreen({ order, onAnother }: { order: Order; onAnother: () =
           }}
         >
           Buscar por nombre o ID (UCId)
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── EXPIRED ──────────────────────────────────────────────────────────────────
+/**
+ * Tercer estado del código (acta 30-jul-2026 §6.3). El código vale únicamente
+ * el día de la compra: si el estudiante lo presenta después, debe mostrarse
+ * como vencido — que es un caso distinto de "inválido" y de "ya utilizado",
+ * porque la orden existe y se pagó, pero ya no se puede retirar.
+ */
+function ExpiredScreen({ order, onAnother }: { order: Order; onAnother: () => void }) {
+  const fecha = order.createdAt.toLocaleDateString("es-EC", { day: "2-digit", month: "short" });
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#FFFBF2", overflow: "hidden" }}>
+      <div style={{
+        background: C.warnText,
+        padding: "44px 24px 22px",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+      }}>
+        <div style={{
+          width: 68, height: 68, borderRadius: "50%",
+          background: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+        }}>
+          <Clock size={34} color={C.warnText} strokeWidth={2.5} />
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: 22, color: "#fff" }}>Código vencido</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginTop: 4, lineHeight: 1.45 }}>
+            El código solo es válido el mismo día de la compra.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0", display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: "14px 16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.textMuted }}>Código {order.pickupCode}</span>
+            <span style={{
+              background: C.warnBg, color: C.warnText,
+              borderRadius: 999, fontSize: 11, fontWeight: 700, padding: "3px 10px",
+            }}>
+              ● Vencido
+            </span>
+          </div>
+          {[
+            { label: "Orden", value: order.id },
+            { label: "Plato", value: order.items[0]?.dishName ?? "—" },
+            { label: "Comprado el", value: fecha },
+            { label: "Vencía a las", value: order.horaMaximaRetiro },
+          ].map((r, i, arr) => (
+            <div key={r.label} style={{
+              display: "flex", justifyContent: "space-between", padding: "7px 0",
+              borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none",
+            }}>
+              <span style={{ fontSize: 12, color: C.textSec }}>{r.label}</span>
+              <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>{r.value}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: C.warnBg, borderRadius: 16, border: `1px solid ${C.warnText}`, padding: "14px 16px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.warnText, marginBottom: 4 }}>
+            Qué hacer en este caso
+          </div>
+          <div style={{ fontSize: 12, color: C.warnText, lineHeight: 1.5 }}>
+            No se puede entregar el pedido con este código. <strong>Qué pasa con
+            el dinero todavía no está definido</strong>: el acta fijó cuándo vence
+            el código, pero no la política de reembolso. Escalar al Super-Admin.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: "12px 16px 24px" }}>
+        <button
+          onClick={onAnother}
+          style={{
+            width: "100%", background: C.orange, color: "#fff", border: "none", borderRadius: 14,
+            padding: "17px 0", cursor: "pointer",
+            fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 16,
+          }}
+        >
+          Teclear otro código
         </button>
       </div>
     </div>
