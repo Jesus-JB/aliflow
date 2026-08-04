@@ -2,7 +2,7 @@
 
 **Preparado por:** Grupo de Ingeniería
 **Creado:** 27-jul-2026, para la reunión con el Grupo de Negocios
-**Actualizado:** 28-jul-2026 — Negocios resolvió 5 de las 8 decisiones abiertas y agregó un requisito nuevo (cartilla de fidelidad, punto 9)
+**Actualizado:** 30-jul-2026 — reunión con Negocios: se cerró la expiración del código, cambió la estrategia de inventario, se revirtió la decisión sobre el super-admin, y se abrió el frente de pasarela de pagos
 **Objetivo:** llevar la cuenta de qué está decidido, qué sigue abierto, y qué cambió en el diseño como consecuencia.
 
 Todo lo trabajado (arquitectura, casos de uso, diagramas de clases/objetos/componentes/despliegue/actividad/secuencia/estado, registro de riesgos, demo funcional) está en el repositorio: **https://github.com/Jesus-JB/aliflow**. Este documento no repite ese contenido — apunta a la sección exacta de cada documento donde está el detalle.
@@ -14,16 +14,111 @@ Todo lo trabajado (arquitectura, casos de uso, diagramas de clases/objetos/compo
 | # | Decisión | Estado | Bloqueaba |
 |---|---|---|---|
 | 1 | Proveedor y sistema ERP reales | ✅ **Resuelta y corregida** | Modelo de datos |
-| 2 | Alcance del rol Administrador | ✅ **Resuelta** | Modelo de datos |
+| 2 | Alcance del rol Administrador | 🔄 **Revertida el 30-jul** — sí existe un Super-Admin | Modelo de datos |
 | 3 | Personal múltiple por proveedor | ✅ **Resuelta** | Modelo de datos |
 | 4 | Mecanismo de recarga de saldo | ✅ **Resuelta**, con un punto fino por confirmar | Lógica de wallet |
-| 5 | Regla de expiración de orden no retirada | ⬜ Abierta | Nada crítico |
+| 5 | Regla de expiración de orden no retirada | ✅ **Resuelta el 30-jul** — vence al terminar el día | Modelo de estados |
 | 6 | Formato del código de retiro | ✅ **Resuelta** | Prototipo de mockups |
 | 7 | Modelo de cobro de Aliflow al proveedor | ⬜ Abierta | Nada crítico |
-| 8 | Corrección del Acta (comprobante tributario) | ⬜ Abierta — pendiente de explicación, ver abajo | Documento de requerimientos |
-| 9 | **Cartilla de fidelidad** *(requisito nuevo)* | 🆕 **Modelada**, faltan las reglas | Nada — se modeló como configuración |
+| 8 | Corrección del Acta (comprobante tributario) | ✅ **Resuelta el 30-jul** — el acta nueva confirma el modelo correcto | Documento de requerimientos |
+| 9 | **Cartilla de fidelidad** | 🆕 **Modelada**, faltan las reglas | Nada — se modeló como configuración |
+| 10 | **Estrategia de inventario** *(nueva)* | ✅ **Resuelta el 30-jul** — inventario reservado para Aliflow | Modelo de datos y panel del proveedor |
+| 11 | **Horario máximo de retiro** *(nueva)* | ✅ **Resuelta el 30-jul** — configurable por proveedor | Mockups |
+| 12 | **Pasarela de pagos** *(nueva)* | ⬜ Abierta — investigación en curso | Flujo de recarga |
+| 13 | **Custodia de fondos vs. saldo único** *(nueva)* | 🔴 **Abierta y contradictoria** — ver abajo | **Lógica de wallet** |
 
-**Las tres decisiones que bloqueaban el modelo de base de datos (#1, #2, #3) están cerradas. Ingeniería puede empezar el esquema de base de datos.**
+**Las decisiones que bloqueaban el modelo de base de datos están cerradas.** La #13 es la única que puede volver a mover el diseño del wallet, y es una contradicción entre dos decisiones ya tomadas, no un vacío.
+
+---
+
+## ✅ Decisiones resueltas el 30-jul-2026
+
+### 10. Estrategia de inventario — inventario reservado para Aliflow *(nueva)*
+
+**El problema que Negocios puso sobre la mesa:** si el local vende en caja, su ERP descuenta la unidad al instante, pero Aliflow puede tardar en enterarse. En esa ventana, un estudiante puede comprar un almuerzo que ya no existe.
+
+Es exactamente el problema de **dos escritores sobre el mismo dato** que Ingeniería había señalado: no se arregla sincronizando más seguido, solo se achica la ventana.
+
+**Lo que se decidió para v1:** el proveedor aparta una **cantidad fija de unidades exclusivas para Aliflow**. Si tiene 100 almuerzos, puede asignar 75 a caja y 25 a Aliflow. Ese cupo se administra de forma independiente y el proveedor lo aumenta o reduce **manualmente desde su panel**.
+
+**Las tres alternativas que se evaluaron y por qué ganó esta:**
+
+| Alternativa | Veredicto |
+|---|---|
+| **Webhooks desde el ERP** | La ideal, pero **ningún ERP del alcance los ofrece** — ni Contífico ni Alpwin. Descartada por imposibilidad técnica, no por costo. |
+| **Polling cada minuto** | Sencilla de implementar, pero **no elimina el desfase**, solo lo acorta. Queda como red de seguridad, no como mecanismo primario. |
+| **Inventario reservado** | ✅ **Elegida.** Elimina la sobreventa por diseño en vez de mitigarla, y **reduce la dependencia de la integración en tiempo real**. |
+
+**Por qué esto es más importante de lo que parece:** cambia la respuesta a "¿es posible la bidireccionalidad?". En v1 Aliflow ya **no compite** con la caja por el mismo stock — es dueño de su propio cupo. El ERP deja de ser la fuente de verdad del inventario disponible en Aliflow y pasa a ser el sistema contable donde se registra la venta. Eso **desacopla el inventario del riesgo R-01**: aunque las credenciales de Contífico tarden, el módulo de compra puede funcionar.
+
+**Impacto en el diseño:** clase `InventarioReservado` (cupo asignado, consumido y disponible) asociada a `Plato`; UC nuevo para que el Proveedor administre el cupo; el panel del proveedor muestra el cupo de Aliflow separado del stock total del ERP.
+
+**Pendiente para la próxima reunión:** diseñar el proceso de asignación y cómo se visualiza el cupo en el panel.
+
+---
+
+### 11. Horario máximo de retiro — configurable por proveedor *(nueva)*
+
+**Lo que decidió Negocios:** después de la compra se muestra una confirmación que le recuerda al estudiante **hasta qué hora puede retirar**. Ejemplo: *"¡Compra realizada con éxito! Recuerda que puedes retirar tu almuerzo hasta las 2:00 p. m."*
+
+**El punto importante:** el horario **no puede estar fijo en el código**. Cada proveedor configura su hora máxima desde su panel, y el mensaje al estudiante se actualiza solo. Es la misma jugada que ya se hizo con `ProgramaFidelidad`: lo que el negocio no ha fijado se modela como configuración, no como constante.
+
+**Impacto en el diseño:** atributo `horaMaximaRetiro` en `Proveedor`; pantalla nueva de confirmación post-compra; el panel del proveedor gana la configuración del horario.
+
+---
+
+### 5. Regla de expiración del código de retiro — **cerrada**
+
+Estaba abierta desde el 27-jul. El acta del 30-jul la define sin ambigüedad:
+
+- El código es **válido únicamente durante el día en que se hizo la compra**.
+- Está asociado a **un pedido específico** y no sirve para retirar otro.
+- Se **invalida automáticamente** cuando el Operador confirma la entrega.
+- Si se presenta otro día, el sistema lo muestra como **vencido**.
+- La vigencia termina, como máximo, **al terminar el mismo día de la compra**.
+
+**Tres estados oficiales del código:** `VÁLIDO` (disponible para retirar), `UTILIZADO` (el Operador confirmó la entrega), `VENCIDO` (terminó el horario de retiro o terminó el día).
+
+**Efecto secundario que conviene notar:** esto **refuerza la mitigación del riesgo R-15** (código corto adivinable). Una expiración de un día acota mucho la ventana de ataque y reduce el universo de códigos vigentes simultáneamente, que es justo lo que hace viable la unicidad con solo 6 dígitos.
+
+**Lo que sigue sin definirse:** qué pasa con el **dinero** de una orden que venció sin retirarse. ¿Se reembolsa al saldo, se pierde, se le liquida igual al proveedor? El acta define la expiración del código, no la política de reembolso. Queda anotado abajo como punto abierto.
+
+---
+
+### 8. Comprobante tributario — **cerrada, y a favor del modelo que ya estaba construido**
+
+El acta del 30-jul resuelve la contradicción que arrastrábamos desde el 25-jun:
+
+- **La recarga genera solo un comprobante interno**, con fines de seguimiento, auditoría y conciliación, **sin validez tributaria**, porque recargar todavía no es comprar un alimento.
+- **La factura tributaria se genera únicamente cuando el estudiante compra**, y **la emite el ERP del proveedor**, no Aliflow.
+- Aliflow muestra una confirmación de compra exitosa pero **no sustituye el proceso tributario**.
+
+Es exactamente el modelo que el diseño ya implementaba (`sinValidezTributaria = true`, UC11 para que el local re-emita). No hay nada que rehacer: se confirma lo construido y se cierra el punto.
+
+**Campos mínimos que ahora exige el acta para cada recarga:** valor recargado, fecha y hora, número de operación, estado de la transacción, identificador de la pasarela, usuario que recargó, y registro histórico para auditoría.
+
+**Impacto en el diseño:** la clase `Recarga` gana `numeroOperacion`, `estadoTransaccion` e `idPasarela`.
+
+---
+
+### 2 (revertida). Sí existe un Super-Admin de Aliflow
+
+**Contexto:** el 28-jul Negocios dijo que solo había 3 roles y que no existía un super-admin de plataforma. Ingeniería eliminó el actor y los casos de uso asociados. **El 30-jul esa decisión se revirtió:** sí hace falta un cuarto rol.
+
+**Qué es:** un administrador **del lado de Aliflow**, no del lado del local. Se encarga de:
+
+- Dar **soporte** cuando algo falla en cualquier organización.
+- **Dar de alta locales nuevos** y crear su vista de proveedor.
+- Configurar lo necesario para que un proveedor nuevo entre a operar (incluida su integración con el ERP).
+- Administrar la plataforma en general.
+
+**Esto cierra de paso una consecuencia que llevaba abierta desde el 28-jul:** *"si ningún rol del sistema da de alta un local nuevo, ese paso es manual y fuera de alcance"*. Ya no es manual ni está fuera de alcance — **lo hace el Super-Admin**.
+
+**Nota de honestidad sobre este vaivén:** este rol existió como propuesta de Ingeniería, se eliminó por indicación de Negocios el 28-jul, y volvió el 30-jul. Los casos de uso originales (alta de proveedores, métricas globales, gestión de usuarios) eran esencialmente correctos. Vale la pena registrarlo porque el mismo patrón —eliminar algo por una indicación y reponerlo dos días después— tiene un costo real de rehacer diagramas, y es la clase de cosa que el riesgo R-08 advierte.
+
+**No está en el acta.** Se acordó verbalmente en la reunión del 30-jul y el acta no lo recoge. **Conviene que se agregue al acta** para que quede constancia, igual que se pidió con el comprobante tributario.
+
+**Impacto en el diseño:** actor `Super-Admin` en casos de uso; clase `SuperAdmin` fuera de la jerarquía `UsuarioProveedor` (no pertenece a ningún local); UC nuevos de alta de organizaciones y soporte; módulo de administración de plataforma en el diagrama de componentes.
 
 ---
 
@@ -48,6 +143,8 @@ En resumen: **el arranque se destrabó y el producto creció**. El riesgo que m�
 
 **Un punto técnico que Negocios debería conocer antes de prometerle "tiempo real" a un local:** la dirección *Aliflow → ERP* es fácil (una llamada a su API). La dirección *ERP → Aliflow* es la difícil, porque **Contífico no tiene webhooks** y **Alpwin no tiene ni API**. Ninguno de los dos puede avisarle a Aliflow por iniciativa propia. En la práctica, esa mitad de la bidireccionalidad se implementa con **polling** de Aliflow contra el ERP cada X minutos, lo que deja una ventana en la que el inventario mostrado puede estar desactualizado. Es un límite del ERP del local, no de Aliflow.
 
+> **⚠️ Actualizado el 30-jul-2026 — esto ya no es el problema que era.** Negocios resolvió el desfase de inventario por diseño y no por sincronización: con el **inventario reservado** (decisión #10), Aliflow es dueño de su propio cupo y deja de competir con la caja por el mismo stock. El polling baja de "mecanismo con el que se sostiene la bidireccionalidad" a **red de seguridad de conciliación**. La bidireccionalidad sigue existiendo para *registrar la venta* en el ERP, que es lo que de verdad hace falta para la factura.
+
 **Impacto en el diseño (ya aplicado):**
 - `Hallazgos-Ingenieria-API-Generica.md` sección 4.3 — reescrita completa, con la ruta de implementación ajustada.
 - `uml/diagrama-clases.puml` — `TipoERP` reordenado con `CONTIFICO` primero y valor `OTRO`; método `notifyPayment()` agregado a `IInventoryProvider`; `TipoEvento.NOTIFICAR_PAGO` agregado al outbox.
@@ -58,6 +155,8 @@ En resumen: **el arranque se destrabó y el producto creció**. El riesgo que m�
 ---
 
 ### 2. Alcance del rol Administrador — el rol no existe
+
+> **🔄 REVERTIDA EL 30-JUL-2026.** Lo que sigue describe la decisión del 28-jul y el trabajo que se hizo por ella. **Sigue siendo válido para el rol "Administrador del local"** (que efectivamente no existe aparte del Proveedor), pero **ya no es válido para el super-admin de plataforma**, que sí va a existir. Ver el punto "2 (revertida)" en las decisiones del 30-jul.
 
 **Lo que respondió Negocios:** solo hay **3 roles**: Estudiante, Proveedor y Operador. El "Administrador" **es** el Proveedor — el gerente del local. El Operador valida las compras de los estudiantes y marca la entrega física del almuerzo.
 
@@ -131,12 +230,49 @@ Ingeniería había propuesto un UUID firmado con expiración. La decisión de Ne
 
 ## ⬜ Puntos que siguen abiertos
 
-### 5. Regla de expiración de una orden no retirada
+### 13. 🔴 Custodia de fondos vs. saldo único — **dos decisiones tomadas que se contradicen**
 
-**Por qué importa:** define si hace falta algún proceso de reembolso o solo un registro histórico.
-**Estado:** Ingeniería propuso un mecanismo concreto — la orden expira cuando vence el código de retiro sin usarse.
-**Necesitamos que Negocios confirme:** ¿está bien esa regla? ¿Debería haber reembolso o notificación al proveedor?
-**Detalle:** `uml/Documentacion-Diagramas-Estado.md`, sección 1.
+**Este es el punto más importante de esta lista, y no es un vacío: son dos cosas ya decididas que no encajan.**
+
+- **Decisión #4 (28-jul):** el estudiante hace **una sola recarga** a un **saldo único** que puede gastar en cualquier local; Aliflow distribuye internamente.
+- **Acta §3.9 (30-jul):** *"el dinero llegará directamente a la cuenta de cada proveedor. AliFlow no actuará como custodio de los fondos de los estudiantes ni recibirá directamente el dinero generado por las recargas."*
+
+**Por qué no encajan.** Si el estudiante recarga $20 a un saldo único, **en el momento de la recarga todavía no se sabe en qué local va a comprar**. Entonces, ¿a la cuenta de qué proveedor entra ese dinero? Solo hay tres salidas y ninguna es gratis:
+
+| Salida | Qué implica | Costo |
+|---|---|---|
+| **A — La pasarela retiene y liquida al comprar** | El dinero queda en la pasarela y se libera al proveedor recién cuando el estudiante compra | Exige una pasarela con capacidad de **marketplace / split payments**. Reduce mucho el universo de pasarelas candidatas y encarece la comisión |
+| **B — El estudiante elige local al recargar** | El dinero entra directo a ese proveedor | **Rompe el saldo único** y devuelve el modelo al "saldo por proveedor" que se descartó el 28-jul |
+| **C — Aliflow custodia los fondos** | Modelo clásico de billetera | **Contradice el acta del 30-jul**, y además implica responsabilidad regulatoria sobre dinero de terceros |
+
+**Necesitamos que Negocios decida cuál de las tres.** Es la única decisión abierta que puede obligar a rehacer el modelo de wallet, y condiciona directamente la elección de pasarela (punto #12): si la respuesta es **A**, la capacidad de split deja de ser deseable y pasa a ser **requisito eliminatorio** en la comparación de pasarelas.
+
+**Recomendación de Ingeniería:** la **A**, porque es la única que preserva la experiencia de saldo único sin poner a Aliflow a custodiar dinero. Pero hay que confirmar que exista una pasarela en Ecuador que lo soporte **antes** de comprometerse.
+
+---
+
+### 12. Pasarela de pagos — investigación abierta *(nueva)*
+
+El acta define **qué hay que averiguar**, no cuál se elige. Tareas acordadas:
+
+1. **Comparar varias pasarelas disponibles en Ecuador** (costos, comisiones y tiempos de liquidación).
+2. Confirmar si permiten **tokenizar y guardar métodos de pago** — Aliflow guardaría solo tipo de tarjeta, últimos cuatro dígitos y el token; **nunca el número completo ni el código de seguridad**.
+3. Revisar cómo gestionan **reembolsos, pagos duplicados y transacciones pendientes**.
+4. Confirmar que tengan **webhooks**, para acreditar el saldo solo tras una confirmación válida del pago (aprobada / rechazada / pendiente).
+5. Verificar si permiten **depositar directamente en la cuenta de cada proveedor** — ligado a la decisión #13.
+6. Definir la **experiencia de pago**: modal, ventana integrada, mininavegador o página externa. Si es externa, hay que definir cómo vuelve el estudiante a Aliflow y cómo se recupera el resultado.
+7. Identificar **qué comprobante entrega la pasarela** por la recarga, dejando claro que **no reemplaza la factura tributaria** de la compra.
+8. Confirmar los **métodos disponibles en Ecuador**: crédito, débito, transferencia y otros locales.
+
+**Nota de Ingeniería:** el punto 4 es una buena noticia arquitectónica. La pasarela **sí** tiene webhooks, a diferencia de los ERP. O sea que el flujo de recarga puede ser reactivo de verdad, no por polling — es el único punto del sistema donde la integración externa nos avisa a nosotros.
+
+---
+
+### Reembolso de órdenes vencidas — *lo que la decisión #5 dejó abierto*
+
+**Por qué importa:** el acta del 30-jul definió **cuándo vence un código** (al terminar el día), pero no **qué pasa con el dinero** de esa orden.
+**Necesitamos que Negocios decida:** ¿el saldo se devuelve al estudiante, se pierde, o se le liquida igual al proveedor porque el almuerzo se preparó?
+**Nota:** si la respuesta implica devolución, hace falta el mecanismo de **movimientos compensatorios** (nunca borrar el movimiento original, generar uno inverso). Hoy el modelo no lo tiene.
 
 ### 7. Modelo de cobro de Aliflow al proveedor
 
@@ -145,7 +281,9 @@ Ingeniería había propuesto un UUID firmado con expiración. La decisión de Ne
 **Necesitamos que Negocios decida:** ¿comisión por transacción, suscripción fija, u otro esquema?
 **Nota nueva (28-jul):** con la decisión #4, Aliflow ya lleva internamente cuánto le debe a cada local. Si el cobro fuera una comisión por transacción, se descontaría exactamente en ese punto — el modelo ya tiene el lugar donde encajarlo.
 
-### 8. Corrección del Acta original (comprobante tributario) — *"¿a qué se refiere?"*
+### 8. Corrección del Acta original (comprobante tributario) — ✅ **CERRADA el 30-jul-2026**
+
+> **Resuelta.** El acta del 30-jul (§2.1 y §2.2) confirma el modelo que este análisis defendía: la recarga genera un comprobante interno **sin validez tributaria**, y la factura la emite **el ERP del proveedor** cuando el estudiante compra. Se deja la explicación completa abajo porque documenta *por qué* era importante y sirve de respaldo si el punto reaparece.
 
 Negocios preguntó qué significa este punto. Explicación completa:
 
@@ -198,11 +336,9 @@ Si la intención era A, o algo intermedio (varios sellos por día pero con monto
 
 **Riesgo que conviene nombrar:** un requisito nuevo entrando después de cerrar el diseño es exactamente lo que R-08 advertía. Se absorbió sin rehacer nada, pero **el alcance del módulo debería congelarse en "una cartilla simple: N sellos → 1 premio, por local"**. Si más adelante aparecen puntos, niveles o campañas por temporada, eso es otro proyecto — y en un taller con fecha de entrega, conviene decirlo ahora y no después.
 
-### Nuevo — ¿quién da de alta un local nuevo?
+### ¿Quién da de alta un local nuevo? — ✅ **CERRADA el 30-jul-2026**
 
-Surgió como consecuencia de la decisión #2: al no existir un super-admin de plataforma, ningún rol del sistema puede registrar un local nuevo en Aliflow.
-**Propuesta de Ingeniería:** dejarlo fuera de alcance de v1 — lo hace el equipo de Aliflow manualmente, junto con la configuración de la integración con el ERP de ese local (UC7), que de todas formas requiere trabajo técnico.
-**Necesitamos que Negocios confirme** que eso es aceptable, o defina otra cosa.
+> **Resuelta por el Super-Admin.** Este punto existía solo porque el 28-jul se había eliminado el rol de plataforma. Al reponerse el 30-jul, el alta de un local nuevo **entra al alcance de v1** y deja de ser un paso manual: la hace el Super-Admin de Aliflow, junto con la creación de la vista del proveedor y la configuración de su integración con el ERP (UC7).
 
 ---
 
@@ -220,6 +356,14 @@ Estas no requieren debate, solo que Negocios las revise y apruebe o señale si a
 
 ## Próximo paso de Ingeniería
 
-Con #1, #2 y #3 cerradas, **empieza el modelo de base de datos**. Lo único que puede volver a moverlo es la confirmación del punto fino de #4 (un solo saldo visible vs. otra cosa), y esa confirmación es una pregunta de sí o no.
+*Actualizado el 30-jul-2026.*
 
-En paralelo, la acción más urgente **no es técnica**: hay que pedirle a Barú que solicite las credenciales de API de Contífico. Es el único riesgo del proyecto con impacto catastrófico que Ingeniería no puede mitigar trabajando más (R-01).
+**Empieza el modelo de base de datos.** Las decisiones estructurales están cerradas, y el inventario reservado (#10) le agrega la única tabla estructural que faltaba. Lo único que puede volver a moverlo es la **decisión #13** (custodia de fondos vs. saldo único): según cuál de las tres salidas elija Negocios, la billetera cambia. Todo lo demás del esquema se puede escribir ya.
+
+**En paralelo, tres acciones que no son técnicas y que no dependen de Ingeniería:**
+
+1. **Pedirle a Barú las credenciales de API de Contífico** (R-01). Sigue siendo el riesgo de mayor impacto, aunque el inventario reservado le quitó parte del poder de bloqueo: ahora afecta al registro contable de la venta, no a la capacidad de vender.
+2. **Resolver la decisión #13**, porque condiciona qué pasarelas son siquiera candidatas.
+3. **Agregar al acta el rol de Super-Admin**, que se acordó en la reunión del 30-jul pero no quedó escrito.
+
+**Lo que Ingeniería sí puede hacer sin esperar a nadie:** construir el `ContificoAdapter` contra la documentación y probarlo con un **ERP simulado**, para que el día que lleguen las credenciales solo haya que enchufarlo.

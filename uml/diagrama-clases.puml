@@ -54,6 +54,26 @@ package "Usuarios" {
     + confirmarEntrega(orden: Orden): void
   }
 
+  class SuperAdmin #FFF3B0 extends Usuario {
+    + darDeAltaLocal(datos: DatosLocal): Proveedor
+    + configurarIntegracionERP(p: Proveedor): IntegracionERP
+    + brindarSoporte(p: Proveedor): void
+    + administrarPlataforma(): void
+  }
+
+  note right of SuperAdmin
+    <back:#FFF3B0>Acordado el 30-jul-2026, no consta en acta.</back>
+    Cuarto rol, del lado de **Aliflow**. Extiende
+    Usuario directamente y **no** UsuarioProveedor,
+    porque no pertenece a ningún local: es el único
+    rol con visibilidad sobre todos los tenants.
+    Da de alta locales nuevos, les crea su vista de
+    proveedor y configura su integración con el ERP.
+
+    Este rol se había eliminado el 28-jul por
+    indicación de Negocios y se repuso el 30-jul.
+  end note
+
   note bottom of Administrador
     **Vocabulario (decisión de Negocios, 28-jul-2026):**
     el sistema tiene 3 roles: Estudiante, **Proveedor**
@@ -72,7 +92,24 @@ package "Proveedor y Menú" {
     - ruc: String
     - fechaAlta: DateTime
     - activo: boolean
+    - horaMaximaRetiro: Time
+    - cuentaBancariaDestino: String
+    + configurarHoraMaximaRetiro(h: Time): void
   }
+
+  note left of Proveedor
+    <back:#FFF3B0>Acta 30-jul-2026:</back> **horaMaximaRetiro** no
+    puede ser una constante del sistema. Cada local
+    la configura y el mensaje que ve el estudiante
+    tras comprar ("puedes retirar hasta las 2:00 p.m.")
+    se arma con ese valor.
+
+    **cuentaBancariaDestino**: el acta define que el
+    dinero llega directo a la cuenta de cada proveedor
+    y que Aliflow no custodia fondos. Cómo se concilia
+    eso con el saldo único es la **decisión #13**,
+    todavía abierta.
+  end note
 
   note right of Proveedor
     El **local** de comida dentro de la universidad
@@ -108,10 +145,39 @@ package "Proveedor y Menú" {
     transacción en el diagrama de secuencia.
   end note
 
+  class InventarioReservado {
+    - id: UUID
+    - cupoAsignado: int
+    - cupoConsumido: int
+    - version: int
+    - fechaVigencia: Date
+    + disponible(): int
+    + asignarCupo(cantidad: int): void
+    + consumir(cantidad: int): boolean
+  }
+
+  note bottom of InventarioReservado
+    <back:#FFF3B0>Acta 30-jul-2026 — el cambio de fondo.</back>
+    El proveedor aparta un cupo **exclusivo para
+    Aliflow** (de 100 almuerzos: 75 caja, 25 Aliflow)
+    y lo administra manualmente desde su panel.
+
+    **Aliflow valida la compra contra `disponible()`,
+    no contra `Plato.stockDisponible` del ERP.** Eso
+    elimina la sobreventa por diseño: Aliflow deja de
+    competir con la caja por el mismo dato, en vez de
+    intentar ganarle sincronizando más rápido.
+
+    `Plato.stockDisponible` queda como espejo
+    informativo del ERP, útil para conciliación y
+    para que el proveedor decida cuánto asignar.
+  end note
+
   Proveedor "1" *-- "1..*" Administrador : gerencia el local
   Proveedor "1" *-- "0..*" Operador : personal de entrega
   Proveedor "1" *-- "0..*" PuntoDeEntrega
   Proveedor "1" *-- "0..*" Plato : menú
+  Plato "1" *-- "0..1" InventarioReservado : cupo Aliflow
   Operador "0..*" --> "1" PuntoDeEntrega : trabaja en
 }
 
@@ -154,8 +220,26 @@ package "Wallet y Pagos" {
     - id: UUID
     - montoTotal: Money
     - fechaHora: DateTime
+    - numeroOperacion: String
+    - estadoTransaccion: EstadoPago
+    - idPasarela: String
+    - usuarioQueRecargo: Estudiante
     + aplicar(tarjeta: TarjetaVirtual): void
   }
+
+  note left of Recarga
+    <back:#FFF3B0>Acta 30-jul-2026 §2.1 — campos mínimos.</back>
+    Cada recarga debe registrar valor, fecha y hora,
+    **número de operación**, **estado de la transacción**,
+    **identificador de la pasarela**, usuario que
+    recargó, y quedar en histórico para auditoría
+    y conciliación.
+
+    El comprobante que se emite aquí **no tiene validez
+    tributaria**: recargar todavía no es comprar un
+    alimento. La factura la emite el ERP del local
+    recién en la compra.
+  end note
 
   interface EstrategiaDistribucionRecarga {
     + distribuir(monto: Money, tarjeta: TarjetaVirtual): void
@@ -190,18 +274,41 @@ package "Wallet y Pagos" {
   class Pago {
     - id: UUID
     - monto: Money
-    - metodoPago: String
     - estado: EstadoPago
     - fechaHora: DateTime
+    - idTransaccionPasarela: String
   }
 
+  class MetodoPago #FFF3B0 {
+    - id: UUID
+    - tipoTarjeta: String
+    - ultimosCuatroDigitos: String(4)
+    - tokenPasarela: String
+    - predeterminado: boolean
+  }
+
+  note bottom of MetodoPago
+    <back:#FFF3B0>Acta 30-jul-2026 §3.2 y §3.3.</back>
+    Aliflow **nunca** almacena el número completo
+    de la tarjeta ni el código de seguridad. Solo
+    guarda tipo, últimos cuatro dígitos y el
+    **token** que devuelve la pasarela; los datos
+    bancarios reales los custodia la pasarela.
+
+    Está en amarillo porque **todavía no se eligió
+    pasarela** (decisión #12): falta confirmar que
+    la elegida soporte tokenización.
+  end note
+
   Estudiante "1" *-- "1" TarjetaVirtual
+  Estudiante "1" *-- "0..*" MetodoPago
   TarjetaVirtual "1" *-- "0..*" SaldoProveedor
   SaldoProveedor "0..*" --> "1" Proveedor
   TarjetaVirtual "1" *-- "0..*" Recarga
   Recarga "1" ..> "1" EstrategiaDistribucionRecarga : usa
   Recarga "1" *-- "1" ComprobanteRecarga
   Pago "1" --> "0..1" Recarga : genera
+  Pago "0..*" --> "0..1" MetodoPago : usa
 }
 
 package "Órdenes" {
@@ -245,13 +352,38 @@ package "Órdenes" {
     - precioUnitario: Money
   }
 
+  enum EstadoCodigoRetiro {
+    VALIDO
+    UTILIZADO
+    VENCIDO
+  }
+
   class CodigoRetiro {
     - valor: String(6)
+    - fechaCompra: Date
     - fechaExpiracion: DateTime
-    - usado: boolean
+    - estado: EstadoCodigoRetiro
     + validar(): boolean
     + invalidar(): void
+    + estaVencido(): boolean
   }
+
+  note left of CodigoRetiro
+    <back:#FFF3B0>Acta 30-jul-2026 §6.2 y §6.3 — expiración cerrada.</back>
+    El código vale **únicamente el día de la compra**.
+    `fechaExpiracion` se calcula como el mínimo entre
+    la `horaMaximaRetiro` del local y el fin de ese día.
+
+    Tres estados oficiales: **VALIDO** (disponible),
+    **UTILIZADO** (el Operador confirmó la entrega),
+    **VENCIDO** (pasó el horario o terminó el día).
+    Presentarlo otro día debe mostrarse como vencido.
+
+    Efecto colateral bueno: una ventana de un día
+    reduce mucho el universo de códigos vigentes a la
+    vez, que es justo lo que hace viable la unicidad
+    con solo 6 dígitos (y mitiga el riesgo R-15).
+  end note
 
   note right of CodigoRetiro
     **Decisión de Negocios (28-jul-2026):**

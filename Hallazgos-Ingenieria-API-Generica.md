@@ -102,11 +102,34 @@ Definir un esquema intermedio propio de Aliflow (`CanonicalProduct`, `CanonicalS
 
 ### 3.3 Estrategias de sincronización
 
+> **⚠️ Reescrita el 30-jul-2026.** Negocios resolvió el desfase de inventario **por diseño en vez de por sincronización**. Ver abajo, "Inventario reservado".
+
 | Estrategia | Cuándo usarla | Trade-off |
 |---|---|---|
-| Push en tiempo real | ERPs con API síncrona (Odoo, Contífico) | Requiere manejo de fallos de red inmediato |
-| Polling periódico | ERPs sin webhooks — **el caso de Contífico** (confirmado, sección 2.2) y de Alpwin | Introduce latencia — ventana de "vendido antes de confirmar" ya identificada como riesgo. Es el mecanismo real detrás de la "bidireccionalidad" que pidió Negocios; ver sección 4.3. |
-| Batch/reconciliación | Red de seguridad diaria, no mecanismo primario | Detecta y corrige divergencias que el push no resolvió |
+| **Inventario reservado** *(v1 — mecanismo primario)* | **Siempre**, para decidir si Aliflow puede vender | El proveedor debe administrar el cupo manualmente. A cambio, **elimina la sobreventa por diseño** |
+| Push en tiempo real | ERPs con API síncrona (Odoo, Contífico) | Requiere manejo de fallos de red inmediato. Sigue siendo el mecanismo para **registrar la venta** en el ERP |
+| Polling periódico | ERPs sin webhooks — Contífico y Alpwin | Ya **no sostiene la disponibilidad**: baja a alimentar el espejo informativo del stock y a conciliar |
+| Batch/reconciliación | Red de seguridad diaria | Detecta divergencias entre el cupo consumido en Aliflow y lo registrado en el ERP |
+
+#### Inventario reservado — la decisión que cambia el problema
+
+**El problema, planteado por Negocios el 30-jul:** si el local vende en caja, su ERP descuenta al instante, pero Aliflow puede tardar en enterarse. En esa ventana un estudiante compra un almuerzo que ya no existe.
+
+Es el problema de **dos escritores sobre el mismo dato**. Sincronizar más seguido solo achica la ventana; no la cierra. Las tres alternativas que se evaluaron:
+
+| Alternativa | Veredicto |
+|---|---|
+| Webhooks desde el ERP | La ideal, pero **ningún ERP del alcance los ofrece**. Descartada por imposibilidad técnica |
+| Polling cada minuto | Sencilla, pero **no elimina el desfase**. Queda como red de seguridad |
+| **Inventario reservado** | ✅ **Elegida para v1** |
+
+**Cómo funciona:** el proveedor aparta un cupo exclusivo para Aliflow — de 100 almuerzos, 75 a caja y 25 a Aliflow — y lo administra manualmente desde su panel. Aliflow valida la compra contra **su propio cupo**, no contra el stock del ERP.
+
+**Por qué es la decisión correcta desde el punto de vista de ingeniería:** convierte un problema de consistencia distribuida (dos sistemas escribiendo el mismo contador, sin transacción común) en un problema de **partición de recursos**, que es trivial. Aliflow deja de competir con la caja: es dueño de su cupo y nadie más lo toca.
+
+**Consecuencia sobre R-01, que conviene notar.** El inventario deja de depender de la integración con el ERP. Aunque las credenciales de Contífico no lleguen, el módulo de compra puede funcionar contra el cupo reservado. **R-01 deja de bloquear la capacidad de vender** y pasa a bloquear solo el registro contable de la venta y la emisión de la factura, que es un problema serio pero distinto.
+
+**Lo que queda pendiente de diseño** (tarea acordada para la próxima reunión): el proceso de asignación del cupo y cómo se visualiza en el panel del proveedor.
 
 ### 3.4 Manejo de fallos
 
@@ -260,9 +283,20 @@ Las tres estaban abiertas y bloqueaban trabajo. Las tres se resolvieron:
 - [x] **Definir si un proveedor puede tener varios usuarios** — sí, varias cuentas de Proveedor y varias de Operador por local.
 - [x] Registrar formalmente el riesgo de "sin modo offline" en el documento de gestión de riesgos (R-12).
 
+### Cerrado el 30-jul-2026
+
+- [x] **Estrategia de inventario** — inventario reservado exclusivo para Aliflow, administrado manualmente por el proveedor (sección 3.3). Resuelve el desfase por diseño en vez de por sincronización.
+- [x] **Regla de expiración del código de retiro** — vale únicamente el día de la compra; estados `VÁLIDO` / `UTILIZADO` / `VENCIDO`.
+- [x] **Comprobante tributario** — confirmado el modelo que este documento defendía en la sección 5.1: comprobante interno sin validez tributaria en la recarga, y factura emitida por el ERP del local en la compra.
+- [x] **Horario máximo de retiro** — configurable por proveedor, no constante del sistema.
+- [x] **Quién da de alta un local nuevo** — el Super-Admin de Aliflow, rol repuesto el 30-jul.
+
 ### Abierto
 
-- [ ] **Prioritario:** conseguir credenciales de API de Contífico a través de Barú — es lo único que separa al proyecto de tener un adaptador de producción funcionando (riesgo R-01, que volvió a ser el riesgo dominante).
+- [ ] 🔴 **Custodia de fondos vs. saldo único.** El acta dice que el dinero llega directo a la cuenta de cada proveedor y que Aliflow no custodia fondos; la decisión #4 dice que hay un saldo único gastable en cualquier local. **No encajan**: al recargar todavía no se sabe en qué local se va a comprar. Condiciona qué pasarelas son candidatas (se necesitaría capacidad de *split payments*). Detalle en `Decisiones-Pendientes-Negocios.md`, punto 13.
+- [ ] **Comparar pasarelas de pago disponibles en Ecuador**: tokenización, webhooks de confirmación, reembolsos, pagos duplicados, depósito directo a cada proveedor, costos y tiempos de liquidación.
+- [ ] **Prioritario:** conseguir credenciales de API de Contífico a través de Barú (riesgo R-01). *Nota del 30-jul: el inventario reservado le quitó a este riesgo el poder de bloquear la venta; ahora bloquea el registro contable y la factura.*
+- [ ] **Definir la política de reembolso** de una orden vencida. El acta define cuándo vence el código, no qué pasa con el dinero.
 - [ ] Contactar a Syscompsa (fabricante de Alpwin) para verificar si existe algún mecanismo de integración no público, antes de comprometerse con un adaptador por archivos/BD puente para Caramel Coffee (riesgo R-11, ya no bloqueante).
 - [ ] Validar con Negocios la corrección de la sección 4 del acta (comprobante tributario, sección 5.1).
 - [ ] Confirmar la interpretación de Ingeniería sobre *cuándo* se distribuye internamente el saldo (sección 5.2, punto 1).

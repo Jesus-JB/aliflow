@@ -12,7 +12,11 @@ Este diagrama modela la **lógica de negocio** del sistema (no las clases de inf
 
 ## 1. Paquete "Usuarios"
 
-**Reestructurado el 28-jul-2026 con decisiones de Negocios.** El sistema tiene **exactamente 3 roles**: Estudiante, Proveedor y Operador. El rol "Administrador" **es** el Proveedor — el gerente del local — y el super-admin de plataforma que Ingeniería había supuesto **no existe**.
+**Actualizado el 30-jul-2026: el sistema tiene 4 roles, no 3.** Estudiante, Proveedor y Operador operan **dentro de un local**; el **Super-Admin** es de Aliflow y está por encima de todos. El rol "Administrador" sigue siendo el Proveedor — el gerente del local.
+
+**Sobre el vaivén, que conviene registrar:** el 28-jul Negocios indicó que el super-admin **no existía** y se eliminó del diagrama. El 30-jul esa decisión se revirtió y el rol volvió. Es un caso concreto de lo que advierte el riesgo R-08: rehacer diagramas por una decisión que cambia dos días después tiene un costo real.
+
+**`SuperAdmin` extiende `Usuario` directamente, no `UsuarioProveedor`** — y esa distinción es deliberada: `UsuarioProveedor` obliga a pertenecer a un local (`# proveedor: Proveedor`), y el Super-Admin es el único rol **sin** local, con visibilidad sobre todos los tenants. Da de alta locales nuevos, les crea su vista de proveedor, configura su integración con el ERP y brinda soporte.
 
 Jerarquía de herencia con **`Usuario`** como clase abstracta base (id, nombreCompleto, email, fechaRegistro, activo), especializada en:
 
@@ -42,6 +46,20 @@ Se conservó `Proveedor` como nombre de la entidad-negocio porque así se usa en
 
 **Validado empíricamente (27-jul-2026, ver `demo-odoo/README.md` sección 7):** se probó implementar este mismo bloqueo directamente contra el ERP externo (Odoo, vía RPC) y falló bajo concurrencia real (5 hilos comprando con 3 unidades de stock vendieron las 5). Esto confirma que `Plato.version`/`reservarStock()` deben vivir en la base de datos propia de Aliflow, no delegarse al ERP — la prueba de concurrencia repetida contra un dominio local con lock real (`demo-odoo/plato_local.py`) sí se comportó correctamente.
 
+### `InventarioReservado` — agregado el 30-jul-2026
+
+La clase nueva más importante de esta revisión, y la que cambia cómo se decide si Aliflow puede vender.
+
+**El problema que resuelve.** El ERP del local descuenta al instante cuando alguien compra en caja, pero Aliflow puede tardar en enterarse. En esa ventana, un estudiante compra algo que ya no existe. Son **dos escritores sobre el mismo contador** sin transacción común: sincronizar más seguido achica la ventana, no la cierra.
+
+**Cómo lo resuelve.** El proveedor aparta un cupo exclusivo para Aliflow (de 100 almuerzos: 75 a caja, 25 a Aliflow) y lo administra desde su panel (UC16). **Aliflow valida la compra contra `InventarioReservado.disponible()`, no contra `Plato.stockDisponible`.**
+
+**Por qué es la solución correcta y no un parche:** convierte un problema de consistencia distribuida —difícil, y sin solución completa cuando no se controlan los dos sistemas— en uno de **partición de recursos**, que es trivial. Aliflow deja de competir por un dato compartido porque pasa a ser dueño exclusivo del suyo.
+
+`Plato.stockDisponible` no desaparece: queda como **espejo informativo** del ERP, útil para conciliar y para que el proveedor decida cuánto asignar. `InventarioReservado` conserva su propio `version` para el bloqueo optimista, porque dos estudiantes sí pueden pelear por la última unidad **del cupo**.
+
+**Costo que introduce, registrado como riesgo R-20:** el cupo depende de que el proveedor lo mantenga al día. Si no lo repone, Aliflow muestra "agotado" mientras el local tiene comida — y el fallo es silencioso, porque nadie reclama por lo que no puede comprar.
+
 ## 3. Paquete "Wallet y Pagos"
 
 **Reestructurado el 28-jul-2026 con la decisión de Negocios sobre la recarga:** el estudiante hace **una única recarga** y Aliflow la distribuye internamente hacia los proveedores. Ya no hay recarga separada por local.
@@ -60,6 +78,22 @@ Bajo la lectura B, `SaldoProveedor` deja de ser "el saldo del estudiante en ese 
 **Qué pasó con el patrón Strategy.** Se conserva `EstrategiaDistribucionRecarga`, pero honestamente: ya no está ahí para "no bloquear una decisión pendiente" (la decisión se tomó), sino porque la **regla** de reparto todavía puede cambiar — si Negocios define una comisión de Aliflow o una retención, eso es una implementación nueva de la interfaz y no un `if` más en el módulo de wallet. `RecargaDirectaPorProveedor` quedó **descartada** y se eliminó del diagrama; `DistribucionBajoDemanda` es la implementación vigente. Sigue siendo un ejemplo válido de **Open/Closed**, con una justificación distinta a la original.
 
 `Pago` (con `EstadoPago`: APROBADO/PENDIENTE/RECHAZADO — tal como se encontró en la investigación previa del equipo sobre el flujo de pagos) genera una `Recarga` solo si es aprobado. `ComprobanteRecarga` es el comprobante interno sin validez tributaria ya documentado (`est-2`).
+
+### Cambios del 30-jul-2026 en este paquete
+
+**`Recarga` gana los campos que exige el acta (§2.1).** Cada recarga debe registrar como mínimo: valor, fecha y hora, **número de operación**, **estado de la transacción**, **identificador de la pasarela**, usuario que recargó, y quedar en histórico para auditoría y conciliación. Se agregaron `numeroOperacion`, `estadoTransaccion` e `idPasarela`.
+
+**`MetodoPago` (nueva, en amarillo).** El acta (§3.2 y §3.3) es explícita: Aliflow **nunca** almacena el número completo de la tarjeta ni el código de seguridad. Solo guarda tipo de tarjeta, últimos cuatro dígitos y el **token** que devuelve la pasarela; los datos bancarios reales los custodia la pasarela. Está en amarillo porque todavía no se eligió pasarela y falta confirmar que la elegida soporte tokenización.
+
+**El acta confirma el modelo de comprobantes, cerrando la decisión #8.** La recarga genera solo un comprobante interno sin validez tributaria; la factura la emite el ERP del local recién cuando el estudiante compra. Es exactamente lo que ya implementaba `sinValidezTributaria = true`, así que no hubo nada que rehacer.
+
+### 🔴 Una contradicción nueva que este paquete todavía no puede resolver
+
+El acta (§3.9) dice que **el dinero llega directamente a la cuenta de cada proveedor** y que **Aliflow no custodia fondos**. La decisión #4 dice que hay un **saldo único** gastable en cualquier local.
+
+No encajan: al recargar todavía no se sabe en qué local se comprará, así que no hay a qué cuenta de proveedor mandar el dinero. Las tres salidas —pasarela con *split payments*, elegir local al recargar, o que Aliflow custodie— llevan a modelos de datos distintos.
+
+**Por eso `TarjetaVirtual`, `SaldoProveedor` y `Recarga` no deben pasar a esquema de base de datos todavía.** El resto del modelo sí. Registrado como riesgo **R-18** y como decisión abierta #13.
 
 ## 4. Paquete "Órdenes"
 

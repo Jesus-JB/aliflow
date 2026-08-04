@@ -9,45 +9,57 @@ skinparam state {
 
 legend top left
   <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+  <back:#F1F1F1>  </back> = confirmado en acta / decisión de Negocios
 endlegend
 
-state Expirado <<propuesta>>
+[*] --> Valido : generar(6 dígitos numéricos)\nfechaExpiracion = min(horaMaximaRetiro,\nfin del día de la compra)\n[al confirmar la compra]
 
-[*] --> Vigente : generar(6 dígitos numéricos,\nfechaExpiracion)\n[al confirmar la compra]
+Valido --> Utilizado : invalidarSiNoUsado()\nUPDATE ... WHERE estado='VALIDO'\n[Operador confirma entrega]
 
-Vigente --> Usado : invalidarSiNoUsado()\nUPDATE ... WHERE usado=false\n[Operador confirma entrega]
+Valido --> Vencido : venció el horario de retiro\no terminó el día de la compra
 
-Vigente --> Expirado : fechaExpiracion alcanzada\nsin ser usado
+Utilizado --> [*]
+Vencido --> [*]
 
-Usado --> [*]
-Expirado --> [*]
-
-note right of Vigente
-  La actualización a Usado es
+note right of Valido
+  La actualización a Utilizado es
   atómica y condicional — evita la
   doble redención (riesgo R-14,
   ver Gestion-de-Riesgos.md y
   secuencia-retiro-entrega.puml).
 end note
 
-note left of Vigente
+note left of Valido
   **Formato (decisión de Negocios, 28-jul-2026):**
   código **numérico corto de 6 dígitos**, no UUID
   ni QR — el estudiante se lo dice de viva voz al
   Operador y este lo digita en Aliflow.
-  Consecuencia de diseño: la unicidad se exige solo
-  entre los códigos **Vigentes del mismo local**
-  (no global ni histórica), y se reintenta la
-  generación si hay colisión. El espacio corto
-  obliga además a limitar los intentos de validación
-  (riesgo R-15 en Gestion-de-Riesgos.md).
+  La unicidad se exige solo entre los códigos
+  **Válidos del mismo local**, no global ni
+  histórica, y se reintenta la generación si hay
+  colisión.
 end note
 
-note right of Expirado
-  Dispara la transición de la Orden
-  asociada a EXPIRADO — ver
-  estado-orden.puml. Mismo mecanismo,
-  dos objetos.
+note bottom of Vencido
+  **Regla de expiración (acta 30-jul-2026, §6.2):**
+  el código vale **únicamente durante el día en que
+  se hizo la compra**. Si se presenta otro día, el
+  sistema debe mostrarlo como vencido o inválido.
+  La vigencia termina, como máximo, al terminar ese
+  mismo día.
+
+  Esto **cierra la decisión #5**, que estaba abierta
+  desde el 27-jul, y refuerza la mitigación del
+  riesgo R-15: acotar la vigencia a un día reduce
+  drásticamente el universo de códigos vigentes a la
+  vez, que es lo que hace viable usar solo 6 dígitos.
+
+  Dispara además la transición de la Orden asociada
+  a EXPIRADO — ver estado-orden.puml.
+
+  <back:#FFF3B0>Lo que sigue abierto:</back> qué pasa con el **dinero**
+  de una orden vencida. El acta define cuándo vence
+  el código, no si hay reembolso.
 end note
 
 @enduml

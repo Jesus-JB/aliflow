@@ -14,8 +14,10 @@ endlegend
 actor Estudiante as EST
 actor "Proveedor\n(administrador del local)" as PROV
 actor Operador as OP
+actor "Super-Admin de Aliflow\n(administra la plataforma)" as SA
 actor "Proveedor de Identidad\n(Google OAuth)" as IDP
 actor "Sistema ERP del local\n(Contífico / Alpwin / Odoo…,\nvía API genérica bidireccional)" as ERP
+actor "Pasarela de pagos\n(webhooks de confirmación)" as PAY
 
 rectangle "Aliflow" {
 
@@ -60,6 +62,16 @@ rectangle "Aliflow" {
   usecase "UC14. Configurar programa\nde fidelidad del local" as UC14 #FFF3B0
   usecase "UC15. Canjear premio\nde la cartilla" as UC15 #FFF3B0
   usecase "Acreditar sello\nen la cartilla" as UC5d #FFF3B0
+
+  ' ---- Acta del 30-jul-2026 ----
+  usecase "UC16. Administrar inventario\nreservado para Aliflow" as UC16
+  usecase "UC17. Configurar horario\nmáximo de retiro" as UC17
+  usecase "Confirmar recarga\n(webhook de la pasarela)" as UC2b
+
+  ' ---- Super-Admin (acordado 30-jul-2026, no consta en acta) ----
+  usecase "UC18. Dar de alta un local\ny crear su vista de proveedor" as UC18 #FFF3B0
+  usecase "UC19. Brindar soporte\na los locales" as UC19 #FFF3B0
+  usecase "UC20. Administrar\nla plataforma" as UC20 #FFF3B0
 }
 
 ' ---- Asociaciones actor - caso de uso ----
@@ -83,8 +95,16 @@ PROV --> UC10
 PROV --> UC11
 PROV --> UC12
 PROV --> UC14
+PROV --> UC16
+PROV --> UC17
+
+SA --> UC18
+SA --> UC19
+SA --> UC20
+SA --> UC7
 
 IDP --> UC1a
+PAY --> UC2b
 ERP --> UC3a
 ERP --> UC4c
 ERP --> UC7
@@ -95,6 +115,7 @@ UC1 .> UC1a : <<include>>
 UC1 .> UC1b : <<extend>>
 
 UC2 .> UC2a : <<include>>
+UC2 .> UC2b : <<include>>
 
 UC3 .> UC3a : <<include>>
 
@@ -110,20 +131,56 @@ UC5 .> UC5d : <<include>>
 UC15 .> UC4 : <<include>>
 ERP --> UC15
 
+UC18 .> UC7 : <<include>>
+
 note right of PROV
-  **Decisión de Negocios (28-jul-2026):**
-  el sistema tiene exactamente 3 roles —
-  Estudiante, Proveedor y Operador. El rol
-  "Administrador" **es** el Proveedor: el
-  gerente del local. No existe un super-admin
-  de plataforma: los tres casos de uso que lo
-  suponían se eliminaron, y UC12 se redefinió
-  como gestión de usuarios **del local**.
-  (UC13/UC14 se reutilizaron después para la
-  cartilla de fidelidad — no tienen relación
-  con los antiguos.)
-  Un mismo local puede tener varias cuentas
-  de Proveedor y varias de Operador.
+  **Roles del sistema (actualizado 30-jul-2026):**
+  son **4**. Estudiante, Proveedor y Operador
+  operan dentro de un local; el **Super-Admin**
+  es de Aliflow y está por encima de todos.
+  El rol "Administrador" **es** el Proveedor:
+  el gerente del local. Un mismo local puede
+  tener varias cuentas de Proveedor y varias
+  de Operador.
+
+  El 28-jul se había decidido que **no** existía
+  un super-admin y sus casos de uso se eliminaron;
+  el 30-jul esa decisión **se revirtió**. Los
+  números UC13/UC14 se habían reutilizado
+  mientras tanto para la cartilla de fidelidad,
+  así que el Super-Admin usa UC18–UC20.
+end note
+
+note bottom of UC16
+  <back:#FFF3B0>Acta 30-jul-2026 — inventario reservado.</back>
+  El proveedor aparta un **cupo exclusivo para
+  Aliflow** (ej. de 100 almuerzos: 75 a caja,
+  25 a Aliflow) y lo administra manualmente
+  desde su panel. Aliflow valida la compra
+  contra **ese cupo**, no contra el stock total
+  del ERP — así deja de competir con la caja
+  por el mismo dato y se elimina la sobreventa
+  por diseño, no por sincronizar más seguido.
+end note
+
+note bottom of UC17
+  <back:#FFF3B0>Acta 30-jul-2026 — horario de retiro.</back>
+  La hora máxima **no está fija en el código**:
+  cada proveedor la configura y el mensaje que
+  ve el estudiante tras comprar se actualiza
+  solo. El código de retiro vence, como máximo,
+  al terminar el día de la compra.
+end note
+
+note right of SA
+  <back:#FFF3B0>Acordado verbalmente el 30-jul-2026.</back>
+  **No consta en el acta** — conviene agregarlo.
+  El Super-Admin es de **Aliflow**, no de ningún
+  local: da soporte, da de alta locales nuevos,
+  les crea su vista de proveedor y configura su
+  integración con el ERP. Cierra el punto que
+  quedó abierto el 28-jul sobre quién registra
+  un local nuevo.
 end note
 
 note bottom of UC14

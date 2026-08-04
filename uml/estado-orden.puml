@@ -9,31 +9,42 @@ skinparam state {
 
 legend top left
   <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
+  <back:#F1F1F1>  </back> = confirmado en acta / decisión de Negocios
 endlegend
 
-state EXPIRADO <<propuesta>>
-
-[*] --> COMPRADO : confirmarCompra()\n(saldo y stock validados)
+[*] --> COMPRADO : confirmarCompra()\n(saldo validado y cupo reservado\nde Aliflow consumido)
 
 COMPRADO --> ENTREGADO : marcarEntregado(operador)\n[CodigoRetiro válido y no usado]
 
-COMPRADO --> EXPIRADO : expirar()\n[CodigoRetiro.fechaExpiracion\nalcanzada sin usar]
+COMPRADO --> EXPIRADO : expirar()\n[terminó el día de la compra\no venció horaMaximaRetiro]
 
 ENTREGADO --> [*]
 EXPIRADO --> [*]
 
 note right of EXPIRADO
-  Propuesta concreta de regla de
-  expiración (antes solo estaba
-  identificado el vacío, sin mecanismo):
-  Orden pasa a EXPIRADO cuando se
-  cumple CodigoRetiro.fechaExpiracion
-  sin que CodigoRetiro.usado sea true.
+  **Regla cerrada (acta 30-jul-2026, §6.2).**
+  Ya no es una propuesta de Ingeniería: la
+  Orden pasa a EXPIRADO cuando vence su
+  CodigoRetiro, y este vence como máximo al
+  terminar el mismo día de la compra.
   Ver estado-codigo-retiro.puml.
-  Pendiente: si esto implica algún
-  reembolso (fuera de alcance v1
-  según el acta) o solo queda como
-  registro histórico.
+
+  <back:#FFF3B0>Lo único que sigue abierto</back> es qué pasa con
+  el **dinero**: si se reembolsa al saldo del
+  estudiante, si se pierde, o si se le liquida
+  igual al proveedor porque el almuerzo se
+  preparó. El acta define la expiración, no la
+  política de reembolso.
+end note
+
+note left of COMPRADO
+  **Cambio del 30-jul-2026:** la validación de
+  disponibilidad ya no se hace contra el stock
+  del ERP sino contra el **inventario reservado**
+  para Aliflow (`InventarioReservado.disponible()`).
+  El local aparta un cupo exclusivo, así que
+  Aliflow no compite con la caja por la misma
+  unidad. Ver diagrama-clases.puml.
 end note
 
 @enduml

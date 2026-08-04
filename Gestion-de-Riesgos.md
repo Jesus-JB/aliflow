@@ -28,6 +28,18 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 | R-15 | *(nuevo, 28-jul-2026)* Código de retiro numérico de 6 dígitos: adivinable por fuerza bruta | Tecnológico | Baja | Moderado | Mitigar |
 | R-16 | *(nuevo, 28-jul-2026)* Costo operativo de sostener N ERP heterogéneos a la vez (credenciales, formatos de error, soporte, pruebas) | Estimación | Alta | Grave | Mitigar |
 | R-17 | *(nuevo, 28-jul-2026)* Cartilla de fidelidad con reglas sin definir: alcance no acotado y riesgo de que el local regale premios que no vendió | Requerimientos | Alta | Moderado | Mitigar |
+| R-18 | *(nuevo, 30-jul-2026)* **Contradicción entre custodia de fondos y saldo único** — el acta dice que el dinero va directo a cada proveedor, la decisión #4 dice que hay un saldo único gastable en cualquier local | Requerimientos | **Alta** | **Grave** | Evitar |
+| R-19 | *(nuevo, 30-jul-2026)* Ninguna pasarela ecuatoriana soporta *split payments* — obligaría a rehacer el modelo de billetera | Tecnológico | Media | **Grave** | Mitigar |
+| R-20 | *(nuevo, 30-jul-2026)* El inventario reservado depende de que el proveedor lo mantenga al día manualmente: si no repone el cupo, Aliflow aparece agotado aunque el local tenga comida | Organizacional | **Alta** | Moderado | Mitigar |
+
+> **Actualizado 30-jul-2026 — el inventario reservado desactivó parte de R-01.** La reunión resolvió el desfase de inventario apartando un cupo exclusivo para Aliflow, en vez de perseguir la sincronización en tiempo real. Consecuencias:
+>
+> - **R-01 sigue siendo el de mayor impacto, pero ya no bloquea la venta.** Sin credenciales de Contífico, Aliflow igual puede vender contra su cupo reservado; lo que se pierde es el **registro contable de la venta y la factura**. Grave, pero ya no es "el piloto no arranca".
+> - **R-02 (inconsistencia entre saldo, facturación e inventario) baja de facto**, porque el inventario deja de ser un dato compartido entre dos sistemas que escriben a la vez.
+> - **R-13 queda cerrado:** el acta define la regla de expiración que faltaba (el código vale solo el día de la compra).
+> - **Se agregan tres riesgos:** R-18, R-19 y R-20, todos derivados de las decisiones del 30-jul.
+>
+> **R-18 merece atención especial** porque no es un vacío sino una contradicción entre dos decisiones ya tomadas, y es el único riesgo abierto capaz de obligar a rehacer el modelo de billetera.
 
 > **Actualizado 28-jul-2026 — el ranking de riesgos se dio vuelta.** El 27-jul se había degradado R-01 y promovido R-11, sobre la base de que Barú usaba Alpwin. Negocios corrigió ese dato (`Hallazgos-Ingenieria-API-Generica.md` sección 4.3): **Barú usa Contífico; Alpwin lo usa Caramel Coffee**. Consecuencias sobre la matriz:
 >
@@ -112,6 +124,21 @@ Estos se detectaron en `Hallazgos-Ingenieria-API-Generica.md` sección 5.3 y con
 **Descripción:** si dos Operadores (posiblemente en distintos puntos de entrega del mismo local) intentan validar el mismo `CodigoRetiro` casi al mismo tiempo, sin un mecanismo atómico ambos podrían marcar la entrega como exitosa, resultando en dos entregas físicas de un mismo almuerzo.
 **Acción:** ya resuelto a nivel de diseño — la invalidación del código se modela como una actualización atómica y condicional (`UPDATE ... WHERE usado = false`), igual que el mecanismo de bloqueo optimista usado para el stock (`Plato.version`). Si la actualización afecta 0 filas, se informa error en vez de completar una segunda entrega. Ver `uml/secuencia-retiro-entrega.puml`.
 
+## Riesgos incorporados tras la reunión del 30-jul-2026
+
+### R-18 — Contradicción entre custodia de fondos y saldo único *(el más importante de los tres)*
+**Descripción:** el acta del 30-jul (§3.9) establece que *"el dinero llegará directamente a la cuenta de cada proveedor"* y que *"AliFlow no actuará como custodio de los fondos"*. La decisión #4 del 28-jul establece que el estudiante hace **una sola recarga** a un **saldo único** gastable en cualquier local. Las dos no pueden ser ciertas a la vez: al momento de recargar todavía no se sabe en qué local se comprará, así que no hay a qué cuenta de proveedor enviar el dinero.
+**Por qué es Grave:** no es un detalle de implementación. Según cómo se resuelva, cambia el modelo de datos de la billetera, la elección de pasarela y posiblemente la experiencia del estudiante.
+**Acción:** (1) Llevarlo a la próxima reunión como **decisión bloqueante**, con las tres salidas ya analizadas (pasarela con *split*, elegir local al recargar, o Aliflow custodia). (2) **No escribir el esquema de base de datos de la billetera** hasta tener la respuesta; el resto del esquema sí se puede avanzar. (3) Recomendación de Ingeniería: la pasarela con *split*, porque es la única que preserva el saldo único sin poner a Aliflow a custodiar dinero de terceros.
+
+### R-19 — Que ninguna pasarela ecuatoriana soporte *split payments*
+**Descripción:** si la salida elegida para R-18 es "la pasarela retiene y liquida al comprar", el proyecto queda dependiendo de que exista una pasarela en Ecuador con capacidad de marketplace. Si ninguna la ofrece a un costo razonable, hay que volver atrás y rehacer el modelo de billetera.
+**Acción:** (1) En la comparación de pasarelas (tarea acordada), tratar el *split* como **criterio eliminatorio**, no como deseable. (2) Verificarlo **antes** de comprometer el modelo de saldo único con Negocios. (3) Tener lista la alternativa de respaldo: saldo por local, que es lo que se descartó el 28-jul.
+
+### R-20 — El cupo reservado depende de mantenimiento manual del proveedor
+**Descripción:** el inventario reservado elimina la sobreventa, pero introduce una dependencia operativa nueva: si el proveedor no repone el cupo, Aliflow muestra "agotado" mientras el local sigue teniendo comida. El fallo es silencioso — nadie se queja porque nadie ve lo que no puede comprar — y se traduce en venta perdida.
+**Acción:** (1) Alertar al proveedor en su panel cuando el cupo baje de un umbral. (2) Registrar los intentos de compra rechazados por cupo agotado y mostrarlos como métrica, para que la venta perdida sea **visible**. (3) Evaluar para v2 una reposición automática desde el stock del ERP cuando la integración esté disponible.
+
 ---
 
-*Documento preparado por el Grupo de Ingeniería, formalizando la matriz de riesgos ya elaborada por el equipo e incorporando los riesgos detectados durante la revisión del flujo funcional y la investigación de arquitectura de integración.*
+*Documento preparado por el Grupo de Ingeniería, formalizando la matriz de riesgos ya elaborada por el equipo e incorporando los riesgos detectados durante la revisión del flujo funcional, la investigación de arquitectura de integración y las reuniones con Negocios del 28 y 30 de julio de 2026.*

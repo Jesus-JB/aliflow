@@ -10,7 +10,11 @@ Cinco diagramas de estado, para los objetos del sistema con un ciclo de vida rea
 
 **Fuente:** `estado-orden.puml` · **Referencia:** UC4/UC5, `uml/diagrama-clases.puml`.
 
-`COMPRADO → ENTREGADO` es el camino confirmado del flujo original. `COMPRADO → EXPIRADO` es la propuesta de Ingeniería (ya existía como valor del enum desde el diagrama de clases, pero sin ninguna regla concreta). En esta revisión se propuso un mecanismo específico: la Orden expira cuando se cumple `CodigoRetiro.fechaExpiracion` sin que se haya usado — antes esto era solo "hay que definir la regla", ahora es una propuesta concreta que el equipo puede aceptar o corregir rápido.
+`COMPRADO → ENTREGADO` es el camino confirmado del flujo original. `COMPRADO → EXPIRADO` ocurre cuando vence el `CodigoRetiro` asociado.
+
+**Actualizado el 30-jul-2026 — dos cambios.** La regla de expiración **dejó de ser propuesta de Ingeniería**: el acta la define como *válido únicamente durante el día de la compra*. Y la condición de entrada a `COMPRADO` cambió: la disponibilidad ya no se valida contra el stock del ERP sino contra el **inventario reservado** para Aliflow (`InventarioReservado.disponible()`), porque el local aparta un cupo exclusivo y así Aliflow deja de competir con la caja por la misma unidad.
+
+**Lo único que sigue abierto** es qué pasa con el **dinero** de una orden vencida: si se reembolsa, se pierde, o se le liquida al proveedor porque el almuerzo se preparó. El acta define la expiración, no la política de reembolso.
 
 ## 2. CodigoRetiro
 
@@ -18,7 +22,19 @@ Cinco diagramas de estado, para los objetos del sistema con un ciclo de vida rea
 
 **Fuente:** `estado-codigo-retiro.puml` · **Referencia:** UC5, `uml/secuencia-retiro-entrega.puml`.
 
-`Vigente → Usado` es la transición atómica y condicional (`UPDATE ... WHERE usado=false`) que resuelve el riesgo R-14 (doble redención, detectado en la revisión anterior). `Vigente → Expirado` es la misma propuesta que dispara la expiración de la `Orden` asociada — son dos objetos, pero una sola regla de negocio.
+**Actualizado el 30-jul-2026 — los tres estados quedaron definidos en acta.** Ya no son `Vigente / Usado / Expirado` como propuesta de Ingeniería, sino los tres estados oficiales que fija el acta (§6.3):
+
+| Estado | Significado |
+|---|---|
+| **VÁLIDO** | El pedido está disponible para ser retirado |
+| **UTILIZADO** | El Operador confirmó la entrega |
+| **VENCIDO** | Terminó el horario de retiro o terminó el día de la compra |
+
+`VÁLIDO → UTILIZADO` es la transición atómica y condicional (`UPDATE ... WHERE estado='VALIDO'`) que resuelve el riesgo R-14 (doble redención). `VÁLIDO → VENCIDO` dispara además la expiración de la `Orden` asociada — son dos objetos, pero una sola regla de negocio.
+
+**La regla de vigencia, cerrada (acta §6.2):** el código vale **únicamente durante el día en que se hizo la compra**. `fechaExpiracion` se calcula como el mínimo entre la `horaMaximaRetiro` que configuró el local y el fin de ese día. Si se presenta otro día, debe mostrarse como vencido. Esto **cierra la decisión #5**, abierta desde el 27-jul.
+
+**Un efecto colateral que conviene notar:** acotar la vigencia a un solo día reduce mucho el universo de códigos vigentes simultáneamente. Eso es justamente lo que hace viable exigir unicidad con solo 6 dígitos, y **refuerza la mitigación del riesgo R-15** sin que hubiera que hacer nada más.
 
 **Formato del código, cerrado el 28-jul-2026:** Negocios eligió un **código numérico corto de 6 dígitos** en vez de la propuesta anterior (UUID firmado), porque el estudiante se lo dice de viva voz al Operador y este lo digita. El cambio no toca la máquina de estados, pero sí trae dos consecuencias de diseño que quedaron anotadas en el diagrama:
 

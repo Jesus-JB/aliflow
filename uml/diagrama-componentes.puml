@@ -11,6 +11,7 @@ endlegend
 actor Estudiante
 actor "Proveedor\n(administrador del local)" as Proveedor
 actor Operador
+actor "Super-Admin\nde Aliflow" as SuperAdmin
 
 package "Cliente" {
   [Aliflow Web\n(Next.js + TypeScript)] as WEB
@@ -21,8 +22,10 @@ package "Aliflow API (FastAPI)" {
   [Módulo de Wallet\n(saldo, recargas, pagos)] as WALLET
   [Módulo de Órdenes\n(compra, código de retiro)] as ORDERS
   [Módulo de Proveedores y Menú] as PROVMOD
+  [Módulo de Inventario Reservado\n(cupo exclusivo de Aliflow)] as INVMOD
   [Módulo de Usuarios del Local\n(altas de Proveedores y Operadores)] as USERMOD
   [Módulo de Fidelidad\n(cartillas, sellos, canjes)] as LOYALTY #FFF3B0
+  [Módulo de Plataforma\n(alta de locales, soporte)] as PLATMOD #FFF3B0
 }
 
 package "Capa de Integración" {
@@ -52,12 +55,18 @@ cloud "ERP de cada local\n(Barú → Contífico,\nCaramel Coffee → Alpwin, …
 Estudiante --> WEB
 Proveedor --> WEB
 Operador --> WEB
+SuperAdmin --> WEB
 
 WEB --> AUTH : HTTPS/REST
 WEB --> WALLET : HTTPS/REST
 WEB --> ORDERS : HTTPS/REST
 WEB --> PROVMOD : HTTPS/REST
+WEB --> INVMOD : HTTPS/REST
 WEB --> USERMOD : HTTPS/REST
+WEB --> PLATMOD : HTTPS/REST
+
+ORDERS --> INVMOD : valida cupo disponible
+PAY --> WALLET : webhook de confirmación\n(aprobada / rechazada / pendiente)
 WEB --> LOYALTY : HTTPS/REST
 
 AUTH --> IDP : OAuth 2.0 / OIDC

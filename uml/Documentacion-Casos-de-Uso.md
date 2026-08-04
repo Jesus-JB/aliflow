@@ -217,6 +217,69 @@
 
 ---
 
+## Acta del 30-jul-2026 — UC16 y UC17
+
+### UC16 — Administrar inventario reservado para Aliflow
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Proveedor |
+| **Referencia** | Acta del 30-jul-2026, sección 1.3. |
+| **Precondición** | El proveedor está autenticado (UC6) y tiene platos publicados (UC8). |
+| **Flujo principal** | 1. El proveedor consulta el cupo actualmente asignado a Aliflow por plato.<br>2. Asigna, aumenta o reduce las unidades destinadas exclusivamente a las ventas por Aliflow.<br>3. El sistema valida que el cupo no sea negativo ni menor al ya consumido.<br>4. El cupo queda disponible para la compra de estudiantes (UC4). |
+| **Postcondición** | Aliflow puede vender hasta el cupo asignado, con independencia de lo que ocurra en la caja del local. |
+| **Regla de negocio** | **Aliflow valida la compra contra este cupo, no contra el stock total del ERP.** Si el local tiene 100 almuerzos y asigna 25 a Aliflow, la aplicación deja de vender al llegar a 25 aunque el ERP reporte unidades libres. |
+| **Por qué se diseñó así** | Elimina la sobreventa **por diseño** en lugar de mitigarla sincronizando más seguido. Aliflow deja de competir con la caja por el mismo contador. Ver `Decisiones-Pendientes-Negocios.md`, punto 10. |
+| **Pendiente** | El proceso de asignación y su visualización en el panel quedaron como tarea para la próxima reunión. |
+
+### UC17 — Configurar horario máximo de retiro
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Proveedor |
+| **Referencia** | Acta del 30-jul-2026, secciones 6.1 y 6.2. |
+| **Precondición** | El proveedor está autenticado (UC6). |
+| **Flujo principal** | 1. El proveedor define la hora máxima hasta la que se pueden retirar los almuerzos de su local.<br>2. El sistema la guarda en `Proveedor.horaMaximaRetiro`.<br>3. A partir de ahí, el mensaje de confirmación que ve el estudiante al comprar se arma con ese valor, y la expiración del código de retiro se calcula con él. |
+| **Postcondición** | El horario aplica solo a ese local y se refleja automáticamente en la app del estudiante. |
+| **Regla de negocio** | **El horario no puede estar fijo en el código.** Cada local define el suyo. La vigencia del código termina, como máximo, al terminar el día de la compra. |
+
+---
+
+## Super-Admin de Aliflow — UC18, UC19 y UC20
+
+> ⚠️ **Acordado verbalmente en la reunión del 30-jul-2026; no consta en el acta.** Conviene incorporarlo al acta para que quede constancia formal.
+>
+> **Nota sobre el vaivén:** el 28-jul Negocios indicó que este rol **no existía** y sus casos de uso se eliminaron (ver la tabla de cambios al inicio de este documento). El 30-jul la decisión se revirtió. Los números UC13 y UC14 ya se habían reutilizado para la cartilla de fidelidad, así que este rol usa **UC18–UC20**.
+
+Es un administrador **del lado de Aliflow**, no de ningún local. Es el único rol con visibilidad sobre todos los tenants.
+
+### UC18 — Dar de alta un local y crear su vista de proveedor
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Super-Admin de Aliflow |
+| **Precondición** | Existe un acuerdo comercial con el local. |
+| **Flujo principal** | 1. El Super-Admin registra el local nuevo con sus datos (nombre comercial, RUC, puntos de entrega).<br>2. Crea su vista de proveedor y la primera cuenta de Proveedor del local.<br>3. Configura la integración con el ERP de ese local (`<<include>>` UC7).<br>4. El local queda habilitado para publicar menú y vender. |
+| **Postcondición** | El local opera como un tenant más de la plataforma. |
+| **Qué cierra** | El punto que quedó abierto el 28-jul: *"si ningún rol del sistema da de alta un local nuevo, ese paso es manual y fuera de alcance"*. **Ya no es manual ni está fuera de alcance.** |
+
+### UC19 — Brindar soporte a los locales
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Super-Admin de Aliflow |
+| **Flujo principal** | 1. El Super-Admin consulta el estado de un local: órdenes, sincronización con su ERP, cupo reservado, incidencias.<br>2. Diagnostica y resuelve el problema, o escala al equipo técnico. |
+| **Regla de alcance** | Es el único rol que puede ver información de más de un local. Cada acción queda en `RegistroAuditoria`. |
+
+### UC20 — Administrar la plataforma
+
+| Campo | Detalle |
+|---|---|
+| **Actor primario** | Super-Admin de Aliflow |
+| **Flujo principal** | Configuración general de Aliflow: activar o desactivar locales, parámetros globales y monitoreo del estado de las integraciones de todos los tenants. |
+
+---
+
 ## Casos de uso incluidos/extendidos (sub-flujos reutilizables)
 
 Estos no son procesos de negocio independientes, sino pasos reutilizados dentro de los casos de uso principales (relación `<<include>>`/`<<extend>>` en el diagrama). Se documentan de forma breve:
