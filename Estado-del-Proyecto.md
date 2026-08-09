@@ -54,13 +54,13 @@ En este orden. No leas el repo entero de golpe.
 |---|---|---|---|
 | Requerimientos funcionales | 15 | ✅ | `Especificacion-de-Requerimientos.md` §5 |
 | RNF categorizados (Sommerville) con criterio de validación | 8 | ✅ | ídem §6 |
-| Prototipo del sistema | 12 | ⚠️ Hecho pero **desactualizado** | `mockups/`, prototipo en vivo |
+| Prototipo del sistema | 12 | ✅ | `mockups/`, prototipo en vivo |
 | Evidencias de levantamiento de requerimientos | 3 | ✅ | ídem §10 |
 | Estructura del documento (integrantes, TOC, índices) | 3 | ❌ **Falta** | Se hace al componer el PDF |
 | Contenido de otras secciones | 3 | ✅ | ídem §2, §4, §7, §8 |
 | Documentación de riesgos | 3 | ✅ | `Gestion-de-Riesgos.md` |
 | **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | — |
-| Diagrama de clases (SOLID, patrones) | 6 | ⚠️ Hecho pero **desactualizado** | `uml/diagrama-clases.puml` |
+| Diagrama de clases (SOLID, patrones) | 6 | ✅ | `uml/diagrama-clases.puml` |
 | Casos de uso | 6 | ✅ | `uml/casos-de-uso.puml` |
 | Diagramas de objetos | 3 | ✅ | 2 diagramas |
 | Diagramas de componentes | 3 | ✅ | 1 diagrama |
@@ -71,13 +71,13 @@ En este orden. No leas el repo entero de golpe.
 | **Modelado de la base de datos** | 10 | ❌ **No empezado** | — |
 | *Extra: definición arquitectónica* | +4 | ✅ | `Hallazgos-…md` + `demo-odoo/` |
 
-**En números: hay ~16 puntos de rúbrica todavía sin ganar** (base de datos 10, sprint backlogs 3, estructura del documento 3), más trabajo de actualización sobre cosas que ya están hechas.
+**En números: hay ~16 puntos de rúbrica todavía sin ganar** — base de datos 10, sprint backlogs 3, estructura del documento 3. Todo lo demás está hecho y al día.
 
 ### Detalle de lo construido
 
 - **20 diagramas UML** en `uml/`, cada uno con su `.puml` (fuente editable), su `.svg` renderizado y su documentación en Markdown. Hay un `render.py` para regenerar los SVG.
 - **Prototipo interactivo funcional** en `mockups/prototipo-web/` (React + Vite). No son imágenes: los cuatro roles comparten estado real. Se despliega solo a GitHub Pages en cada push a `main` que lo toque.
-- **21 pantallas de mockups** exportadas en `mockups/`, salidas de un sistema de diseño real en Figma (variables de color y escala, 10 estilos de texto, 10 componentes).
+- **22 pantallas de mockups** exportadas en `mockups/`, salidas de un sistema de diseño real en Figma (variables de color y escala, 10 estilos de texto, 10 componentes).
 - **Demo técnico funcional** en `demo-odoo/`: Odoo Community en Docker con un adaptador en Python, más pruebas de concurrencia reales. **No es teoría — se levantó y se corrió.**
 - **Identidad visual** derivada del logo, documentada en `mockups/marca/`.
 
@@ -85,7 +85,7 @@ En este orden. No leas el repo entero de golpe.
 
 ## 4. Las decisiones de diseño que hay que conocer sí o sí
 
-Si no entendés estas ocho, vas a romper algo sin darte cuenta.
+Si no entendés estas diez, vas a romper algo sin darte cuenta.
 
 **1. Inventario reservado.** El proveedor aparta un **cupo exclusivo para Aliflow** (de 100 almuerzos: 75 a caja, 25 a Aliflow) y lo administra a mano desde su panel. **Aliflow valida la compra contra ese cupo, no contra el stock del ERP.** Elimina la sobreventa *por diseño* en vez de perseguir sincronización: convierte un problema de consistencia distribuida (difícil, sin solución completa cuando no controlás los dos sistemas) en uno de partición de recursos (trivial).
 
@@ -101,7 +101,11 @@ Si no entendés estas ocho, vas a romper algo sin darte cuenta.
 
 **7. Aliflow nunca emite facturas.** Emite **comprobantes internos sin validez tributaria**; la factura fiscal la emite el ERP del local. Esto no es preferencia de diseño: emitir con validez tributaria en Ecuador significa certificado de firma digital, RUC emisor y responsabilidad fiscal, y significaría que Aliflow le vende el almuerzo al estudiante en vez del local. Cambia el modelo de negocio, no solo el software.
 
-**8. Todo lo que el negocio no fijó se modela como configuración, no como constante.** Hora máxima de retiro, sellos de la cartilla, premio, tope diario, caducidad. Cuando Negocios los defina, es un valor en base de datos — no un rediseño. Es la jugada que más veces salvó al proyecto de quedarse esperando.
+**8. Al estudiante nunca se le muestra la cantidad disponible.** Solo *Disponible* o *Agotado*. La cifra del cupo es un acuerdo interno entre el local y Aliflow: mostrar "quedan 3" cuando el local tiene 40 almuerzos en la cocina sería engañoso. El Proveedor sí ve el número exacto en su panel. Es la regla RN-15, no un detalle de pantalla — aplica a cualquier vista futura del estudiante.
+
+**9. El canje de un premio es una venta con descuento del 100%, no una venta de $0.** La orden conserva el precio real del plato y le aplica un descuento rotulado como premio. Dos razones: el local puede ver **cuánto le costaron los premios** (con $0 ese dato no existe), y el ERP recibe un documento que entiende — una venta de importe cero puede rechazarla como error.
+
+**10. Todo lo que el negocio no fijó se modela como configuración, no como constante.** Hora máxima de retiro, sellos de la cartilla, premio, tope diario, caducidad. Cuando Negocios los defina, es un valor en base de datos — no un rediseño. Es la jugada que más veces salvó al proyecto de quedarse esperando.
 
 ### La convención de colores, que se respeta en todo el repo
 
@@ -127,16 +131,16 @@ Ordenado por lo que más mueve la aguja.
 
 **C. Composición del PDF final** — 3 puntos. Lista de integrantes en la primera página, tabla de contenido, índice de tablas e índice de figuras, más los apéndices: capturas del prototipo con su flujo de ventanas, y el acta de conformidad firmada.
 
-### 5.2 Hecho pero desactualizado — hay que propagar dos decisiones del 8-ago
+### 5.2 Ya propagado — no queda nada desactualizado
 
-El 8-ago Negocios respondió dos cosas que cambian artefactos ya construidos. **Los documentos ya están actualizados; los diagramas y el prototipo no.**
+*(Esta sección listaba lo que faltaba propagar de las decisiones del 8-ago. Se completó el 9-ago-2026 y se deja el registro de qué se tocó, porque explica por qué el modelo se ve como se ve.)*
 
-| Dónde | Qué hay que cambiar |
+| Dónde | Qué cambió |
 |---|---|
-| **`uml/diagrama-clases.puml`** (+ regenerar SVG) | El saldo pasa a ser por establecimiento: `TarjetaVirtual.saldoDisponible` (bolsa única) desaparece; `SaldoProveedor` deja de ser "libro de lo que Aliflow le debe al local" —eso ya no existe— y vuelve a ser el saldo del estudiante en ese local; el patrón Strategy `EstrategiaDistribucionRecarga` **se queda sin propósito** porque ya no hay distribución que hacer; `Recarga` gana el establecimiento destino. Además: el canje pasa de "orden de $0" a **descuento del 100%**, así que hace falta representar el descuento y su motivo. Y el paquete "Fidelidad" pierde el `<<propuesta>>` porque sus reglas quedaron confirmadas |
-| **Mockups de Figma** (+ re-exportar PNG) | Estudiante 02 (el saldo está rotulado "único para todos los locales", que ya es falso), Estudiante 05 (recarga), Estudiante 06 y 08 (el canje debe mostrar precio original + descuento "Premio", no `$0.00`), **pantalla nueva** de selección de establecimiento por defecto con indicador de contexto permanente. Y quitar las marcas amarillas de lo ya resuelto |
-| **Prototipo web** | Lo mismo que los mockups. Es el que ve el cliente, así que es el más visible |
-| **`uml/Documentacion-Diagrama-Clases.md`** | Su sección 3 ("Wallet y Pagos") describe el modelo viejo de saldo único |
+| `uml/diagrama-clases.puml` + SVG | `TarjetaVirtual` perdió `saldoDisponible`; `SaldoProveedor` → `SaldoEstablecimiento` cambiando de significado; `Recarga` ganó establecimiento destino; `Orden` ganó descuento y motivo; **se eliminó el patrón Strategy** `EstrategiaDistribucionRecarga`, que quedó sin problema que resolver |
+| Mockups de Figma + PNG | Pantalla nueva de selección de establecimiento; menú, recarga, historial y canje actualizados; se retiraron tres marcas amarillas ya resueltas |
+| Prototipo web | Saldo por establecimiento, selección obligatoria de local, perfil con saldos separados. Probado en navegador |
+| `uml/Documentacion-Diagrama-Clases.md` | Sección 3 reescrita |
 
 ### 5.3 Trabajo técnico que no depende de nadie
 
@@ -218,7 +222,7 @@ Cada push a `main` que toque `mockups/prototipo-web/` recompila y publica el sit
 
 **El modelo de base de datos.** Son 10 puntos de rúbrica, es el próximo paso declarado del proyecto, estuvo bloqueado durante semanas y **acaba de desbloquearse por completo**. Todas las decisiones estructurales están cerradas: inventario reservado, saldo por establecimiento, expiración del código, los cuatro roles, las reglas de fidelidad.
 
-Se escribe contra `Especificacion-de-Requerimientos.md` y `uml/Documentacion-Diagrama-Clases.md` — con la advertencia de que el diagrama de clases todavía describe el modelo viejo de saldo único, así que conviene arreglarlo primero o al menos leerlo con la sección 5.2 de este documento al lado.
+Se escribe contra `Especificacion-de-Requerimientos.md` y `uml/Documentacion-Diagrama-Clases.md`, que están al día: describen el saldo por establecimiento y el canje como descuento del 100%.
 
 ---
 

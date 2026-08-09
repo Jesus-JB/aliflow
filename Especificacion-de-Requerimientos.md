@@ -66,8 +66,8 @@ Esta distinción es deliberada y se mantiene en todo el repositorio: **una propu
 | `uml/Documentacion-Casos-de-Uso.md` | Desarrollo narrativo de cada caso de uso citado en la columna *Origen*. |
 | `uml/Documentacion-Diagrama-Clases.md` | Entidades y atributos nombrados en los criterios de aceptación. |
 | `Hallazgos-Ingenieria-API-Generica.md` | Investigación que fundamenta los requerimientos de integración (RF-47 a RF-53). |
-| `Gestion-de-Riesgos.md` | Los 20 riesgos citados en la columna *Riesgo*. |
-| `Mockups-Prototipo.md` | Las 21 pantallas del prototipo, mapeadas a requerimientos en la sección 9. |
+| `Gestion-de-Riesgos.md` | Los 23 riesgos citados en la columna *Riesgo*. |
+| `Mockups-Prototipo.md` | Las 22 pantallas del prototipo, mapeadas a requerimientos en la sección 9. |
 
 ---
 
@@ -898,7 +898,8 @@ Declarado explícitamente, con la razón. Lo que no está aquí ni en la secció
 | RF-07, RF-08, RF-09, RF-10, RF-11 | UC2, UC2a | Estudiante 05 | R-06, R-18 |
 | RF-12 | UC2 | *(sin pantalla — es interno)* | R-18 |
 | RF-13 | UC8 | Proveedor 03 | — |
-| RF-14, RF-15 | UC3, UC3a | Estudiante 02 | — |
+| RF-14 | UC3, UC3a | Estudiante 02 | RN-15 |
+| RF-15 | UC1b, UC3 | **Estudiante 01b** *(pantalla nueva)* | R-21 |
 | RF-16, RF-17, RF-18 | UC16 | Proveedor 03 | R-20 |
 | RF-19, RF-20, RF-21, RF-22 | UC4, UC4a, UC4b | Estudiante 03 | R-02 |
 | RF-23 | UC17 | Estudiante 04 | — |
@@ -966,7 +967,7 @@ Solo los riesgos que se mitigan **con requerimientos del sistema**. Los que se m
 | **Prototipado evolutivo** | Prototipo de alta fidelidad e interactivo con los cuatro roles compartiendo estado, usado como instrumento de validación con el cliente, no solo como entregable. | https://jesus-jb.github.io/aliflow/ · `mockups/` |
 | **Investigación técnica y prueba de concepto** | Demo funcional con un ERP real en contenedores, con pruebas de concurrencia. Produjo un hallazgo que cambió el diseño. | `demo-odoo/`, `Hallazgos-Ingenieria-API-Generica.md` |
 | **Registro de decisiones y control de cambios** | Documento vivo que lleva la cuenta de qué está cerrado, qué sigue abierto y qué cambió en el diseño como consecuencia. Usado como material de preparación de cada reunión. | `Decisiones-Pendientes-Negocios.md` |
-| **Análisis de riesgos** | Matriz de 20 riesgos con probabilidad, impacto y estrategia, revisada tras cada reunión. Varios requerimientos de este documento nacieron de un riesgo. | `Gestion-de-Riesgos.md` |
+| **Análisis de riesgos** | Matriz de 23 riesgos con probabilidad, impacto y estrategia, revisada tras cada reunión. Varios requerimientos de este documento nacieron de un riesgo. | `Gestion-de-Riesgos.md` |
 | **Modelado UML como herramienta de descubrimiento** | Diagramar reveló vacíos que la conversación no había expuesto —orden multi-local no prevenida, ausencia de estado para orden no retirada, ausencia de auditoría—, corregidos como requerimientos. | `uml/` |
 
 ### 10.2 Hallazgos del levantamiento que cambiaron el producto

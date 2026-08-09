@@ -418,23 +418,25 @@ Estas no requieren debate, solo que Negocios las revise y apruebe o señale si a
 
 ## Próximo paso de Ingeniería
 
-*Actualizado el 8-ago-2026.*
+*Actualizado el 9-ago-2026.*
 
 **Hecho el 8-ago:** se escribió la **[especificación de requerimientos](Especificacion-de-Requerimientos.md)** (entregable 01) — 56 requerimientos funcionales con criterios de aceptación y 52 no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Su sección 7 lista exactamente qué requerimientos quedan bloqueados por cada decisión abierta de este documento, y su sección 11 declara qué falta del entregable. **Dos huecos que aparecieron al escribirla:**
 
 - **Sprint backlogs y cronograma con diagramas *activity-on-arrow*** — son parte del entregable 01.g junto con los riesgos. `Gestion-de-Riesgos.md` cubre los riesgos; los sprint backlogs y el cronograma **no están empezados**.
 - **Acta de conformidad firmada por el representante del cliente** (entregable 01.e), que va como apéndice del documento. Es una dependencia externa: conviene pedirla ya, no al cierre.
 
-**Hecho el 8-ago:** Negocios cerró la **decisión #13** — la recarga es por establecimiento. **Con eso el modelo de base de datos queda desbloqueado por completo, billetera incluida.** Aplicado ya en la especificación de requerimientos y en el registro de riesgos; **falta propagarlo** al diagrama de clases (y su SVG), a los mockups y al prototipo web, donde el saldo todavía se muestra como único.
+**Hecho el 8-ago:** Negocios cerró la **decisión #13** — la recarga es por establecimiento. **Con eso el modelo de base de datos queda desbloqueado por completo, billetera incluida.**
 
-**Sigue pendiente: el modelo de base de datos.** Las decisiones estructurales están cerradas, y el inventario reservado (#10) le agrega la única tabla estructural que faltaba. Lo único que puede volver a moverlo es la **decisión #13** (custodia de fondos vs. saldo único): según cuál de las tres salidas elija Negocios, la billetera cambia. Todo lo demás del esquema se puede escribir ya.
+**Hecho el 9-ago:** se propagó esa decisión, junto con el canje como descuento del 100% y la regla de no mostrar cantidades, a **todos** los artefactos: diagrama de clases y su SVG, mockups de Figma con sus exportaciones, y prototipo web. **No queda nada describiendo el modelo viejo de saldo único.**
 
-**En paralelo, cinco acciones que no son técnicas y que no dependen de Ingeniería:**
+**Sigue pendiente: el modelo de base de datos.** Todas las decisiones estructurales están cerradas —inventario reservado, saldo por establecimiento, expiración del código, los cuatro roles y las reglas de fidelidad—, así que **el esquema completo se puede escribir, billetera incluida.** Ya nada lo bloquea.
+
+**En paralelo, cuatro acciones que no dependen de Ingeniería, más una decisión de negocio:**
 
 1. **Pedirle a Barú las credenciales de API de Contífico** (R-01). Sigue siendo el riesgo de mayor impacto, aunque el inventario reservado le quitó parte del poder de bloqueo: ahora afecta al registro contable de la venta, no a la capacidad de vender.
-2. **Resolver la decisión #13**, porque condiciona qué pasarelas son siquiera candidatas.
-3. **Agregar al acta el rol de Super-Admin**, que se acordó en la reunión del 30-jul pero no quedó escrito.
-4. **Confirmar qué significa "cartilla".** En este proyecto se modeló como tarjeta de sellos de fidelidad. Otro equipo del curso la entendió como paquete prepago de almuerzos. Son productos distintos con el mismo nombre: si Negocios dijo la palabra y cada equipo entendió una cosa, uno de los dos modeló el requisito equivocado. Afecta a todo el módulo de fidelidad (RF-32 a RF-37).
+2. **Confirmar que los locales pueden abrir cuenta de comercio** en una pasarela, ojalá la misma (R-22). Condiciona la elección de pasarela y es requisito para que un local pueda vender.
+3. **Dejar constancia escrita del rol de Super-Admin.** Negocios lo confirmó el 8-ago, pero ninguna acta lo recoge; el acta de conformidad del entregable 01.e resuelve ese vacío.
+4. **Definir cuántos sellos y qué premio** lleva la cartilla. Son los dos únicos valores que quedan sin definir, y no bloquean nada: están modelados como configuración por local.
 5. **Pedir el acta de conformidad firmada** por el representante del cliente (entregable 01.e). Tiempo de respuesta de un tercero, igual que las credenciales — no conviene dejarlo para el cierre.
 
 **Lo que Ingeniería sí puede hacer sin esperar a nadie:** construir el `ContificoAdapter` contra la documentación y probarlo con un **ERP simulado**, para que el día que lleguen las credenciales solo haya que enchufarlo.
