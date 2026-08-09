@@ -71,7 +71,7 @@ Requiere `pandoc` y `typst`.
 
 | Punto | Pts | Estado | PDF | Fuente |
 |---|---:|---|---|---|
-| 04 | **Modelo de la base de datos** | **10** | ❌ **No empezado** | `04-Modelo-de-Base-de-Datos.pdf` | [`Modelo-de-Base-de-Datos.md`](markdown/04-Modelo-de-Base-de-Datos/Modelo-de-Base-de-Datos.md) |
+| 04 | **Modelo de la base de datos** | **10** | ✅ | `04-Modelo-de-Base-de-Datos.pdf` | [`Modelo-de-Base-de-Datos.md`](markdown/04-Modelo-de-Base-de-Datos/Modelo-de-Base-de-Datos.md) + [`esquema.sql`](markdown/04-Modelo-de-Base-de-Datos/esquema.sql) |
 | 05 | Mockups | — | ✅ | `05-Mockups.pdf` | [`Mockups.md`](markdown/05-Mockups/Mockups.md) |
 
 ### Extra
@@ -82,15 +82,14 @@ Requiere `pandoc` y `typst`.
 
 ---
 
-## Lo que falta: 16 puntos
+## Lo que falta: 6 puntos
 
 | Qué | Pts | Quién puede tomarlo |
 |---|---:|---|
-| **Modelo de la base de datos** | 10 | Cualquiera. **Ya no está bloqueado por ninguna decisión.** El archivo trae las seis cosas no obvias que el esquema tiene que resolver |
 | **Sprint backlogs y activity-on-arrow** | 3 | Cualquiera. El archivo trae una propuesta de seis sprints derivada de la priorización MoSCoW que ya existe |
 | **Estructura del documento** | 3 | Falta la lista de integrantes y rotular tablas y figuras para poder generar sus índices |
 
-Los tres archivos ya existen y dicen en su primera línea qué les falta. **No están vacíos: traen los insumos para que quien los tome no arranque de cero.**
+**El modelo de base de datos se cerró el 9-ago-2026** (10 pts): 24 tablas, DDL ejecutado contra PostgreSQL 16 y 10 pruebas que verifican que las restricciones impiden lo que dicen impedir.
 
 ---
 

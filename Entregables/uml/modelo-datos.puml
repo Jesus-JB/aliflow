@@ -1,0 +1,346 @@
+@startuml modelo-datos-aliflow
+
+' Modelo entidad-relación de Aliflow — entregable 04.
+' Derivado de diagrama-clases.puml; el DDL ejecutable está en
+' ../markdown/04-Modelo-de-Base-de-Datos/esquema.sql
+
+hide circle
+skinparam linetype ortho
+skinparam roundcorner 4
+skinparam classAttributeIconSize 0
+
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #666666
+  ArrowColor #444444
+}
+
+legend top left
+  <b>PK</b> clave primaria · <b>FK</b> foránea · <b>U</b> única · <b>*</b> obligatoria
+  <back:#E8F4EA>  </back> tabla con bloqueo optimista (campo version)
+  <back:#FDF0E3>  </back> tabla append-only: no admite UPDATE ni DELETE
+endlegend
+
+package "Tenant y personas" {
+  entity proveedor {
+    **id** : UUID <<PK>>
+    --
+    * nombre_comercial : text
+    * ruc : varchar(13) <<U>>
+    * hora_maxima_retiro : time
+    cuenta_bancaria_destino : text
+    credenciales_comercio_cifradas : text
+    * activo : boolean
+  }
+
+  entity punto_entrega {
+    **id** : UUID <<PK>>
+    --
+    * proveedor_id : UUID <<FK>>
+    * nombre : text
+  }
+
+  entity usuario {
+    **id** : UUID <<PK>>
+    --
+    * email : citext <<U>>
+    * rol : rol_usuario
+    * nombre_completo : text
+    password_hash : text
+    * activo : boolean
+    --
+    <i>NULL en password_hash solo si</i>
+    <i>rol = ESTUDIANTE (usa OAuth)</i>
+  }
+
+  entity estudiante {
+    **usuario_id** : UUID <<PK,FK>>
+    --
+    * codigo_institucional : text <<U>>
+  }
+
+  entity usuario_proveedor {
+    **usuario_id** : UUID <<PK,FK>>
+    --
+    * proveedor_id : UUID <<FK>>
+    punto_entrega_id : UUID <<FK>>
+    --
+    <i>Administrador y Operador.</i>
+    <i>El Super-Admin NO tiene fila acá:</i>
+    <i>es el único rol sin local.</i>
+  }
+}
+
+package "Menú e inventario" {
+  entity plato #E8F4EA {
+    **id** : UUID <<PK>>
+    --
+    * proveedor_id : UUID <<FK>>
+    * nombre : text
+    * precio : numeric(10,2)
+    * stock_erp : integer
+    * version : integer
+    --
+    <i>stock_erp es espejo del ERP.</i>
+    <i>NO decide si Aliflow vende.</i>
+  }
+
+  entity inventario_reservado #E8F4EA {
+    **id** : UUID <<PK>>
+    --
+    * plato_id : UUID <<FK>>
+    * fecha_vigencia : date
+    * cupo_asignado : integer
+    * cupo_consumido : integer
+    * version : integer
+    --
+    <i>CHECK consumido <= asignado</i>
+    <i>→ sobreventa imposible</i>
+  }
+}
+
+package "Billetera" {
+  entity saldo_establecimiento #E8F4EA {
+    **id** : UUID <<PK>>
+    --
+    * estudiante_id : UUID <<FK>>
+    * proveedor_id : UUID <<FK>>
+    * monto_actual : numeric(10,2)
+    * version : integer
+    --
+    <i>U (estudiante_id, proveedor_id)</i>
+    <i>El saldo es DEL LOCAL: solo se</i>
+    <i>gasta ahí, no se transfiere.</i>
+  }
+
+  entity movimiento_saldo #FDF0E3 {
+    **id** : UUID <<PK>>
+    --
+    * saldo_establecimiento_id : UUID <<FK>>
+    * tipo : tipo_movimiento
+    * monto : numeric(10,2)
+    * saldo_anterior : numeric(10,2)
+    * saldo_posterior : numeric(10,2)
+    recarga_id / orden_id : UUID <<FK>>
+    movimiento_revertido_id : UUID <<FK>>
+    --
+    <i>Libro append-only. Una corrección</i>
+    <i>es un REVERSO, nunca un UPDATE.</i>
+  }
+
+  entity recarga {
+    **id** : UUID <<PK>>
+    --
+    * saldo_establecimiento_id : UUID <<FK>>
+    * proveedor_destino_id : UUID <<FK>>
+    * monto_total : numeric(10,2)
+    * numero_operacion : text
+    * estado_transaccion : estado_pago
+    * id_pasarela : text
+    --
+    <i>U (id_pasarela, numero_operacion)</i>
+    <i>→ idempotencia de la pasarela</i>
+  }
+
+  entity metodo_pago {
+    **id** : UUID <<PK>>
+    --
+    * estudiante_id : UUID <<FK>>
+    * tipo_tarjeta : text
+    * ultimos_cuatro : char(4)
+    * token_pasarela : text
+    --
+    <i>Nunca el número completo</i>
+    <i>ni el CVV (fuera de PCI-DSS)</i>
+  }
+
+  entity pago {
+    **id** : UUID <<PK>>
+    --
+    recarga_id : UUID <<FK>>
+    metodo_pago_id : UUID <<FK>>
+    * estado : estado_pago
+    * id_transaccion_pasarela : text <<U>>
+  }
+
+  entity comprobante_recarga {
+    **id** : UUID <<PK>>
+    --
+    * recarga_id : UUID <<FK,U>>
+    * sin_validez_tributaria : bool = true
+  }
+}
+
+package "Órdenes" {
+  entity orden {
+    **id** : UUID <<PK>>
+    --
+    * estudiante_id : UUID <<FK>>
+    * proveedor_id : UUID <<FK>>
+    saldo_establecimiento_id : UUID <<FK>>
+    * estado : estado_orden
+    * es_canje : boolean
+    * subtotal : numeric(10,2)
+    * descuento : numeric(10,2)
+    motivo_descuento : text
+    total : numeric — <i>generada</i>
+    * hora_maxima_retiro : time
+    operador_id : UUID <<FK>>
+    --
+    <i>U (id, proveedor_id) → habilita</i>
+    <i>la FK compuesta del detalle</i>
+  }
+
+  entity orden_detalle {
+    **id** : UUID <<PK>>
+    --
+    * orden_id + proveedor_id <<FK>>
+    * plato_id + proveedor_id <<FK>>
+    * cantidad : integer
+    * precio_unitario : numeric(10,2)
+    --
+    <i>Las dos FK comparten proveedor_id:</i>
+    <i>una orden NO puede mezclar locales.</i>
+  }
+
+  entity codigo_retiro {
+    **id** : UUID <<PK>>
+    --
+    * orden_id : UUID <<FK,U>>
+    * proveedor_id : UUID <<FK>>
+    * valor : char(6)
+    * fecha_expiracion : timestamptz
+    * estado : estado_codigo_retiro
+    --
+    <i>U parcial (proveedor_id, valor)</i>
+    <i>WHERE estado = VALIDO</i>
+  }
+
+  entity comprobante_compra {
+    **id** : UUID <<PK>>
+    --
+    * orden_id : UUID <<FK,U>>
+    * sin_validez_tributaria : bool = true
+  }
+}
+
+package "Fidelidad" {
+  entity programa_fidelidad {
+    **id** : UUID <<PK>>
+    --
+    * proveedor_id : UUID <<FK,U>>
+    * sellos_requeridos : integer
+    * descripcion_premio : text
+    * max_sellos_por_dia : integer = 1
+    vigencia_cartilla_dias : integer
+    --
+    <i>Configuración por local,</i>
+    <i>no constantes del sistema</i>
+  }
+
+  entity cartilla {
+    **id** : UUID <<PK>>
+    --
+    * programa_id : UUID <<FK>>
+    * estudiante_id : UUID <<FK>>
+    * sellos_acumulados : integer
+    * estado : estado_cartilla
+  }
+
+  entity sello {
+    **id** : UUID <<PK>>
+    --
+    * cartilla_id : UUID <<FK>>
+    * orden_id : UUID <<FK,U>>
+    * fecha : date
+    --
+    <i>U en orden_id: un reintento de</i>
+    <i>entrega no acredita dos sellos</i>
+  }
+
+  entity canje {
+    **id** : UUID <<PK>>
+    --
+    * cartilla_id : UUID <<FK,U>>
+    * orden_id : UUID <<FK,U>>
+    * premio_entregado : text
+  }
+}
+
+package "Integración ERP y auditoría" {
+  entity integracion_erp {
+    **id** : UUID <<PK>>
+    --
+    * proveedor_id : UUID <<FK,U>>
+    * tipo_erp : tipo_erp
+    credenciales_cifradas : text
+    ultima_sincronizacion_exitosa : timestamptz
+  }
+
+  entity evento_sincronizacion {
+    **id** : UUID <<PK>>
+    --
+    * proveedor_id : UUID <<FK>>
+    * tipo_evento : tipo_evento
+    * payload : jsonb
+    * estado : estado_evento
+    * intentos : integer
+    * id_idempotencia : text <<U>>
+    --
+    <i>Outbox: la venta se confirma</i>
+    <i>aunque el ERP esté caído</i>
+  }
+
+  entity registro_auditoria #FDF0E3 {
+    **id** : UUID <<PK>>
+    --
+    usuario_id : UUID <<FK>>
+    * accion : text
+    * entidad_afectada : text
+    detalle : jsonb
+    * fecha_hora : timestamptz
+  }
+}
+
+' ─── Relaciones ─────────────────────────────────────────────────────────────
+proveedor ||--o{ punto_entrega
+proveedor ||--o{ plato
+proveedor ||--o{ usuario_proveedor
+proveedor ||--|| integracion_erp
+proveedor ||--o| programa_fidelidad
+proveedor ||--o{ evento_sincronizacion
+
+usuario ||--o| estudiante
+usuario ||--o| usuario_proveedor
+usuario_proveedor }o--o| punto_entrega
+
+plato ||--o{ inventario_reservado
+plato ||--o{ orden_detalle
+
+estudiante ||--o{ saldo_establecimiento
+proveedor  ||--o{ saldo_establecimiento
+saldo_establecimiento ||--o{ movimiento_saldo
+saldo_establecimiento ||--o{ recarga
+recarga ||--|| comprobante_recarga
+recarga ||--o| pago
+metodo_pago }o--o{ pago
+estudiante ||--o{ metodo_pago
+
+estudiante ||--o{ orden
+proveedor  ||--o{ orden
+saldo_establecimiento ||--o{ orden
+orden ||--|{ orden_detalle
+orden ||--|| codigo_retiro
+orden ||--o| comprobante_compra
+orden ||--o| sello
+orden ||--o| canje
+movimiento_saldo }o--o| orden
+
+programa_fidelidad ||--o{ cartilla
+estudiante ||--o{ cartilla
+cartilla ||--o{ sello
+cartilla ||--o| canje
+
+usuario ||--o{ registro_auditoria
+
+@enduml

@@ -71,10 +71,10 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 | Diagramas de actividad | 6 | ✅ | 5 diagramas |
 | Diagramas de secuencia | 10 | ✅ | 4 diagramas |
 | Diagramas de estado | 3 | ✅ | 5 diagramas |
-| **Modelado de la base de datos** | 10 | ❌ **No empezado** | `Entregables/markdown/04-Modelo-de-Base-de-Datos/` |
+| **Modelado de la base de datos** | 10 | ✅ | `Entregables/markdown/04-Modelo-de-Base-de-Datos/` |
 | *Extra: definición arquitectónica* | +4 | ✅ | `Hallazgos-…md` + `demo-odoo/` |
 
-**En números: hay ~16 puntos de rúbrica todavía sin ganar** — base de datos 10, sprint backlogs 3, estructura del documento 3. Todo lo demás está hecho y al día.
+**En números: quedan 6 puntos de rúbrica sin ganar** — sprint backlogs 3 y estructura del documento 3. Todo lo demás está hecho y al día.
 
 ### Detalle de lo construido
 
@@ -128,7 +128,7 @@ Ordenado por lo que más mueve la aguja.
 
 ### 5.1 No empezado
 
-**A. Modelo de base de datos** — 10 puntos de rúbrica, y es el **próximo paso declarado del proyecto**. Estuvo bloqueado hasta el 8-ago porque el modelo de billetera dependía de una decisión abierta. **Ya está desbloqueado por completo**: se puede escribir el esquema entero. Es lo primero que hay que hacer.
+**A. ~~Modelo de base de datos~~ — ✅ hecho el 9-ago-2026.** 24 tablas en PostgreSQL, con las reglas de negocio expresadas como restricciones declarativas en vez de confiarlas al código. El DDL se ejecutó de verdad contra PostgreSQL 16 y hay 10 pruebas que verifican que la base impide lo que dice impedir. Ver `Entregables/markdown/04-Modelo-de-Base-de-Datos/`.
 
 **B. Sprint backlogs y cronograma con diagramas activity-on-arrow** — 3 puntos. Forman parte del mismo entregable que los riesgos (01.g). `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos, pero los sprint backlogs y el cronograma **no están ni empezados**.
 
@@ -223,9 +223,9 @@ Cada push a `main` que toque `Entregables/mockups/prototipo-web/` recompila y pu
 
 ## 10. Si tuvieras que hacer una sola cosa
 
-**El modelo de base de datos.** Son 10 puntos de rúbrica, es el próximo paso declarado del proyecto, estuvo bloqueado durante semanas y **acaba de desbloquearse por completo**. Todas las decisiones estructurales están cerradas: inventario reservado, saldo por establecimiento, expiración del código, los cuatro roles, las reglas de fidelidad.
+**Los sprint backlogs con el cronograma en activity-on-arrow.** Son los últimos 3 puntos que dependen solo de nosotros —los otros 3 esperan la lista de integrantes— y es lo único del proyecto que no está ni empezado.
 
-Se escribe contra `Entregables/markdown/01-Especificacion-de-Requerimientos/` y `Entregables/markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md`, que están al día: describen el saldo por establecimiento y el canje como descuento del 100%.
+Los insumos ya están: los 56 requerimientos funcionales están priorizados con MoSCoW y agrupados en 10 módulos, así que el backlog sale de tomar los módulos como épicas y los `RF-nn` como ítems. El archivo `07-Sprint-Backlogs-y-Cronograma.md` trae una propuesta de seis sprints que respeta las dependencias reales del sistema.
 
 ---
 
