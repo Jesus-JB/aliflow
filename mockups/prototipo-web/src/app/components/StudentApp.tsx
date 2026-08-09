@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { UtensilsCrossed, BookOpen, ClipboardList, User, ArrowLeft, ChevronRight, Check, CreditCard, AlertTriangle, Info, Clock } from "lucide-react";
-import { useStore, MenuItem, Order, Local, LoyaltyCard as LoyaltyCardType, EstadoCodigo, cupoDisponible } from "../store";
+import { useStore, MenuItem, Order, Local, LoyaltyCard as LoyaltyCardType, EstadoCodigo, cupoDisponible, hayDisponibilidad } from "../store";
 import { C } from "../tokens";
 import { AliflowLogoMark } from "./AliflowLogo";
 
@@ -137,14 +137,19 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 }
 
 // ─── BALANCE HEADER ────────────────────────────────────────────────────────────
-function BalanceHeader({ balance, name, onRecharge }: { balance: number; name: string; onRecharge: () => void }) {
+function BalanceHeader({ balance, name, localName, onRecharge }: { balance: number; name: string; localName: string; onRecharge: () => void }) {
   return (
     <div style={{ background: C.brand, padding: "48px 20px 20px", borderRadius: "0 0 20px 20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 2 }}>Hola, {name}</div>
+          {/* El saldo pertenece al ESTABLECIMIENTO, no al estudiante (RN-13):
+              hay que decir siempre de qué local es la cifra, o se lee como si
+              fuera gastable en cualquier lado. */}
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>Saldo disponible</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>
+              Saldo en {localName}
+            </span>
           </div>
           <div style={{ fontSize: 32, fontWeight: 800, color: "#fff", letterSpacing: -0.5, lineHeight: 1.1, marginTop: 2 }}>
             ${balance.toFixed(2)}
@@ -163,15 +168,18 @@ function BalanceHeader({ balance, name, onRecharge }: { balance: number; name: s
 
 // ─── MENU SCREEN ──────────────────────────────────────────────────────────────
 function MenuScreen({ onDishTap, onRecharge }: { onDishTap: (dish: MenuItem) => void; onRecharge: () => void }) {
-  const { studentBalance, studentName, locals, menu } = useStore();
-  const [selectedLocal, setSelectedLocal] = useState<string>("baru");
+  const { balances, studentName, locals, menu, selectedLocalId, selectLocal } = useStore();
+  // El establecimiento activo vive en el store, no en estado local: de él
+  // dependen a la vez el menú, el saldo y la cartilla (RF-15).
+  const selectedLocal = selectedLocalId ?? locals[0]?.id ?? "";
+  const localActivo = locals.find((l) => l.id === selectedLocal);
   const filteredMenu = menu.filter((m) => m.localId === selectedLocal);
   const today = new Date();
   const dateStr = today.toLocaleDateString("es-EC", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <div style={{ flex: 1, overflowY: "auto", background: C.pageBg, display: "flex", flexDirection: "column" }}>
-      <BalanceHeader balance={studentBalance} name={studentName} onRecharge={onRecharge} />
+      <BalanceHeader balance={balances[selectedLocal] ?? 0} name={studentName} localName={localActivo?.name ?? ""} onRecharge={onRecharge} />
 
       <div style={{ padding: "16px 16px 0" }}>
         <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 10, textTransform: "capitalize" }}>{dateStr}</div>
@@ -180,7 +188,7 @@ function MenuScreen({ onDishTap, onRecharge }: { onDishTap: (dish: MenuItem) => 
           {locals.map((l) => (
             <button
               key={l.id}
-              onClick={() => setSelectedLocal(l.id)}
+              onClick={() => selectLocal(l.id)}
               style={{
                 padding: "7px 16px", borderRadius: 999, border: `1px solid ${selectedLocal === l.id ? C.brand : C.border}`,
                 background: selectedLocal === l.id ? C.brandBg : C.card,
@@ -197,7 +205,7 @@ function MenuScreen({ onDishTap, onRecharge }: { onDishTap: (dish: MenuItem) => 
       <div style={{ padding: "12px 16px 100px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: C.textSec, marginBottom: 2 }}>Menú del día</div>
         {filteredMenu.map((dish) => (
-          <DishCard key={dish.id} dish={dish} onTap={() => cupoDisponible(dish) > 0 && onDishTap(dish)} />
+          <DishCard key={dish.id} dish={dish} onTap={() => hayDisponibilidad(dish) && onDishTap(dish)} />
         ))}
       </div>
     </div>
@@ -206,7 +214,7 @@ function MenuScreen({ onDishTap, onRecharge }: { onDishTap: (dish: MenuItem) => 
 
 function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
   // Agotado = sin cupo de Aliflow, aunque el ERP reporte stock (acta §1.3).
-  const soldOut = cupoDisponible(dish) === 0;
+  const soldOut = !hayDisponibilidad(dish);
   return (
     <div
       onClick={soldOut ? undefined : onTap}
@@ -236,10 +244,13 @@ function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>${dish.price.toFixed(2)}</span>
+            {/* Negocios (9-ago-2026): al estudiante NO se le muestra cuántas
+                unidades quedan, solo si hay o no (RN-15). El número del cupo es
+                un acuerdo interno entre el local y Aliflow. */}
             {soldOut ? (
               <Tag color={C.errorText} bg={C.errorBg}>Agotado</Tag>
             ) : (
-              <span style={{ fontSize: 11, color: C.textMuted }}>{cupoDisponible(dish)} disp.</span>
+              <Tag color={C.successText} bg={C.successBg}>Disponible</Tag>
             )}
           </div>
         </div>
@@ -255,9 +266,12 @@ function DishCard({ dish, onTap }: { dish: MenuItem; onTap: () => void }) {
 
 // ─── DISH DETAIL ──────────────────────────────────────────────────────────────
 function DishDetailScreen({ dish, onBack, onConfirm }: { dish: MenuItem; onBack: () => void; onConfirm: () => void }) {
-  const { studentBalance } = useStore();
-  const canBuy = studentBalance >= dish.price && cupoDisponible(dish) > 0;
-  const local = dish.localId === "baru" ? "Barú" : "Caramel Coffee";
+  const { balances, locals } = useStore();
+  // El saldo que cuenta es el de ESTE establecimiento (RN-13): tener plata en
+  // otro local no ayuda a comprar acá.
+  const saldoLocal = balances[dish.localId] ?? 0;
+  const canBuy = saldoLocal >= dish.price && hayDisponibilidad(dish);
+  const local = locals.find((l) => l.id === dish.localId)?.name ?? dish.localId;
 
   return (
     <div style={{ flex: 1, overflowY: "auto", background: C.pageBg, display: "flex", flexDirection: "column" }}>
@@ -283,8 +297,10 @@ function DishDetailScreen({ dish, onBack, onConfirm }: { dish: MenuItem; onBack:
             <span style={{ fontSize: 20, fontWeight: 700, color: C.text }}>${dish.price.toFixed(2)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 13, color: C.textSec }}>Stock</span>
-            <span style={{ fontSize: 13, color: C.text }}>{cupoDisponible(dish)} disponibles</span>
+            <span style={{ fontSize: 13, color: C.textSec }}>Disponibilidad</span>
+            <span style={{ fontSize: 13, color: hayDisponibilidad(dish) ? C.successText : C.errorText, fontWeight: 600 }}>
+              {hayDisponibilidad(dish) ? "Disponible" : "Agotado"}
+            </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
             <span style={{ fontSize: 13, color: C.textSec }}>Punto de entrega</span>
@@ -292,10 +308,13 @@ function DishDetailScreen({ dish, onBack, onConfirm }: { dish: MenuItem; onBack:
           </div>
         </Card>
 
-        {!canBuy && studentBalance < dish.price && (
-          <div style={{ background: C.errorBg, borderRadius: 12, padding: "12px 14px", display: "flex", gap: 8, alignItems: "center" }}>
-            <AlertTriangle size={16} color={C.errorText} />
-            <span style={{ fontSize: 13, color: C.errorText }}>Saldo insuficiente. Tienes ${studentBalance.toFixed(2)}</span>
+        {!canBuy && saldoLocal < dish.price && (
+          <div style={{ background: C.errorBg, borderRadius: 12, padding: "12px 14px", display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <AlertTriangle size={16} color={C.errorText} style={{ flexShrink: 0, marginTop: 2 }} />
+            <span style={{ fontSize: 13, color: C.errorText }}>
+              Saldo insuficiente en {local}. Tienes ${saldoLocal.toFixed(2)} aquí.
+              {" "}El saldo de cada establecimiento solo se usa ahí.
+            </span>
           </div>
         )}
 
@@ -312,7 +331,9 @@ function ConfirmPurchaseScreen({ dish, onBack, onPurchase }: { dish: MenuItem; o
   const store = useStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const afterBalance = store.studentBalance - dish.price;
+  // Se descuenta del saldo de ESTE establecimiento, no de una bolsa común.
+  const saldoLocal = store.balances[dish.localId] ?? 0;
+  const afterBalance = saldoLocal - dish.price;
   const local = store.locals.find((l) => l.id === dish.localId);
 
   function handleConfirm() {
@@ -352,7 +373,7 @@ function ConfirmPurchaseScreen({ dish, onBack, onPurchase }: { dish: MenuItem; o
             <Row label="Subtotal" value={`$${dish.price.toFixed(2)}`} />
             <Row label="Punto de entrega" value={`${local?.name} · Planta baja`} />
             <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4 }}>
-              <Row label="Saldo actual" value={`$${store.studentBalance.toFixed(2)}`} />
+              <Row label={`Saldo en ${local?.name}`} value={`$${saldoLocal.toFixed(2)}`} />
               <Row label="Saldo después de compra" value={`$${afterBalance.toFixed(2)}`} bold />
             </div>
           </div>
@@ -511,15 +532,21 @@ function PickupCodeScreen({ order, onViewOrders, onBack }: { order: Order; onVie
 
 // ─── RECHARGE ─────────────────────────────────────────────────────────────────
 function RechargeScreen({ onBack }: { onBack: () => void }) {
-  const { studentBalance, rechargeBalance } = useStore();
+  const { balances, rechargeBalance, locals, selectedLocalId, selectLocal } = useStore();
   const [selected, setSelected] = useState<number | null>(null);
   const [method, setMethod] = useState<"card" | "transfer">("card");
   const amounts = [5, 10, 20, 30];
   const [done, setDone] = useState(false);
 
+  // La recarga es SIEMPRE contra un establecimiento (decisión #13). El destino
+  // arranca en el local activo, pero se puede cambiar sin salir de la pantalla.
+  const destino = selectedLocalId ?? locals[0]?.id ?? "";
+  const localDestino = locals.find((l) => l.id === destino);
+  const saldoDestino = balances[destino] ?? 0;
+
   function handleRecharge() {
-    if (!selected) return;
-    rechargeBalance(selected);
+    if (!selected || !destino) return;
+    rechargeBalance(destino, selected);
     setDone(true);
     setTimeout(() => { setDone(false); setSelected(null); }, 2000);
   }
@@ -532,11 +559,39 @@ function RechargeScreen({ onBack }: { onBack: () => void }) {
       </div>
 
       <div style={{ padding: "20px 20px 100px", display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Balance */}
+        {/* Establecimiento destino — el dinero va a la cuenta de ESE proveedor */}
+        <Card style={{ padding: "16px" }}>
+          <div style={{ fontSize: 13, color: C.textSec, marginBottom: 12, fontWeight: 600 }}>¿En qué establecimiento?</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {locals.filter((l) => l.activo).map((l) => (
+              <button
+                key={l.id}
+                onClick={() => selectLocal(l.id)}
+                style={{
+                  padding: "9px 16px", borderRadius: 999,
+                  border: `2px solid ${destino === l.id ? C.brand : C.border}`,
+                  background: destino === l.id ? C.brandBg : C.card,
+                  color: destino === l.id ? C.brand : C.textSec,
+                  fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 13, cursor: "pointer",
+                }}
+              >
+                {l.emoji} {l.name}
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, fontSize: 12, color: C.textMuted, lineHeight: 1.45 }}>
+            El saldo que recargues <strong>solo puede usarse en {localDestino?.name}</strong>. El dinero
+            va directo a la cuenta de ese establecimiento; Aliflow no lo retiene en ningún momento.
+          </div>
+        </Card>
+
+        {/* Balance del destino */}
         <Card style={{ padding: "18px", textAlign: "center", background: C.brandBg, border: `1px solid ${C.brand}` }}>
-          <div style={{ fontSize: 13, color: C.brand, fontWeight: 600, marginBottom: 4 }}>Saldo actual</div>
-          <div style={{ fontSize: 36, fontWeight: 800, color: C.text }}>${studentBalance.toFixed(2)}</div>
-          <PendingBadge label="¿El saldo se recarga en tiempo real o requiere confirmación bancaria? Pendiente de integración de pagos." />
+          <div style={{ fontSize: 13, color: C.brand, fontWeight: 600, marginBottom: 4 }}>
+            Saldo actual en {localDestino?.name}
+          </div>
+          <div style={{ fontSize: 36, fontWeight: 800, color: C.text }}>${saldoDestino.toFixed(2)}</div>
+          <PendingBadge label="Falta elegir pasarela de pagos (decisión #12). Cada establecimiento necesitará su propia cuenta de comercio." />
         </Card>
 
         {/* Amount picker */}
@@ -590,7 +645,7 @@ function RechargeScreen({ onBack }: { onBack: () => void }) {
         {done && (
           <div style={{ background: C.successBg, borderRadius: 12, padding: "12px 16px", display: "flex", gap: 8, alignItems: "center" }}>
             <Check size={16} color={C.successText} />
-            <span style={{ fontSize: 14, color: C.successText, fontWeight: 600 }}>¡Saldo recargado! Nuevo saldo: ${(studentBalance).toFixed(2)}</span>
+            <span style={{ fontSize: 14, color: C.successText, fontWeight: 600 }}>¡Recargado! Saldo en {localDestino?.name}: ${saldoDestino.toFixed(2)}</span>
           </div>
         )}
 
@@ -804,6 +859,10 @@ function RedeemRewardScreen({ localId, onBack, onSuccess }: { localId: string; o
   const store = useStore();
   const local = store.locals.find((l) => l.id === localId)!;
   const card = store.loyaltyCards[localId];
+  // El premio sale del mismo cupo que cualquier plato, así que su precio de
+  // lista es real: es sobre ese precio que se aplica el descuento del 100%.
+  const platoPremio = store.menu.find((m) => m.localId === localId && cupoDisponible(m) > 0);
+  const precioPremio = platoPremio?.price ?? card?.rewardPrice ?? 0;
   const [done, setDone] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -826,7 +885,7 @@ function RedeemRewardScreen({ localId, onBack, onSuccess }: { localId: string; o
         </div>
         <h2 style={{ textAlign: "center", color: C.text, marginBottom: 8 }}>¡Premio canjeado!</h2>
         <p style={{ textAlign: "center", fontSize: 14, color: C.textSec, marginBottom: 24 }}>
-          Se creó una orden de $0.00. Muestra el código al operador para recibir tu premio.
+          Se creó una orden con <strong>descuento del 100%</strong>. Muestra el código al operador para recibir tu premio.
         </p>
         <div style={{ fontSize: 32, fontWeight: 800, color: C.brand, letterSpacing: 4, marginBottom: 24 }}>
           {order.pickupCode}
@@ -854,13 +913,20 @@ function RedeemRewardScreen({ localId, onBack, onSuccess }: { localId: string; o
         <Card style={{ padding: "16px" }}>
           <Row label="Local" value={local.name} />
           <Row label="Sellos completados" value={`${card?.stampsEarned}/${card?.stampsRequired}`} />
-          <Row label="Precio del premio" value="$0.00" bold />
+          {/* El canje NO es una venta de $0: conserva el precio del plato y le
+              aplica un descuento del 100% rotulado (Negocios, 8-ago-2026). Así
+              el local puede ver cuánto le costó el premio. */}
+          <Row label="Precio del plato" value={`$${precioPremio.toFixed(2)}`} />
+          <Row label="Descuento · Premio de fidelidad" value={`−$${precioPremio.toFixed(2)}`} />
+          <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 6, paddingTop: 8 }}>
+            <Row label="Total a pagar" value="$0.00" bold />
+          </div>
         </Card>
 
         <div style={{ background: C.infoBg, borderRadius: 12, padding: "12px 14px", display: "flex", gap: 8 }}>
           <Info size={16} color={C.infoText} style={{ flexShrink: 0, marginTop: 1 }} />
           <span style={{ fontSize: 13, color: C.infoText, lineHeight: 1.5 }}>
-            Se generará una orden real de $0.00. Se descuenta inventario pero <strong>no se descuenta saldo</strong>. La cartilla se reiniciará a 0.
+            Se generará una <strong>orden real con descuento del 100%</strong>, no una venta de $0. Se descuenta cupo pero <strong>no se descuenta saldo</strong>. La cartilla se reiniciará a 0.
           </span>
         </div>
 
@@ -870,7 +936,7 @@ function RedeemRewardScreen({ localId, onBack, onSuccess }: { localId: string; o
           </div>
         )}
 
-        <PrimaryBtn onClick={handleRedeem}>Confirmar canje · $0.00</PrimaryBtn>
+        <PrimaryBtn onClick={handleRedeem}>Confirmar canje · Total $0.00</PrimaryBtn>
       </div>
     </div>
   );
@@ -878,7 +944,9 @@ function RedeemRewardScreen({ localId, onBack, onSuccess }: { localId: string; o
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function ProfileScreen({ onLogout }: { onLogout: () => void }) {
-  const { studentBalance, studentName } = useStore();
+  const { balances, studentName, locals } = useStore();
+  const conSaldo = locals.filter((l) => (balances[l.id] ?? 0) > 0);
+  const totalPlataforma = conSaldo.reduce((acc, l) => acc + (balances[l.id] ?? 0), 0);
 
   return (
     <div style={{ flex: 1, overflowY: "auto", background: C.pageBg, display: "flex", flexDirection: "column" }}>
@@ -893,12 +961,35 @@ function ProfileScreen({ onLogout }: { onLogout: () => void }) {
       </div>
 
       <div style={{ padding: "16px 16px 100px", display: "flex", flexDirection: "column", gap: 12 }}>
-        <Card style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 13, color: C.textSec }}>Saldo disponible</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>${studentBalance.toFixed(2)}</div>
+        {/* Un saldo por establecimiento (RN-13). Se listan por separado a
+            propósito: NO se muestra una cifra agregada como saldo principal,
+            porque se leería como si fuera gastable en cualquier local. */}
+        <Card style={{ padding: "16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 13, color: C.textSec, fontWeight: 600 }}>Mis saldos</div>
+            <CreditCard size={22} color={C.brand} />
           </div>
-          <CreditCard size={28} color={C.brand} />
+          {conSaldo.length === 0 && (
+            <div style={{ fontSize: 13, color: C.textMuted }}>Todavía no has recargado en ningún establecimiento.</div>
+          )}
+          {conSaldo.map((l, i) => (
+            <div
+              key={l.id}
+              style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "10px 0", borderTop: i === 0 ? "none" : `1px solid ${C.border}`,
+              }}
+            >
+              <span style={{ fontSize: 14, color: C.text }}>{l.emoji} {l.name}</span>
+              <span style={{ fontSize: 18, fontWeight: 700, color: C.text }}>${(balances[l.id] ?? 0).toFixed(2)}</span>
+            </div>
+          ))}
+          {conSaldo.length > 1 && (
+            <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 6, paddingTop: 10, fontSize: 12, color: C.textMuted, lineHeight: 1.45 }}>
+              Tienes ${totalPlataforma.toFixed(2)} en la plataforma, pero repartidos:
+              cada saldo solo se usa en su establecimiento y no se pueden transferir entre sí.
+            </div>
+          )}
         </Card>
 
         {[
@@ -956,13 +1047,76 @@ function TabBar({ active, onChange }: { active: StudentTab; onChange: (t: Studen
   );
 }
 
+// ─── SELECT ESTABLISHMENT ─────────────────────────────────────────────────────
+/**
+ * Selección obligatoria de establecimiento antes de poder operar (RF-15).
+ *
+ * No es una pantalla decorativa: desde la decisión #13 el saldo pertenece al
+ * establecimiento, así que el menú, el saldo y la cartilla que se muestren
+ * dependen de cuál esté activo. El patrón lo aportó Negocios como referencia:
+ * la app de Parqueo Positivo obliga a elegir un servicio por defecto antes de
+ * dejarte hacer nada.
+ */
+function SelectLocalScreen() {
+  const { locals, balances, selectLocal } = useStore();
+  const activos = locals.filter((l) => l.activo);
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto", background: C.pageBg, display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "64px 24px 24px", textAlign: "center" }}>
+        <div style={{ fontSize: 48 }}>📍</div>
+        <h2 style={{ marginTop: 12, color: C.text }}>¿Dónde vas a comer?</h2>
+        <p style={{ fontSize: 14, color: C.textSec, lineHeight: 1.5, marginTop: 8 }}>
+          Elige tu establecimiento. Tu saldo y tu cartilla de sellos
+          pertenecen a cada local por separado.
+        </p>
+      </div>
+
+      <div style={{ padding: "0 20px 32px", display: "flex", flexDirection: "column", gap: 12 }}>
+        {activos.map((l) => (
+          <button
+            key={l.id}
+            onClick={() => selectLocal(l.id)}
+            style={{
+              display: "flex", alignItems: "center", gap: 14, width: "100%",
+              padding: "16px", background: C.card, border: `1px solid ${C.border}`,
+              borderRadius: 16, cursor: "pointer", textAlign: "left", fontFamily: "Inter, sans-serif",
+            }}
+          >
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: C.brandBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
+              {l.emoji}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{l.name}</div>
+              <div style={{ fontSize: 12, color: C.textSec }}>{l.description}</div>
+            </div>
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              <div style={{ fontSize: 11, color: C.textMuted }}>Tu saldo</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>${(balances[l.id] ?? 0).toFixed(2)}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: "0 24px 32px", textAlign: "center" }}>
+        <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5 }}>
+          Puedes cambiar de establecimiento en cualquier momento desde el menú.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN STUDENT APP ─────────────────────────────────────────────────────────
 export function StudentApp() {
-  const { studentLoggedIn, studentLogin } = useStore();
+  const { studentLoggedIn, studentLogin, selectedLocalId } = useStore();
   const [activeTab, setActiveTab] = useState<StudentTab>("menu");
   const [screen, setScreen] = useState<StudentScreen>({ name: "menu" });
 
   if (!studentLoggedIn) return <LoginScreen onLogin={studentLogin} />;
+  // Sin establecimiento elegido no se muestra menú ni saldo: de él dependen
+  // ambos (RF-15, criterio 1).
+  if (!selectedLocalId) return <SelectLocalScreen />;
 
   function handleTabChange(tab: StudentTab) {
     setActiveTab(tab);

@@ -14,13 +14,15 @@ Se abre en el navegador, no hay que descargar ni instalar nada. Es una app funci
 
 **Recorrido sugerido (2 minutos):**
 
-1. Como **Estudiante**, compra un plato → se descuenta el saldo, se consume el cupo reservado y aparece la confirmación con **hasta qué hora puedes retirar**, más un código de 6 dígitos.
+1. Como **Estudiante**, lo primero es **elegir establecimiento** — el saldo pertenece al local, no a tu cuenta. Elige **Barú** y compra un plato → se descuenta el saldo *de Barú*, se consume el cupo reservado y aparece la confirmación con **hasta qué hora puedes retirar**, más un código de 6 dígitos.
+   > Fíjate en que el menú dice solo **Disponible** o **Agotado**: al estudiante nunca se le muestra cuántas unidades quedan.
 2. Cambia a **Operador**, teclea ese mismo código → la orden pasa a *Entregada* y se acredita un sello.
 3. Vuelve a **Estudiante → Cartilla** → verás el sello nuevo llenándose.
 4. Vuelve a **Operador** y teclea el mismo código otra vez → *Código ya utilizado*. Teclea **200315** → *Código vencido*, el tercer estado.
 5. Como **Proveedor → Menú**, verás el **cupo de Aliflow** separado del stock del ERP, y la hora de retiro configurable.
 6. Como **Super-Admin**, verás los locales de toda la plataforma y podrás dar de alta uno nuevo.
-7. El botón **Reiniciar demo** (abajo) restaura todo para volver a empezar.
+7. Cambia a **Caramel Coffee** e intenta comprar el sánduche de $2.75: **no te deja**, aunque tengas $12.40 en Barú. Ese es el costo del saldo por establecimiento, registrado como riesgo R-21.
+8. El botón **Reiniciar demo** (abajo) restaura todo para volver a empezar.
 
 Credenciales ya precargadas en los formularios de Proveedor y Operador.
 
@@ -71,7 +73,7 @@ Por dónde empezar, en este orden:
 
 > ✅ **La decisión que bloqueaba el modelo de billetera se cerró el 8-ago-2026.** Había una contradicción entre el acta (el dinero va directo a cada proveedor, Aliflow no custodia fondos) y la decisión #4 (saldo único gastable en cualquier local): al recargar todavía no se sabía dónde se compraría. Negocios resolvió que **la recarga es por establecimiento**. Con eso el modelo de datos queda desbloqueado por completo. El costo es la fragmentación del saldo entre locales, registrada como riesgo R-21. Ver `Decisiones-Pendientes-Negocios.md`, punto 13.
 >
-> El prototipo en vivo y los mockups **todavía muestran el saldo único** — falta propagarles este cambio.
+> **Propagación:** el prototipo en vivo y el diagrama de clases ya están actualizados. **Los mockups de Figma todavía muestran el saldo único** y el canje como orden de $0.
 
 ---
 

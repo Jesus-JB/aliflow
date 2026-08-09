@@ -124,6 +124,7 @@ Restricciones que aplican a varios requerimientos a la vez. Se enuncian una sola
 | **RN-12** | **Un canje de premio es una orden real con un descuento del 100% identificado como "Premio"**, no una venta de $0. Conserva el precio original del plato, descuenta cupo y genera código de retiro, pero el total a pagar es $0 y no toca el saldo del estudiante. | ✅ | Confirmado por Negocios el 8-ago-2026 |
 | **RN-13** | **El saldo pertenece al establecimiento, no al estudiante.** La recarga es por establecimiento y solo puede gastarse ahí. No hay saldo único ni transferencias entre locales. | ✅ | Decisión #13, resuelta el 8-ago-2026 |
 | **RN-14** | **Aliflow no recibe ni custodia fondos en ningún punto.** El dinero de la recarga va de la pasarela a la cuenta del proveedor destino. Aliflow registra el movimiento, no lo posee. | ✅ | Acta 30-jul §3.9, decisión #13 |
+| **RN-15** | **Al estudiante nunca se le muestra la cantidad de unidades disponibles**, solo si el plato está *Disponible* o *Agotado*. La cifra del cupo es información interna del local y sí se le muestra al Proveedor. | ✅ | Negocios, 9-ago-2026 |
 
 ---
 
@@ -282,8 +283,9 @@ El estudiante debe poder consultar el menú del día de cada local, con plato, p
 
 **Criterios de aceptación**
 1. El menú muestra la disponibilidad derivada del **cupo reservado** (RN-02), no del stock del ERP.
-2. Un plato con cupo agotado se muestra explícitamente como agotado, no se oculta.
-3. El menú se puede consultar aunque el ERP del local esté caído. *(Consecuencia directa del inventario reservado.)*
+2. La disponibilidad se presenta como **estado binario — "Disponible" o "Agotado" —, nunca como cantidad numérica.** El estudiante no ve cuántas unidades quedan (RN-15).
+3. Un plato con cupo agotado se muestra explícitamente como agotado, no se oculta.
+4. El menú se puede consultar aunque el ERP del local esté caído. *(Consecuencia directa del inventario reservado.)*
 
 #### RF-15 · Elegir establecimiento y mantener el contexto visible
 **Prioridad:** Debe · **Estado:** ✅ · **Origen:** Pantalla Estudiante 02, decisión #13, RN-13

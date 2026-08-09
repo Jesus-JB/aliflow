@@ -12,9 +12,9 @@ Este diagrama modela la **lógica de negocio** del sistema (no las clases de inf
 
 ## 1. Paquete "Usuarios"
 
-**Actualizado el 30-jul-2026: el sistema tiene 4 roles, no 3.** Estudiante, Proveedor y Operador operan **dentro de un local**; el **Super-Admin** es de Aliflow y está por encima de todos. El rol "Administrador" sigue siendo el Proveedor — el gerente del local.
+**Actualizado el 8-ago-2026: los 4 roles quedaron confirmados por Negocios.** Estudiante, Proveedor y Operador operan **dentro de un local**; el **Super-Admin** es de Aliflow y está por encima de todos. El rol "Administrador" sigue siendo el Proveedor — el gerente del local.
 
-**Sobre el vaivén, que conviene registrar:** el 28-jul Negocios indicó que el super-admin **no existía** y se eliminó del diagrama. El 30-jul esa decisión se revirtió y el rol volvió. Es un caso concreto de lo que advierte el riesgo R-08: rehacer diagramas por una decisión que cambia dos días después tiene un costo real.
+**Sobre el vaivén, que conviene registrar:** el 28-jul Negocios indicó que el super-admin **no existía** y se eliminó del diagrama. El 30-jul esa decisión se revirtió de palabra, y el 8-ago quedó confirmada formalmente. Es un caso concreto de lo que advierte el riesgo R-08: rehacer diagramas por una decisión que cambia dos días después tiene un costo real.
 
 **`SuperAdmin` extiende `Usuario` directamente, no `UsuarioProveedor`** — y esa distinción es deliberada: `UsuarioProveedor` obliga a pertenecer a un local (`# proveedor: Proveedor`), y el Super-Admin es el único rol **sin** local, con visibilidad sobre todos los tenants. Da de alta locales nuevos, les crea su vista de proveedor, configura su integración con el ERP y brinda soporte.
 
@@ -62,38 +62,45 @@ La clase nueva más importante de esta revisión, y la que cambia cómo se decid
 
 ## 3. Paquete "Wallet y Pagos"
 
-**Reestructurado el 28-jul-2026 con la decisión de Negocios sobre la recarga:** el estudiante hace **una única recarga** y Aliflow la distribuye internamente hacia los proveedores. Ya no hay recarga separada por local.
+**Reescrito el 8-ago-2026 con la decisión #13 de Negocios: la recarga es por establecimiento.** Es el cambio más grande que sufrió este paquete, y revierte la decisión #4 del 28-jul.
 
-Consecuencia en el modelo: `TarjetaVirtual` ahora **sí** tiene un campo `saldoDisponible` — una bolsa única, gastable en cualquier local, que es lo que el estudiante ve en pantalla. Antes no lo tenía, precisamente porque el saldo vivía repartido en varios `SaldoProveedor`.
+**La regla nueva, en una línea: el saldo pertenece al establecimiento, no al estudiante.** El estudiante recarga *para un local* y solo puede gastar ahí. El dinero va de la pasarela **directo a la cuenta de ese proveedor**; Aliflow no lo recibe ni lo custodia en ningún momento.
 
-**Qué pasó con `SaldoProveedor` (y dónde está el punto abierto).** La frase "Aliflow distribuye internamente a todos los proveedores disponibles" admite dos lecturas, y la diferencia no es cosmética:
+El modelo de referencia lo aportó el propio cliente: la aplicación **Parqueo Positivo**, donde el usuario debe elegir un servicio por defecto antes de operar, un indicador permanente le recuerda en cuál está, y el saldo que ve pertenece a ese servicio.
 
-| Lectura | Qué implicaría | Veredicto |
+### Qué cambió en las clases
+
+| Clase | Antes (saldo único) | Ahora (por establecimiento) |
 |---|---|---|
-| **A — repartir al recargar**: el monto se divide entre los N locales activos en el momento de la recarga | Con 4 locales, una recarga de $20 deja $5 en cada uno: el estudiante no puede comprar un almuerzo de $6 en ninguno pese a tener $20. Y cada local nuevo obligaría a redistribuir saldo existente. | **Inviable** — Ingeniería lo descarta |
-| **B — repartir al comprar** (la que se modeló): el saldo vive en una sola bolsa; al comprar se descuenta de ahí y se acredita al libro interno del local correspondiente | El estudiante ve un solo saldo; Aliflow sabe en todo momento cuánto le debe liquidar a cada local | **Es la que está en el diagrama**, marcada `<<propuesta>>` porque es interpretación de Ingeniería, no palabra de Negocios |
+| `TarjetaVirtual` | Tenía `saldoDisponible`: una bolsa única gastable en cualquier local | **Pierde `saldoDisponible`.** Queda como contenedor que agrupa un `SaldoEstablecimiento` por cada local donde el estudiante recargó. Expone `saldoEn(proveedor)` |
+| `SaldoProveedor` → **`SaldoEstablecimiento`** | Era el **libro interno de lo que Aliflow le debía** a cada local, acreditado al comprar | Es **el saldo real del estudiante en ese local**. El libro de deuda **desapareció**: Aliflow no le debe nada a nadie porque el dinero nunca pasó por sus manos |
+| `Recarga` | Se aplicaba sobre la bolsa única | Gana `proveedorDestino` obligatorio. Toda recarga tiene un establecimiento destino |
+| `Proveedor` | — | Gana `credencialesComercioCifradas`: cada local necesita **su propia cuenta de comercio** en la pasarela |
+| `EstrategiaDistribucionRecarga` + `DistribucionBajoDemanda` | Patrón Strategy que encapsulaba cómo se repartía la recarga entre locales | **Eliminados.** Ver abajo |
 
-Bajo la lectura B, `SaldoProveedor` deja de ser "el saldo del estudiante en ese local" y pasa a ser **el libro interno de lo que Aliflow le debe a ese local** (campo renombrado de `monto` a `montoAcumulado`, y ya no tiene `descontar()`). Falta que Negocios confirme esta lectura — está registrado en `Decisiones-Pendientes-Negocios.md`, punto 4.
+### Por qué se eliminó el patrón Strategy, y no se conservó "por las dudas"
 
-**Qué pasó con el patrón Strategy.** Se conserva `EstrategiaDistribucionRecarga`, pero honestamente: ya no está ahí para "no bloquear una decisión pendiente" (la decisión se tomó), sino porque la **regla** de reparto todavía puede cambiar — si Negocios define una comisión de Aliflow o una retención, eso es una implementación nueva de la interfaz y no un `if` más en el módulo de wallet. `RecargaDirectaPorProveedor` quedó **descartada** y se eliminó del diagrama; `DistribucionBajoDemanda` es la implementación vigente. Sigue siendo un ejemplo válido de **Open/Closed**, con una justificación distinta a la original.
+`EstrategiaDistribucionRecarga` existía para encapsular *cómo* Aliflow repartía internamente una recarga única entre los locales. **Con la recarga por establecimiento no hay reparto que hacer**: el dinero tiene un único destinatario, conocido desde antes de cobrar.
 
-`Pago` (con `EstadoPago`: APROBADO/PENDIENTE/RECHAZADO — tal como se encontró en la investigación previa del equipo sobre el flujo de pagos) genera una `Recarga` solo si es aprobado. `ComprobanteRecarga` es el comprobante interno sin validez tributaria ya documentado (`est-2`).
+Se retira en vez de conservarse porque un patrón sin un problema que resolver es exactamente la sobre-ingeniería que este diagrama declara evitar — el mismo criterio por el que nunca incluyó Singleton ni Observer. Los patrones que quedan (Adapter, Factory Method, Outbox) responden a problemas reales y vigentes.
 
-### Cambios del 30-jul-2026 en este paquete
+Vale registrar la ironía: el 28-jul se eliminó `RecargaDirectaPorProveedor` por considerarla descartada y se conservó `DistribucionBajoDemanda`. **Se eliminó la que resultó ser correcta.** Es un caso concreto del costo que advierte el riesgo R-08.
 
-**`Recarga` gana los campos que exige el acta (§2.1).** Cada recarga debe registrar como mínimo: valor, fecha y hora, **número de operación**, **estado de la transacción**, **identificador de la pasarela**, usuario que recargó, y quedar en histórico para auditoría y conciliación. Se agregaron `numeroOperacion`, `estadoTransaccion` e `idPasarela`.
+### Lo que esta decisión resolvió
 
-**`MetodoPago` (nueva, en amarillo).** El acta (§3.2 y §3.3) es explícita: Aliflow **nunca** almacena el número completo de la tarjeta ni el código de seguridad. Solo guarda tipo de tarjeta, últimos cuatro dígitos y el **token** que devuelve la pasarela; los datos bancarios reales los custodia la pasarela. Está en amarillo porque todavía no se eligió pasarela y falta confirmar que la elegida soporte tokenización.
+- **Desapareció la contradicción con el acta.** El §3.9 decía que el dinero llega directo a cada proveedor y que Aliflow no custodia fondos; ahora el modelo lo cumple literalmente.
+- **Se desbloqueó el esquema de base de datos.** Este paquete era lo único congelado.
+- **Se cerraron los riesgos R-18 y R-19.** El *split payments* dejó de ser necesario, porque cada recarga tiene un único destinatario.
 
-**El acta confirma el modelo de comprobantes, cerrando la decisión #8.** La recarga genera solo un comprobante interno sin validez tributaria; la factura la emite el ERP del local recién cuando el estudiante compra. Es exactamente lo que ya implementaba `sinValidezTributaria = true`, así que no hubo nada que rehacer.
+### Lo que esta decisión costó
 
-### 🔴 Una contradicción nueva que este paquete todavía no puede resolver
+- **Saldo fragmentado (riesgo R-21).** Un estudiante con $6 en un local y $4 en otro no puede comprar un almuerzo de $7 en ninguno, teniendo $10. Es tolerable porque el estudiante *elige* dónde pone su dinero —no es un reparto automático como la lectura A que se descartó el 28-jul—, pero va a ocurrir. Las mitigaciones son de interfaz y están en los requerimientos RF-07, RF-08, RF-12 y RF-15.
+- **Cada local necesita su cuenta de comercio (riesgo R-22).** Un local que no pueda o no quiera abrirla no puede vender por Aliflow, aunque su ERP esté integrado.
+- **Saldo huérfano (riesgo R-23).** Si el estudiante se gradúa o el local sale de la plataforma, queda saldo que **Aliflow no puede devolver porque nunca tuvo el dinero**. Se resuelve por contrato con cada local, no por software.
 
-El acta (§3.9) dice que **el dinero llega directamente a la cuenta de cada proveedor** y que **Aliflow no custodia fondos**. La decisión #4 dice que hay un **saldo único** gastable en cualquier local.
+### Lo que no cambió
 
-No encajan: al recargar todavía no se sabe en qué local se comprará, así que no hay a qué cuenta de proveedor mandar el dinero. Las tres salidas —pasarela con *split payments*, elegir local al recargar, o que Aliflow custodie— llevan a modelos de datos distintos.
-
-**Por eso `TarjetaVirtual`, `SaldoProveedor` y `Recarga` no deben pasar a esquema de base de datos todavía.** El resto del modelo sí. Registrado como riesgo **R-18** y como decisión abierta #13.
+`Pago` (con `EstadoPago`: APROBADO/PENDIENTE/RECHAZADO) genera una `Recarga` solo si es aprobado. `ComprobanteRecarga` sigue siendo el comprobante interno sin validez tributaria. `MetodoPago` sigue en amarillo: Aliflow nunca almacena el número completo de la tarjeta ni el código de seguridad, solo tipo, últimos cuatro dígitos y token — y falta confirmar que la pasarela elegida soporte tokenización, porque **todavía no se eligió pasarela** (decisión #12).
 
 ## 4. Paquete "Órdenes"
 
@@ -114,11 +121,11 @@ No encajan: al recargar todavía no se sabe en qué local se comprará, así que
 
 ## 5. Paquete "Fidelidad" (requisito nuevo, 28-jul-2026)
 
-Negocios pidió una **cartilla de fidelidad**: el estudiante acumula un sello por compra y al completar la cartilla gana un premio. **Cuántos sellos y qué premio todavía están en definición**, así que todo el paquete está marcado `<<propuesta>>`.
+Negocios pidió una **cartilla de fidelidad**: el estudiante acumula un sello por compra y al completar la cartilla gana un premio. **Las cinco reglas quedaron confirmadas el 8-ago-2026** y el paquete perdió el `<<propuesta>>`. Siguen sin definirse solo dos valores —cuántos sellos y cuál es el premio—, que por diseño son configuración y no constantes.
 
 **La decisión de diseño que evita quedarse esperando:** los dos datos que faltan (`sellosRequeridos`, `descripcionPremio`) se modelan como **campos configurables de `ProgramaFidelidad`**, no como constantes. Cuando Negocios los defina, es un valor en base de datos — no hay que rediseñar ni reprogramar nada. Lo mismo con `vigenciaCartillaDias` (si Negocios decide que la cartilla no caduca, el campo queda nulo) y con `maxSellosPorDia`.
 
-**Cuatro decisiones de diseño que Ingeniería tomó y conviene que Negocios revise:**
+**Cuatro decisiones de diseño que Ingeniería tomó y que Negocios confirmó el 8-ago-2026:**
 
 1. **El programa es por local, no de la plataforma.** `ProgramaFidelidad` cuelga de `Proveedor`. La razón es económica, no técnica: el premio lo regala el local, así que es el local quien debe poder decidir si lo ofrece, cuántos sellos pide y qué da. Un local puede no tener programa. Como consecuencia, el estudiante tiene **una cartilla activa por local**, no una sola global.
 2. **El sello se acredita al entregar, no al comprar.** `Sello` se crea dentro de `Orden.marcarEntregado()`, no de `confirmarCompra()`. Si se acreditara al comprar, un estudiante podría llenar la cartilla comprando almuerzos y nunca yendo a buscarlos — el local pagaría el premio sin haber vendido nada real. Además el sello así acompaña al acto físico, que es lo que el negocio quiere premiar.
@@ -127,9 +134,9 @@ Negocios pidió una **cartilla de fidelidad**: el estudiante acumula un sello po
 
 **El canje toca el resto del sistema en tres lugares:**
 
-- **`Orden.esCanje`** — el canje se aplica sobre una orden real con total $0. Tiene que ser una orden de verdad porque el plato igual sale del inventario y el estudiante igual necesita un código de retiro.
-- **La wallet no se toca.** No se descuenta `TarjetaVirtual.saldoDisponible` ni se acredita `SaldoProveedor`: Aliflow no le debe nada al local por un premio que el local mismo decidió regalar.
-- **El ERP sí se entera, y ahí hay un problema abierto.** Un `notifySale` con monto $0 puede parecerle un error al ERP del local. Habría que emitirlo como documento de cortesía o descuento del 100%, y eso se resuelve distinto en Contífico que en Alpwin. Está registrado como pendiente.
+- **`Orden.esCanje` + `descuento` + `motivoDescuento`** — el canje se aplica sobre una orden real con **descuento del 100% rotulado como premio**, no con total $0. Tiene que ser una orden de verdad porque el plato igual sale del cupo y el estudiante igual necesita un código de retiro. *(Ingeniería había propuesto la orden de $0; Negocios pidió el descuento el 8-ago-2026, y es mejor: conserva el precio original, así el local puede ver cuánto le costaron los premios — un dato que con $0 no existía.)*
+- **La wallet no se toca.** No se descuenta el `SaldoEstablecimiento` del estudiante: el premio lo regala el local, no se paga con saldo.
+- **El ERP sí se entera, y el problema que había aquí se resolvió.** Antes la duda era si un `notifySale` de $0 sería rechazado por el ERP como error, y si había que emitirlo como documento de cortesía o como descuento. **La respuesta de Negocios lo decidió: descuento del 100%**, que además es una operación normal para cualquier ERP. Queda solo verificar contra la documentación de Contífico y de Alpwin que ambos lo admiten en línea de venta.
 
 **Concurrencia:** el paso `COMPLETA → CANJEADA` usa el mismo mecanismo atómico y condicional que la redención del código de retiro (`UPDATE ... WHERE estado = 'COMPLETA'`). Si dos pestañas del estudiante intentan canjear a la vez, la segunda afecta 0 filas y falla sin crear la orden.
 
@@ -155,7 +162,7 @@ Materializa directamente la arquitectura ya diseñada en `Hallazgos-Ingenieria-A
 | Principio | Dónde se aplica |
 |---|---|
 | **S — Responsabilidad única** | `Orden` gestiona su propio estado y ciclo de vida; la traducción a cada ERP vive exclusivamente en su adaptador; `SincronizacionWorker` solo orquesta reintentos, no lógica de negocio de la venta. |
-| **O — Abierto/cerrado** | Agregar un ERP nuevo = una clase `NuevoErpAdapter` nueva, cero cambios al core (`IInventoryProvider` ya definido). Igual con `EstrategiaDistribucionRecarga`: una nueva regla de negocio de recarga es una clase nueva, no un `if` más. |
+| **O — Abierto/cerrado** | Agregar un ERP nuevo = una clase `NuevoErpAdapter` nueva, cero cambios al core (`IInventoryProvider` ya definido). *(El otro ejemplo que había aquí, `EstrategiaDistribucionRecarga`, se eliminó el 8-ago-2026 al quedar sin problema que resolver — ver sección 3.)* |
 | **L — Sustitución de Liskov** | Cualquier `IInventoryProvider` (Contífico/Alpwin/Odoo) es intercambiable sin que el código que lo usa (`SincronizacionWorker`, `Orden`) se entere de la diferencia. Con varios locales activos a la vez, esto se ejercita de verdad en producción, no solo en teoría. |
 | **I — Segregación de interfaces** | `IInventoryProvider` se mantiene deliberadamente pequeña (6 métodos, todos relacionados a inventario/venta/pago) — no se mezcla con responsabilidades de facturación fiscal, que quedan fuera de esta interfaz. |
 | **D — Inversión de dependencias** | `ProviderAdapterFactory` y `SincronizacionWorker` dependen de la abstracción `IInventoryProvider`, nunca de `OdooAdapter`/`ContificoAdapter`/`AlpwinAdapter` directamente. |
@@ -164,10 +171,10 @@ Materializa directamente la arquitectura ya diseñada en `Hallazgos-Ingenieria-A
 
 - **Adapter** — resuelve directamente el reto técnico central del proyecto (integrar con ERPs heterogéneos sin acoplarse a ninguno).
 - **Factory Method** (`ProviderAdapterFactory`) — evita que la lógica de "qué adaptador usar" se disperse por el código; centraliza la decisión en un solo lugar.
-- **Strategy** (`EstrategiaDistribucionRecarga`) — originalmente servía para no bloquear el diseño mientras Negocios decidía el mecanismo de recarga. Tomada esa decisión (28-jul-2026), se conserva porque la **regla de reparto** interno (comisiones, retenciones) sigue siendo un punto de variación real del negocio.
+- ~~**Strategy** (`EstrategiaDistribucionRecarga`)~~ — **eliminado el 8-ago-2026.** Servía para encapsular cómo se repartía internamente una recarga única entre locales. Con la recarga por establecimiento ya no hay reparto, así que el patrón se quedó sin problema que resolver y se retiró en vez de conservarse por las dudas. Ver sección 3.
 - **Outbox** (arquitectural, no GoF clásico) — ya validado técnicamente en el demo con Odoo Community (`Hallazgos-Ingenieria-API-Generica.md`, sección 4.2).
 
-No se forzaron patrones adicionales (ej. Singleton, Observer) donde no había un problema real que resolver — evitar ese "mal olor" de sobre-ingeniería fue una decisión deliberada.
+No se forzaron patrones adicionales (ej. Singleton, Observer) donde no había un problema real que resolver — evitar ese "mal olor" de sobre-ingeniería fue una decisión deliberada. **Y el criterio se aplicó también en sentido inverso:** cuando la decisión #13 dejó al Strategy sin propósito, se lo eliminó. Conservar un patrón que ya no resuelve nada habría sido el mismo mal olor, solo que heredado.
 
 ## Malos olores evitados
 
@@ -177,14 +184,19 @@ No se forzaron patrones adicionales (ej. Singleton, Observer) donde no había un
 
 ## Supuestos y pendientes de este diagrama (a validar con el equipo/Negocios)
 
-Todos marcados con `<<propuesta>>` y fondo amarillo directamente en el diagrama. Con las decisiones del 28-jul-2026, la lista **bajó de 5 supuestos a 3**:
+Todos marcados con `<<propuesta>>` y fondo amarillo directamente en el diagrama. Tras las respuestas de Negocios del 8-ago-2026, **la lista bajó de 4 supuestos a 1**:
 
-1. `SaldoProveedor` como libro interno acreditado **al momento de la compra** — es la interpretación de Ingeniería de "Aliflow distribuye internamente" (lectura B de la tabla en la sección 3). Falta que Negocios la confirme.
-2. `EstadoOrden.EXPIRADO` es una adición de Ingeniería para cubrir el vacío de "orden nunca retirada" — falta que Negocios defina la regla de expiración exacta.
-3. `Usuario.autenticar()` no distingue aún el mecanismo (OAuth institucional para Estudiante vs. credenciales propias para Proveedor y Operador) a nivel de firma — se resuelve en `uml/actividad-autenticacion.puml`.
-4. **Todo el paquete "Fidelidad"** — es un requisito real de Negocios, pero su modelado completo (programa por local, sello en la entrega, tope diario, canje como orden de $0) es diseño de Ingeniería sobre una descripción todavía incompleta. Ver sección 5.
+1. `Usuario.autenticar()` no distingue aún el mecanismo (OAuth institucional para Estudiante vs. credenciales propias para los demás roles) a nivel de firma — se resuelve en `uml/actividad-autenticacion.puml`.
 
-**Cerrados por Negocios el 28-jul-2026** (ya no son supuestos): la jerarquía de personal por local, el alcance del rol Administrador (que resultó ser el Proveedor mismo), el mecanismo de recarga, y el formato del código de retiro.
+**Cerrados el 8-ago-2026:**
+
+- **`SaldoProveedor` como libro interno** — el supuesto desapareció junto con la clase: con recarga por establecimiento no hay libro de deuda que llevar. Ver sección 3.
+- **`EstadoOrden.EXPIRADO`** — el acta del 30-jul cerró la regla (la orden expira al terminar el día de la compra). Lo único que sigue abierto es qué pasa con el **dinero** de una orden expirada, que es una decisión de negocio, no un supuesto de modelado.
+- **Todo el paquete "Fidelidad"** — las cinco reglas quedaron confirmadas: es tarjeta de sellos y no paquete prepago, sello al retirar, tope de 1/día, cartilla por local, y premio como descuento del 100%. El paquete perdió el `<<propuesta>>`.
+
+**Cerrados por Negocios el 28-jul-2026:** la jerarquía de personal por local, el alcance del rol Administrador (que resultó ser el Proveedor mismo) y el formato del código de retiro.
+
+**Sigue en amarillo `MetodoPago`**, pero no por un supuesto de modelado: depende de que se elija pasarela y de confirmar que soporte tokenización (decisión #12).
 
 ## Cambios aplicados en la revisión del 28-jul-2026 (decisiones de Negocios)
 

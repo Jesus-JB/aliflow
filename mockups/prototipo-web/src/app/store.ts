@@ -30,6 +30,17 @@ export interface Order {
   horaMaximaRetiro: string;
   studentId: string;
   items: OrderItem[];
+  /** Suma de los ítems a precio de lista, antes de descuentos. */
+  subtotal: number;
+  /**
+   * Descuento aplicado. Un canje de fidelidad NO es una venta de $0: es una
+   * venta con descuento del 100% rotulado (decisión de Negocios, 8-ago-2026).
+   * Así el local puede ver cuánto le costaron los premios —dato que con una
+   * orden de $0 no existe— y el ERP recibe un documento que entiende.
+   */
+  descuento: number;
+  motivoDescuento?: string;
+  /** Lo que realmente se cobró: subtotal - descuento. */
   total: number;
   status: OrderStatus;
   createdAt: Date;
@@ -69,6 +80,21 @@ export function cupoDisponible(m: MenuItem): number {
   return Math.max(0, m.cupoAliflow - m.cupoConsumido);
 }
 
+/**
+ * Al estudiante NUNCA se le muestra la cantidad, solo si hay o no (RN-15,
+ * pedido por Negocios el 9-ago-2026). El número del cupo es un acuerdo interno
+ * entre el local y Aliflow: mostrar "quedan 3" cuando el local tiene 40
+ * almuerzos en la cocina sería engañoso. El Proveedor sí ve la cifra exacta.
+ */
+export function hayDisponibilidad(m: MenuItem): boolean {
+  return cupoDisponible(m) > 0;
+}
+
+/** Saldo del estudiante en ese establecimiento; 0 si nunca recargó ahí. */
+export function saldoEn(data: StoreData, localId: string): number {
+  return data.balances[localId] ?? 0;
+}
+
 export interface Local {
   id: string;
   name: string;
@@ -106,7 +132,18 @@ export interface ERPEvent {
 // ─── Mutable store data ───────────────────────────────────────────────────────
 
 export interface StoreData {
-  studentBalance: number;
+  /**
+   * Saldo POR ESTABLECIMIENTO (decisión #13, 8-ago-2026). El saldo pertenece
+   * al local, no al estudiante: se recarga para un local y solo se gasta ahí.
+   * El dinero va directo a la cuenta de ese proveedor — Aliflow no lo custodia.
+   * Modelo de referencia aportado por el cliente: la app Parqueo Positivo.
+   */
+  balances: Record<string, number>;
+  /**
+   * Establecimiento activo. Hay que elegir uno antes de poder operar, y de él
+   * dependen a la vez el menú, el saldo y la cartilla.
+   */
+  selectedLocalId: string | null;
   studentName: string;
   orders: Order[];
   loyaltyCards: Record<string, LoyaltyCard>;
@@ -139,7 +176,10 @@ export interface StoreData {
 
 export interface AppState extends StoreData {
   purchaseDish: (item: MenuItem) => { success: boolean; order?: Order; error?: string };
-  rechargeBalance: (amount: number) => void;
+  /** Recarga SIEMPRE contra un establecimiento concreto (decisión #13). */
+  rechargeBalance: (localId: string, amount: number) => void;
+  /** Cambia el establecimiento activo: con él cambian menú, saldo y cartilla. */
+  selectLocal: (localId: string) => void;
   validateCode: (code: string) => { success: boolean; order?: Order; error?: string; alreadyUsed?: boolean; expired?: boolean };
   redeemLoyalty: (localId: string) => { success: boolean; order?: Order; error?: string };
   updateStock: (dishId: string, delta: number) => void;
@@ -180,7 +220,14 @@ function generatePickupCode(): string {
 
 export function createInitialData(): StoreData {
   return {
-    studentBalance: 12.40,
+    // Saldo por establecimiento. Se siembra con saldo en los dos locales, y a
+    // propósito con poco en Caramel: sirve para mostrar en vivo el riesgo R-21
+    // (saldo fragmentado) — alcanza para un café de $1.50 pero no para el
+    // sánduche de $2.75, aunque el estudiante tenga $14.40 en la plataforma.
+    balances: { baru: 12.40, caramel: 2.00 },
+    // Arranca sin elegir: la app obliga a seleccionar establecimiento antes de
+    // mostrar menú o saldo, igual que Parqueo Positivo (RF-15).
+    selectedLocalId: null,
     studentName: "Ana M.",
     // Orden sembrada de AYER, ya vencida: permite demostrar el tercer estado
     // del código (VENCIDO) sin tener que esperar a que pase un día.
@@ -193,6 +240,8 @@ export function createInitialData(): StoreData {
         horaMaximaRetiro: "14:00",
         studentId: "student-1",
         items: [{ dishId: "baru-2", dishName: "Encebollado", localId: "baru", localName: "Barú", price: 3.00, quantity: 1 }],
+        subtotal: 3.00,
+        descuento: 0,
         total: 3.00,
         status: "vencido",
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 26),
@@ -250,7 +299,12 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
       if (!menuItem || cupoDisponible(menuItem) <= 0) {
         return { success: false, error: "Sin cupo disponible en Aliflow" };
       }
-      if (s.studentBalance < item.price) return { success: false, error: "Saldo insuficiente" };
+      // El saldo es por establecimiento: una compra solo puede consumir el
+      // saldo de SU local. Tener plata en otro local no sirve de nada (RN-13).
+      const saldoLocal = saldoEn(s, item.localId);
+      if (saldoLocal < item.price) {
+        return { success: false, error: "Saldo insuficiente en este establecimiento" };
+      }
 
       const local = s.locals.find((l) => l.id === item.localId)!;
       const order: Order = {
@@ -260,6 +314,8 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
         horaMaximaRetiro: local.horaMaximaRetiro,
         studentId: "student-1",
         items: [{ dishId: item.id, dishName: item.name, localId: item.localId, localName: local.name, price: item.price, quantity: 1 }],
+        subtotal: item.price,
+        descuento: 0,
         total: item.price,
         status: "pendiente",
         createdAt: new Date(),
@@ -268,7 +324,7 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
 
       set({
         ...s,
-        studentBalance: Math.round((s.studentBalance - item.price) * 100) / 100,
+        balances: { ...s.balances, [item.localId]: Math.round((saldoLocal - item.price) * 100) / 100 },
         orders: [order, ...s.orders],
         // Se consume el cupo de Aliflow y se refleja también en el espejo del ERP.
         menu: s.menu.map((m) => m.id === item.id
@@ -283,9 +339,19 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
       return { success: true, order };
     },
 
-    rechargeBalance(amount: number) {
+    rechargeBalance(localId: string, amount: number) {
       const s = get();
-      set({ ...s, studentBalance: Math.round((s.studentBalance + amount) * 100) / 100 });
+      // El dinero va directo a la cuenta de ESE proveedor: Aliflow solo
+      // registra el movimiento, nunca lo custodia (RN-14).
+      set({
+        ...s,
+        balances: { ...s.balances, [localId]: Math.round((saldoEn(s, localId) + amount) * 100) / 100 },
+      });
+    },
+
+    selectLocal(localId: string) {
+      const s = get();
+      set({ ...s, selectedLocalId: localId });
     },
 
     validateCode(code: string): { success: boolean; order?: Order; error?: string; alreadyUsed?: boolean; expired?: boolean } {
@@ -357,7 +423,14 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
         codigoEstado: "VALIDO",
         horaMaximaRetiro: local.horaMaximaRetiro,
         studentId: "student-1",
-        items: [{ dishId: rewardDish.id, dishName: card.reward, localId, localName: local.name, price: 0, quantity: 1 }],
+        // El canje NO es una venta de $0: conserva el precio real del plato y
+        // le aplica un descuento del 100% rotulado como premio (Negocios,
+        // 8-ago-2026). Así el local ve cuánto le costó el premio y el ERP
+        // recibe una venta con descuento, que es una operación que entiende.
+        items: [{ dishId: rewardDish.id, dishName: card.reward, localId, localName: local.name, price: rewardDish.price, quantity: 1 }],
+        subtotal: rewardDish.price,
+        descuento: rewardDish.price,
+        motivoDescuento: "Premio de fidelidad",
         total: 0,
         status: "pendiente",
         createdAt: new Date(),
@@ -459,6 +532,8 @@ export function createActions(getData: () => StoreData, setData: (d: StoreData) 
       set({
         ...s,
         locals: [...s.locals, { id, name: nombre, description: descripcion, emoji, horaMaximaRetiro: "14:00", activo: true }],
+        // Un local nuevo arranca sin saldo del estudiante: hay que recargar ahí.
+        balances: { ...s.balances, [id]: 0 },
         loyaltyCards: s.loyaltyCards,
       });
     },
