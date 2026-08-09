@@ -4,7 +4,7 @@
 *(el nombre original del proyecto decía "en Barú UEES"; Negocios aclaró el 28-jul-2026 que Aliflow sirve a cualquier local de comida de la universidad — Barú, Caramel Coffee, etc. — no solo a Barú)*
 **Entregable de referencia:** 01.g de la especificación de proyecto final ("Se debe documentar la gestión de riesgos, sprint backlogs y el cronograma para el proyecto.")
 **Fecha:** 26-jul-2026 · **Última revisión:** 8-ago-2026 (cierre de la decisión de custodia de fondos y confirmación de las reglas de fidelidad)
-**Origen:** matriz elaborada previamente por el equipo, recuperada y formalizada aquí junto con la investigación de arquitectura de integración (`Hallazgos-Ingenieria-API-Generica.md`).
+**Origen:** matriz elaborada previamente por el equipo, recuperada y formalizada aquí junto con la investigación de arquitectura de integración (`../../Hallazgos-Ingenieria-API-Generica.md`).
 
 Clasificación de tipos de riesgo: Tecnológico, Humano, Organizacional, Herramientas, Requerimientos, Estimación.
 
@@ -44,7 +44,7 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 >
 > **R-18 merece atención especial** porque no es un vacío sino una contradicción entre dos decisiones ya tomadas, y es el único riesgo abierto capaz de obligar a rehacer el modelo de billetera.
 
-> **Actualizado 28-jul-2026 — el ranking de riesgos se dio vuelta.** El 27-jul se había degradado R-01 y promovido R-11, sobre la base de que Barú usaba Alpwin. Negocios corrigió ese dato (`Hallazgos-Ingenieria-API-Generica.md` sección 4.3): **Barú usa Contífico; Alpwin lo usa Caramel Coffee**. Consecuencias sobre la matriz:
+> **Actualizado 28-jul-2026 — el ranking de riesgos se dio vuelta.** El 27-jul se había degradado R-01 y promovido R-11, sobre la base de que Barú usaba Alpwin. Negocios corrigió ese dato (`../../Hallazgos-Ingenieria-API-Generica.md` sección 4.3): **Barú usa Contífico; Alpwin lo usa Caramel Coffee**. Consecuencias sobre la matriz:
 >
 > - **R-01 vuelve a ser el riesgo dominante** y su impacto sube de Grave a **Catastrófico**: si Barú no consigue credenciales de API de Contífico, el piloto no arranca. Ya no es "un riesgo de fase futura".
 > - **R-11 baja de Grave a Moderado.** Alpwin sigue sin API, pero afecta al segundo local, no al primero — degrada el alcance del piloto, no lo bloquea.
@@ -60,7 +60,7 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 
 ### R-02 — Inconsistencia entre saldo, facturación e inventario
 **Descripción:** Una compra podría descontar saldo en Aliflow, pero fallar al registrar la factura o el descuento de inventario en el sistema externo.
-**Acción:** Delegar la emisión contable final al ERP/proveedor autorizado y registrar en Aliflow estados de sincronización. Implementar bitácora, reintentos, estados PENDIENTE/FACTURADO/ERROR y procedimiento de conciliación con el responsable de Barú. (Ver patrón outbox en `Hallazgos-Ingenieria-API-Generica.md` sección 3.4 — ya validado técnicamente en el demo con Odoo.)
+**Acción:** Delegar la emisión contable final al ERP/proveedor autorizado y registrar en Aliflow estados de sincronización. Implementar bitácora, reintentos, estados PENDIENTE/FACTURADO/ERROR y procedimiento de conciliación con el responsable de Barú. (Ver patrón outbox en `../../Hallazgos-Ingenieria-API-Generica.md` sección 3.4 — ya validado técnicamente en el demo con Odoo.)
 
 ### R-03 — Baja experiencia del equipo creando APIs seguras
 **Descripción:** El equipo ha consumido APIs, pero tiene poca experiencia construyendo endpoints propios con autenticación, roles, validaciones y manejo seguro de datos.
@@ -88,14 +88,14 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 
 ### R-09 — Requisitos de seguridad incompletos
 **Descripción:** No definir correctamente roles, permisos, protección de tokens, validación de códigos de retiro y auditoría puede abrir fallas de seguridad.
-**Acción:** Definir los **4 roles confirmados por Negocios** (Estudiante, Operador, Proveedor y Super-Admin de Aliflow — confirmados el 8-ago-2026; el 28-jul se había indicado que el Super-Admin no existía y la decisión se revirtió); usar autenticación con tokens, contraseñas cifradas, validaciones en backend, expiración de códigos de retiro y registro de auditoría para compras y redenciones. **Ya modelado (27-jul-2026):** clase `RegistroAuditoria` agregada al diagrama de clases (`uml/diagrama-clases.puml`, paquete "Órdenes"), registrando quién ejecuta las operaciones que cambian dinero o estado de una orden.
+**Acción:** Definir los **4 roles confirmados por Negocios** (Estudiante, Operador, Proveedor y Super-Admin de Aliflow — confirmados el 8-ago-2026; el 28-jul se había indicado que el Super-Admin no existía y la decisión se revirtió); usar autenticación con tokens, contraseñas cifradas, validaciones en backend, expiración de códigos de retiro y registro de auditoría para compras y redenciones. **Ya modelado (27-jul-2026):** clase `RegistroAuditoria` agregada al diagrama de clases (`../../uml/diagrama-clases.puml`, paquete "Órdenes"), registrando quién ejecuta las operaciones que cambian dinero o estado de una orden.
 
 ### R-10 — Subestimación del esfuerzo de integración y pruebas
 **Descripción:** El equipo puede subestimar el trabajo necesario para probar wallet, órdenes, inventario simulado, facturación, errores y seguridad.
 **Acción:** Construir primero un MVP con registro, saldo, compra y código de retiro; luego agregar Mock ERP/adaptador real, reportes y validaciones. Reservar tiempo específico para pruebas de integración y corrección de errores.
 
 ### R-11 — Alpwin (sistema de Caramel Coffee) no tiene API pública documentada
-**Descripción:** Alpwin no tiene documentación pública de API (`Hallazgos-Ingenieria-API-Generica.md` secciones 2.5 y 4.3). **Corregido el 28-jul-2026:** el local que lo usa es Caramel Coffee, no Barú. El riesgo sigue siendo real pero cambió de severidad — degrada el alcance de la plataforma (un local que no se puede integrar en tiempo real) en vez de bloquear el piloto.
+**Descripción:** Alpwin no tiene documentación pública de API (`../../Hallazgos-Ingenieria-API-Generica.md` secciones 2.5 y 4.3). **Corregido el 28-jul-2026:** el local que lo usa es Caramel Coffee, no Barú. El riesgo sigue siendo real pero cambió de severidad — degrada el alcance de la plataforma (un local que no se puede integrar en tiempo real) en vez de bloquear el piloto.
 **Acción:** Contactar a Syscompsa para descartar o confirmar una vía de integración no pública, **después** de tener el `ContificoAdapter` andando. Si no hay vía, construir el adaptador por archivos/BD puente y aceptar sincronización por lotes para ese local. La conversación de "migrar de sistema" corresponde plantearla a ese local específico, no al proyecto entero.
 
 ### R-17 — Cartilla de fidelidad con reglas sin definir
@@ -119,17 +119,17 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 
 ## Riesgos también identificados en la revisión del flujo funcional (no estaban en la matriz original)
 
-Estos se detectaron en `Hallazgos-Ingenieria-API-Generica.md` sección 5.3 y conviene incorporarlos formalmente:
+Estos se detectaron en `../../Hallazgos-Ingenieria-API-Generica.md` sección 5.3 y conviene incorporarlos formalmente:
 
 | ID | Nombre | Tipo | Probabilidad | Impacto | Estrategia |
 |---|---|---|---|---|---|
 | R-12 | Operador sin modo offline en v1 (decisión de negocio ya confirmada) — un fallo de conectividad en el punto de entrega bloquea toda entrega de almuerzos | Tecnológico | Media | Grave | Aceptar (con plan de contingencia manual documentado) |
 | R-13 | Órdenes "Comprado" sin estado de expiración/no-show — no hay regla definida para una orden nunca retirada | Requerimientos | Media | Moderado | Mitigar (definir el estado y su regla de negocio antes de construir el diagrama de estados) |
-| R-14 | *(nuevo, detectado 27-jul-2026 al diseñar `uml/secuencia-retiro-entrega.puml`)* Doble redención del código de retiro — dos Operadores podrían validar el mismo código casi simultáneamente | Tecnológico | Baja | Grave | Mitigar |
+| R-14 | *(nuevo, detectado 27-jul-2026 al diseñar `../../uml/secuencia-retiro-entrega.puml`)* Doble redención del código de retiro — dos Operadores podrían validar el mismo código casi simultáneamente | Tecnológico | Baja | Grave | Mitigar |
 
 ### R-14 — Doble redención del código de retiro
 **Descripción:** si dos Operadores (posiblemente en distintos puntos de entrega del mismo local) intentan validar el mismo `CodigoRetiro` casi al mismo tiempo, sin un mecanismo atómico ambos podrían marcar la entrega como exitosa, resultando en dos entregas físicas de un mismo almuerzo.
-**Acción:** ya resuelto a nivel de diseño — la invalidación del código se modela como una actualización atómica y condicional (`UPDATE ... WHERE usado = false`), igual que el mecanismo de bloqueo optimista usado para el stock (`Plato.version`). Si la actualización afecta 0 filas, se informa error en vez de completar una segunda entrega. Ver `uml/secuencia-retiro-entrega.puml`.
+**Acción:** ya resuelto a nivel de diseño — la invalidación del código se modela como una actualización atómica y condicional (`UPDATE ... WHERE usado = false`), igual que el mecanismo de bloqueo optimista usado para el stock (`Plato.version`). Si la actualización afecta 0 filas, se informa error en vez de completar una segunda entrega. Ver `../../uml/secuencia-retiro-entrega.puml`.
 
 ## Riesgos incorporados tras la respuesta de Negocios del 8-ago-2026
 

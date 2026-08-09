@@ -109,7 +109,7 @@ Vale registrar la ironía: el 28-jul se eliminó `RecargaDirectaPorProveedor` po
 **Formato del código, cerrado el 28-jul-2026:** Negocios eligió **código numérico corto de 6 dígitos**, descartando la propuesta previa de Ingeniería (UUID firmado con expiración). La razón es operativa y es buena: el estudiante se lo dice de viva voz al Operador, que lo digita en Aliflow para marcar el retiro — un UUID de 36 caracteres es impracticable para eso. Dos consecuencias de diseño quedaron anotadas en el diagrama:
 
 1. **La unicidad se acota.** Seis dígitos son ~10⁶ combinaciones: suficientes solo si la unicidad se exige entre los códigos **vigentes de un mismo local**, no globalmente ni de forma histórica. La generación reintenta ante colisión.
-2. **El código pasa a ser adivinable.** Un UUID firmado no se puede adivinar; 6 dígitos sí. Registrado como riesgo **R-15** en `Gestion-de-Riesgos.md` con su mitigación (límite de intentos + el hecho de que el Operador ve físicamente al estudiante).
+2. **El código pasa a ser adivinable.** Un UUID firmado no se puede adivinar; 6 dígitos sí. Registrado como riesgo **R-15** en `../Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` con su mitigación (límite de intentos + el hecho de que el Operador ve físicamente al estudiante).
 
 `EstadoOrden` incluye **`EXPIRADO`** además de `COMPRADO`/`ENTREGADO` — esto no estaba en el flujo original; se agrega para cubrir el vacío ya detectado de "no hay estado para una orden nunca retirada" (`Hallazgos-Ingenieria-API-Generica.md`, sección 5.3). Es una propuesta de Ingeniería, marcada ahora también dentro del propio diagrama (nota amarilla junto a `EstadoOrden`), pendiente de que Negocios defina la regla exacta (después de cuánto tiempo expira, si hay reembolso, etc. — esto último sigue fuera de alcance de v1 según el acta).
 
@@ -117,7 +117,7 @@ Vale registrar la ironía: el 28-jul se eliminó `RecargaDirectaPorProveedor` po
 
 **Regla de un solo local por orden (corregida 27-jul-2026):** `Orden` ahora tiene una asociación directa a `Proveedor` (no solo indirecta vía `OrdenDetalle → Plato → Proveedor`), con un invariante explícito en el diagrama: todos los `OrdenDetalle` de una misma `Orden` deben pertenecer a platos del mismo proveedor. Antes de esta corrección, el modelo permitía —sin querer— una orden con platos de proveedores distintos, lo cual habría roto el resto de la arquitectura (saldo por proveedor, un solo `tenantId` por llamada a `notifySale`, un evento de sincronización por orden). `confirmarCompra()` es responsable de validar este invariante antes de crear la orden.
 
-**Auditoría (agregada 27-jul-2026):** `RegistroAuditoria` responde al riesgo R-09 (`Gestion-de-Riesgos.md`), que pedía explícitamente registro de auditoría para compras y redenciones — antes este requisito estaba documentado como riesgo pero no tenía ninguna clase correspondiente. Registra quién ejecutó `confirmarCompra()`, `marcarEntregado()`, `invalidar()` y la acreditación interna al local.
+**Auditoría (agregada 27-jul-2026):** `RegistroAuditoria` responde al riesgo R-09 (`../Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`), que pedía explícitamente registro de auditoría para compras y redenciones — antes este requisito estaba documentado como riesgo pero no tenía ninguna clase correspondiente. Registra quién ejecutó `confirmarCompra()`, `marcarEntregado()`, `invalidar()` y la acreditación interna al local.
 
 ## 5. Paquete "Fidelidad" (requisito nuevo, 28-jul-2026)
 
@@ -153,7 +153,7 @@ Materializa directamente la arquitectura ya diseñada en `Hallazgos-Ingenieria-A
 1. **Varios adaptadores conviven en producción**, no uno. Antes se asumía un único ERP objetivo y la factory era casi decorativa; ahora es la pieza que hace funcionar el multi-tenant real. El diseño no cambió — es exactamente lo que el patrón Adapter + Factory estaba pensado para soportar — pero pasó de "buena práctica defensiva" a "sin esto el producto no existe".
 2. **La interfaz es bidireccional** y eso ahora está explícito. `getMenu()`/`getStock()` traen el inventario del local hacia Aliflow; `updateStock()`/`notifySale()` y el nuevo **`notifyPayment()`** devuelven al ERP las órdenes y los pagos, para que su inventario y su contabilidad queden sincronizados. Se agregó `TipoEvento.NOTIFICAR_PAGO` al outbox por la misma razón.
 3. **`TipoERP` cambió de contenido y de rol.** Ahora es `CONTIFICO | ALPWIN | ODOO | OTRO`, con Contífico primero por ser el del local piloto. El valor `OTRO` es deliberado: agregar un local con un ERP desconocido debe ser un valor de enum más una clase adaptadora, sin tocar el core.
-- **`EventoSincronizacion`** + **`SincronizacionWorker`** — implementan el patrón **Outbox** ya diseñado: cada venta genera un evento (`TipoEvento.NOTIFICAR_VENTA`), que el worker procesa con reintentos (`EstadoEvento`: PENDIENTE/PROCESADO/FALLIDO), evitando la "venta huérfana" ya identificada como riesgo (R-02 en `Gestion-de-Riesgos.md`).
+- **`EventoSincronizacion`** + **`SincronizacionWorker`** — implementan el patrón **Outbox** ya diseñado: cada venta genera un evento (`TipoEvento.NOTIFICAR_VENTA`), que el worker procesa con reintentos (`EstadoEvento`: PENDIENTE/PROCESADO/FALLIDO), evitando la "venta huérfana" ya identificada como riesgo (R-02 en `../Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`).
 
 ---
 
@@ -225,4 +225,4 @@ A partir de una autoevaluación crítica del diseño hasta este punto, se corrig
 2. **Inconsistencia — sin distinción visual entre confirmado y propuesto**: corregida con la convención `<<propuesta>>` + leyenda de colores, aplicada en este diagrama y en `casos-de-uso.puml`/`diagrama-componentes.puml`.
 3. **Vacío — sin control de concurrencia modelado**: corregido con `Plato.version` + `reservarStock()` (bloqueo optimista).
 4. **Vacío — sin clase de auditoría pese a que R-09 la pedía explícitamente**: corregido con `RegistroAuditoria`.
-5. **Riesgo R-01 desactualizado** tras el hallazgo de Alpwin: corregido en `Gestion-de-Riesgos.md`, no en este diagrama directamente.
+5. **Riesgo R-01 desactualizado** tras el hallazgo de Alpwin: corregido en `../Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`, no en este diagrama directamente.

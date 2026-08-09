@@ -6,7 +6,7 @@ actor Estudiante
 participant "Módulo de Wallet\n(API)" as API
 participant "Pasarela de Pagos" as Pasarela
 participant "Pago" as Pago
-participant "TarjetaVirtual" as Tarjeta
+participant "SaldoEstablecimiento" as Saldo
 participant "ComprobanteRecarga" as Comp
 
 Estudiante -> API : solicitarRecarga(monto)
@@ -25,12 +25,14 @@ else PENDIENTE
   API --> Estudiante : recarga pendiente de confirmación
 else APROBADO
   API -> Pago : crear(estado=APROBADO)
-  API -> Tarjeta : acreditar(monto)\n(bolsa única, atómico)
-  note right of Tarjeta
-    Decisión de Negocios (28-jul-2026):
-    una sola recarga, un solo saldo.
-    La distribución interna hacia cada
-    local ocurre al comprar, no aquí.
+  API -> Saldo : acreditar(monto)\n(saldo del local destino, atómico)
+  note right of Saldo
+    Decisión de Negocios (8-ago-2026):
+    la recarga es **por establecimiento**.
+    El dinero va directo a la cuenta de
+    ese proveedor — Aliflow no lo custodia.
+    Ya no hay bolsa única ni distribución
+    interna que repartir.
   end note
   API -> Comp : generar(sinValidezTributaria=true)
   API --> Estudiante : saldo actualizado

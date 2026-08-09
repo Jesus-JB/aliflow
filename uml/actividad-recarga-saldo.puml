@@ -4,6 +4,7 @@ title Actividad — Recargar saldo (UC2)
 
 |Estudiante|
 start
+:Elige el establecimiento destino;
 :Selecciona "Recargar saldo"\ne ingresa el monto;
 
 |Pasarela de Pagos|
@@ -19,7 +20,7 @@ else (sí)
 endif
 
 :Registrar Pago con\nestado APROBADO;
-:Acreditar TarjetaVirtual.saldoDisponible\n(bolsa única, operación atómica);
+:Acreditar SaldoEstablecimiento del local destino\n(operación atómica);
 :Generar ComprobanteRecarga\n(sin validez tributaria);
 
 |Estudiante|
@@ -27,12 +28,15 @@ endif
 stop
 
 note right
-  **Decisión de Negocios (28-jul-2026):** el estudiante
-  hace **una sola recarga** a una bolsa única, gastable
-  en cualquier local. Ya no se reparte el monto entre
-  proveedores en este paso — la distribución interna
-  hacia cada local ocurre al comprar (ver
-  actividad-compra-almuerzo.puml).
+  **Decisión de Negocios (8-ago-2026):** la recarga es
+  **por establecimiento**. Toda recarga tiene un local
+  destino obligatorio y el saldo solo se gasta ahí.
+  El dinero va de la pasarela **directo a la cuenta de
+  ese proveedor**: Aliflow registra el movimiento pero
+  no custodia fondos en ningún momento.
+
+  Revierte la decisión #4 del 28-jul, que definía una
+  bolsa única con distribución interna al comprar.
 end note
 
 @enduml

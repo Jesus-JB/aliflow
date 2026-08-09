@@ -30,7 +30,7 @@ Credenciales ya precargadas en los formularios de Proveedor y Operador.
 
 ## 🎨 Mockups
 
-Diseño aprobado del que salió el prototipo. La identidad visual sale del logo de Aliflow (verde `#74AB68`, azul `#7AB7D3`) — ver **[mockups/marca/](mockups/marca/)** para la paleta completa y por qué el verde del logo no se usa en botones. Archivo fuente en Figma: [Aliflow · Mockups v2](https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt). Detalle de cada pantalla en **[Mockups-Prototipo.md](Mockups-Prototipo.md)**.
+Diseño aprobado del que salió el prototipo. La identidad visual sale del logo de Aliflow (verde `#74AB68`, azul `#7AB7D3`) — ver **[mockups/marca/](mockups/marca/)** para la paleta completa y por qué el verde del logo no se usa en botones. Archivo fuente en Figma: [Aliflow · Mockups v2](https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt). Detalle de cada pantalla en **[Mockups-Prototipo.md](Entregables/01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md)**.
 
 ### Estudiante
 ![Pantallas del Estudiante](mockups/01-estudiante.png)
@@ -55,11 +55,11 @@ Por dónde empezar, en este orden:
 | Documento | Qué contiene |
 |---|---|
 | **[Estado-del-Proyecto.md](Estado-del-Proyecto.md)** | **Empezá acá si te estás sumando al proyecto.** Qué está hecho, qué falta, qué está bloqueado, y las trampas que ya costaron tiempo (para no repetirlas). |
-| **[Especificacion-de-Requerimientos.md](Especificacion-de-Requerimientos.md)** | **56 requerimientos funcionales con criterios de aceptación** y los no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Incluye reglas de negocio, alcance excluido, trazabilidad y qué está bloqueado por decisiones abiertas. |
+| **[Entregables/](Entregables/)** | **Los documentos que se entregan**, uno por ítem de rúbrica, con su estado. El entregable 01 se compila a un PDF único desde ahí. |
 | **[Decisiones-Pendientes-Negocios.md](Decisiones-Pendientes-Negocios.md)** | Qué está decidido, qué sigue abierto y qué cambió en el diseño como consecuencia. **Es la fuente de verdad del estado del proyecto.** |
 | **[Hallazgos-Ingenieria-API-Generica.md](Hallazgos-Ingenieria-API-Generica.md)** | Investigación de la integración con ERPs: comparación, patrón Adapter y patrón Outbox. |
-| **[Gestion-de-Riesgos.md](Gestion-de-Riesgos.md)** | 23 riesgos. R-18 y R-19 se cerraron el 8-ago con la decisión de recarga por establecimiento; esa misma decisión abrió R-21 (saldo fragmentado), R-22 y R-23. |
-| **[Mockups-Prototipo.md](Mockups-Prototipo.md)** | Las 22 pantallas mapeadas a sus casos de uso. |
+| **[Entregables/…/06-Gestion-de-Riesgos.md](Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md)** | 23 riesgos. R-18 y R-19 se cerraron el 8-ago con la decisión de recarga por establecimiento; esa misma decisión abrió R-21 (saldo fragmentado), R-22 y R-23. |
+| **[Entregables/…/Apendice-A-Prototipo.md](Entregables/01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md)** | Las 22 pantallas mapeadas a sus casos de uso. |
 | **[uml/](uml/)** | Casos de uso, clases, objetos, componentes, despliegue, actividad, secuencia y estado. Cada `.puml` tiene su `.svg` y su documentación. |
 | **[demo-odoo/](demo-odoo/)** | Demo funcional en Docker con Odoo Community, adaptador en Python y pruebas reales de concurrencia. |
 
@@ -79,7 +79,7 @@ Por dónde empezar, en este orden:
 
 ## 📄 Regenerar el PDF de la especificación
 
-El entregable 01 se entrega en PDF. **Hay que recompilarlo cada vez que cambie `Especificacion-de-Requerimientos.md`**, o el PDF publicado deja de coincidir con su fuente.
+El entregable 01 se entrega en PDF. **Hay que recompilarlo cada vez que cambie `Entregables/01-Especificacion-de-Requerimientos/`**, o el PDF publicado deja de coincidir con su fuente.
 
 ```bash
 pandoc Especificacion-de-Requerimientos.md \

@@ -39,7 +39,7 @@ Cinco diagramas de estado, para los objetos del sistema con un ciclo de vida rea
 **Formato del código, cerrado el 28-jul-2026:** Negocios eligió un **código numérico corto de 6 dígitos** en vez de la propuesta anterior (UUID firmado), porque el estudiante se lo dice de viva voz al Operador y este lo digita. El cambio no toca la máquina de estados, pero sí trae dos consecuencias de diseño que quedaron anotadas en el diagrama:
 
 1. **Unicidad acotada, no global.** Seis dígitos son ~1 millón de combinaciones: alcanzan de sobra si la unicidad se exige solo entre los códigos **Vigentes de un mismo local**, pero no si se pretende que sean únicos históricamente. La generación reintenta ante colisión.
-2. **Espacio de búsqueda pequeño.** Un código de 6 dígitos es adivinable por fuerza bruta de una forma que un UUID no lo era. Se registró como riesgo **R-15** (`Gestion-de-Riesgos.md`), con la mitigación correspondiente.
+2. **Espacio de búsqueda pequeño.** Un código de 6 dígitos es adivinable por fuerza bruta de una forma que un UUID no lo era. Se registró como riesgo **R-15** (`../Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`), con la mitigación correspondiente.
 
 ## 3. Pago
 
@@ -47,7 +47,7 @@ Cinco diagramas de estado, para los objetos del sistema con un ciclo de vida rea
 
 **Fuente:** `estado-pago.puml` · **Referencia:** UC2, `uml/secuencia-recarga-saldo.puml`.
 
-Simple pero real: `PENDIENTE` no es solo un estado transitorio instantáneo — puede persistir si la pasarela de pagos responde de forma asíncrona (riesgo R-06, `Gestion-de-Riesgos.md`). Solo `APROBADO` genera una `Recarga`.
+Simple pero real: `PENDIENTE` no es solo un estado transitorio instantáneo — puede persistir si la pasarela de pagos responde de forma asíncrona (riesgo R-06, `../Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`). Solo `APROBADO` genera una `Recarga`.
 
 ## 4. EventoSincronizacion
 

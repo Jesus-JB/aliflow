@@ -29,8 +29,10 @@ dist/
 #   - Las actas de reunión con el cliente, completas: son la evidencia del
 #     levantamiento de requerimientos (entregable 01.d).
 #   - El PDF compilado de la especificación de requerimientos, porque el
-#     entregable 01 se entrega en ese formato. Se regenera con `estilo.typ`
-#     (ver README) y hay que recompilarlo cada vez que cambie su .md.
+#     entregable 01 se entrega en ese formato. Se genera concatenando las
+#     piezas de Entregables/01-Especificacion-de-Requerimientos/ con su
+#     script `construir-pdf.sh`, y hay que recompilarlo cada vez que cambie
+#     cualquiera de esas piezas.
 #
 #  NO se publica:
 #   - PDF derivados de un .md que ya está en el repo: duplican contenido y

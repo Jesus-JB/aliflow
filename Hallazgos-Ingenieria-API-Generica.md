@@ -303,7 +303,7 @@ Las tres estaban abiertas y bloqueaban trabajo. Las tres se resolvieron:
 - [ ] Definir quién da de alta un local nuevo, ahora que no existe un rol de super-admin en el sistema (propuesta de Ingeniería: fuera de alcance de v1, lo hace el equipo manualmente).
 - [ ] Decidir el modelo de cobro de Aliflow al proveedor (comisión/suscripción).
 - [ ] Definir la regla de expiración/no-show para órdenes no retiradas.
-- [ ] Formalizar el registro de riesgos con el equipo (`Gestion-de-Riesgos.md`, 15 riesgos).
+- [ ] Formalizar el registro de riesgos con el equipo (`Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`, 15 riesgos).
 - [ ] (Opcional, no bloqueante) Verificar oficialmente el precio de Contífico — se encontró una referencia no oficial de terceros (Lite $9/mes, Pyme $30/mes, Anual $91/año) que contradice nuestra afirmación previa de "sin costos públicos". Nota: Contífico ahora opera como **"Siigo Contífico"** tras una fusión — su portal de clientes está en `contifico.portaldeclientes.siigo.ec`. **Subió de prioridad**: ya no es un dato para una decisión futura, es el ERP del local piloto.
 
 ---

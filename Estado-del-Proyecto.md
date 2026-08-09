@@ -35,12 +35,13 @@ En este orden. No leas el repo entero de golpe.
 | # | Documento | Por qué |
 |---|---|---|
 | 1 | `README.md` | Portada. Indexa todo y tiene el link al prototipo en vivo |
-| 2 | `Especificacion-de-Requerimientos.md` | **El documento más importante.** 56 requerimientos funcionales con criterios de aceptación + 52 no funcionales. Si vas a construir algo, se construye contra esto |
-| 3 | `Decisiones-Pendientes-Negocios.md` | **La fuente de verdad del estado.** Qué está cerrado, qué sigue abierto, y por qué. Si dos documentos se contradicen, este manda |
-| 4 | `uml/Documentacion-Casos-de-Uso.md` | Los 20 casos de uso desarrollados |
-| 5 | `uml/Documentacion-Diagrama-Clases.md` | El modelo de dominio y por qué está así |
-| 6 | `Hallazgos-Ingenieria-API-Generica.md` | La investigación de integración con ERPs. Explica el patrón Adapter y el Outbox |
-| 7 | `Gestion-de-Riesgos.md` | 23 riesgos. Varios requerimientos nacieron de un riesgo |
+| 2 | `Entregables/README.md` | **Qué se entrega, cuánto vale y qué falta.** Un archivo por ítem de rúbrica |
+| 3 | `Entregables/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` | **El documento más importante.** 56 requerimientos funcionales con criterios de aceptación + 52 no funcionales. Si vas a construir algo, se construye contra esto |
+| 4 | `Decisiones-Pendientes-Negocios.md` | **La fuente de verdad del estado.** Qué está cerrado, qué sigue abierto, y por qué. Si dos documentos se contradicen, este manda |
+| 5 | `uml/Documentacion-Casos-de-Uso.md` | Los 20 casos de uso desarrollados |
+| 6 | `uml/Documentacion-Diagrama-Clases.md` | El modelo de dominio y por qué está así |
+| 7 | `Hallazgos-Ingenieria-API-Generica.md` | La investigación de integración con ERPs. Explica el patrón Adapter y el Outbox |
+| 8 | `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` | 23 riesgos. Varios requerimientos nacieron de un riesgo |
 
 **Prototipo interactivo, para entender el producto en 2 minutos:** https://jesus-jb.github.io/aliflow/
 
@@ -48,18 +49,20 @@ En este orden. No leas el repo entero de golpe.
 
 ## 3. Qué está hecho
 
-23 commits. Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables .docx-1.pdf`):
+Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables .docx-1.pdf`).
+
+**Los documentos que se entregan viven en [`Entregables/`](Entregables/), uno por ítem de rúbrica.** El entregable 01 se compila a un PDF único con `Entregables/01-Especificacion-de-Requerimientos/construir-pdf.sh`, porque el enunciado lo pide en singular y con el acta y el prototipo como apéndices.
 
 | Entregable | Pts | Estado | Dónde |
 |---|---|---|---|
-| Requerimientos funcionales | 15 | ✅ | `Especificacion-de-Requerimientos.md` §5 |
-| RNF categorizados (Sommerville) con criterio de validación | 8 | ✅ | ídem §6 |
-| Prototipo del sistema | 12 | ✅ | `mockups/`, prototipo en vivo |
-| Evidencias de levantamiento de requerimientos | 3 | ✅ | ídem §10 |
-| Estructura del documento (integrantes, TOC, índices) | 3 | ❌ **Falta** | Se hace al componer el PDF |
-| Contenido de otras secciones | 3 | ✅ | ídem §2, §4, §7, §8 |
-| Documentación de riesgos | 3 | ✅ | `Gestion-de-Riesgos.md` |
-| **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | — |
+| Requerimientos funcionales | 15 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` |
+| RNF categorizados (Sommerville) con criterio de validación | 8 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/03-Requerimientos-No-Funcionales.md` |
+| Prototipo del sistema | 12 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md` |
+| Evidencias de levantamiento de requerimientos | 3 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/05-Evidencias-de-Levantamiento.md` |
+| Estructura del documento (integrantes, TOC, índices) | 3 | 🟡 Parcial | `Entregables/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md` |
+| Contenido de otras secciones | 3 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md` · `04-Alcance-Trazabilidad-y-Decisiones.md` |
+| Documentación de riesgos | 3 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` |
+| **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | `Entregables/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md` |
 | Diagrama de clases (SOLID, patrones) | 6 | ✅ | `uml/diagrama-clases.puml` |
 | Casos de uso | 6 | ✅ | `uml/casos-de-uso.puml` |
 | Diagramas de objetos | 3 | ✅ | 2 diagramas |
@@ -68,7 +71,7 @@ En este orden. No leas el repo entero de golpe.
 | Diagramas de actividad | 6 | ✅ | 5 diagramas |
 | Diagramas de secuencia | 10 | ✅ | 4 diagramas |
 | Diagramas de estado | 3 | ✅ | 5 diagramas |
-| **Modelado de la base de datos** | 10 | ❌ **No empezado** | — |
+| **Modelado de la base de datos** | 10 | ❌ **No empezado** | `Entregables/04-Modelo-de-Base-de-Datos.md` |
 | *Extra: definición arquitectónica* | +4 | ✅ | `Hallazgos-…md` + `demo-odoo/` |
 
 **En números: hay ~16 puntos de rúbrica todavía sin ganar** — base de datos 10, sprint backlogs 3, estructura del documento 3. Todo lo demás está hecho y al día.
@@ -127,7 +130,7 @@ Ordenado por lo que más mueve la aguja.
 
 **A. Modelo de base de datos** — 10 puntos de rúbrica, y es el **próximo paso declarado del proyecto**. Estuvo bloqueado hasta el 8-ago porque el modelo de billetera dependía de una decisión abierta. **Ya está desbloqueado por completo**: se puede escribir el esquema entero. Es lo primero que hay que hacer.
 
-**B. Sprint backlogs y cronograma con diagramas activity-on-arrow** — 3 puntos. Forman parte del mismo entregable que los riesgos (01.g). `Gestion-de-Riesgos.md` cubre los riesgos, pero los sprint backlogs y el cronograma **no están ni empezados**.
+**B. Sprint backlogs y cronograma con diagramas activity-on-arrow** — 3 puntos. Forman parte del mismo entregable que los riesgos (01.g). `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos, pero los sprint backlogs y el cronograma **no están ni empezados**.
 
 **C. Composición del PDF final** — 3 puntos. Lista de integrantes en la primera página, tabla de contenido, índice de tablas e índice de figuras, más los apéndices: capturas del prototipo con su flujo de ventanas, y el acta de conformidad firmada.
 
@@ -222,7 +225,7 @@ Cada push a `main` que toque `mockups/prototipo-web/` recompila y publica el sit
 
 **El modelo de base de datos.** Son 10 puntos de rúbrica, es el próximo paso declarado del proyecto, estuvo bloqueado durante semanas y **acaba de desbloquearse por completo**. Todas las decisiones estructurales están cerradas: inventario reservado, saldo por establecimiento, expiración del código, los cuatro roles, las reglas de fidelidad.
 
-Se escribe contra `Especificacion-de-Requerimientos.md` y `uml/Documentacion-Diagrama-Clases.md`, que están al día: describen el saldo por establecimiento y el canje como descuento del 100%.
+Se escribe contra `Entregables/01-Especificacion-de-Requerimientos/` y `uml/Documentacion-Diagrama-Clases.md`, que están al día: describen el saldo por establecimiento y el canje como descuento del 100%.
 
 ---
 

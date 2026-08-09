@@ -35,7 +35,7 @@ Esta capa dejó de ser una previsión y pasó a ser un requisito duro con la con
 
 ### Sistemas externos
 - **Proveedor de Identidad (Google OAuth)** — ya documentado desde el flujo original (`est-1`).
-- **Pasarela de Pagos (Kushki / PayPhone / Stripe)** — nueva incorporación formal; son las opciones que se manejaron en la investigación previa del equipo para el riesgo R-06 (`Gestion-de-Riesgos.md`) sobre limitaciones del ambiente de pruebas de pagos.
+- **Pasarela de Pagos (Kushki / PayPhone / Stripe)** — nueva incorporación formal; son las opciones que se manejaron en la investigación previa del equipo para el riesgo R-06 (`../Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`) sobre limitaciones del ambiente de pruebas de pagos.
 - **ERP de cada local** — no es un solo sistema: Barú usa **Contífico** (API REST documentada, el caso fácil y el del local piloto) y Caramel Coffee usa **Alpwin** (sin API pública, integración por archivos/BD puente). Ver notas en el diagrama y `Hallazgos-Ingenieria-API-Generica.md` sección 4.3.
 
 ## Decisiones de este diagrama que quedan abiertas
