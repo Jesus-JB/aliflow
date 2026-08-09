@@ -1,0 +1,30 @@
+@startuml casos-de-uso-super-admin
+
+' Vista por rol del diagrama completo (casos-de-uso.puml).
+' Se genera a partir de él; si cambia el completo, hay que regenerar estas vistas.
+
+title Casos de uso — Super-Admin de Aliflow
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Super-Admin de Aliflow\n(administra la plataforma)" as SA
+actor "Sistema ERP del local\n(Contífico / Alpwin / Odoo…,\nvía API genérica bidireccional)" as ERP
+actor "Proveedor\n(administrador del local)" as PROV
+
+rectangle "Aliflow" {
+  usecase "UC7. Configurar integración\ncon el ERP del local" as UC7
+  usecase "UC18. Dar de alta un local\ny crear su vista de proveedor" as UC18
+  usecase "UC19. Brindar soporte\na los locales" as UC19
+  usecase "UC20. Administrar\nla plataforma" as UC20
+}
+
+PROV --> UC7
+SA --> UC18
+SA --> UC19
+SA --> UC20
+SA --> UC7
+ERP --> UC7
+UC7 <. UC18 : <<include>>
+@enduml

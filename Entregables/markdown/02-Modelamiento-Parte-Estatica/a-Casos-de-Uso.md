@@ -1,6 +1,6 @@
 # Documentación de Casos de Uso — Aliflow
 
-![Diagrama de casos de uso de Aliflow](../../uml/casos-de-uso.svg)
+![Vista general: todos los casos de uso del sistema](../../uml/casos-de-uso.svg)
 
 **Referencia:** cada caso de uso indica el paso correspondiente de `../../../Flujos-Aliflow-Revision.html` (formato `{rol}-{número}`, ver nota en `../../../Hallazgos-Ingenieria-API-Generica.md` sección 5) del que se derivó.
 ## Actores
@@ -14,6 +14,22 @@
 | **Sistema ERP del local** | Secundario / sistema externo | **No es uno solo**: cada local de la universidad usa un ERP distinto (Barú → **Contífico**, Caramel Coffee → **Alpwin**, etc.). La conexión es **bidireccional** — Aliflow lee inventario/menú del ERP y le devuelve órdenes y pagos. Todos entran por la misma API genérica (patrón Adapter, ver `../../../Hallazgos-Ingenieria-API-Generica.md` sección 3). |
 
 > **Nota sobre vocabulario:** "Proveedor" se usa en dos sentidos que conviene no confundir. Como **actor/rol** es la persona que gerencia el local. Como **entidad** (clase `Proveedor` del diagrama de clases) es el local/negocio en sí — el tenant. En el diagrama de clases la persona se modela como `Administrador`, subclase de `UsuarioProveedor`; ver `../02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md`, sección "Usuarios".
+
+---
+
+## Vistas por rol
+
+El diagrama completo de arriba muestra el sistema entero y sirve como referencia de conjunto. A esa proporción no se lee bien impreso, así que abajo está separado en una vista por cada actor principal, con los sub-flujos que cada uno arrastra.
+
+![Casos de uso del Estudiante](../../uml/casos-de-uso-estudiante.svg)
+
+![Casos de uso del Proveedor](../../uml/casos-de-uso-proveedor.svg)
+
+![Casos de uso del Operador](../../uml/casos-de-uso-operador.svg)
+
+El Operador aparece relacionado con la compra porque el canje de un premio (UC15) incluye la creación de una orden real (UC4), que él entrega igual que cualquier otra.
+
+![Casos de uso del Super-Admin de Aliflow](../../uml/casos-de-uso-super-admin.svg)
 
 ---
 

@@ -1,0 +1,67 @@
+@startuml casos-de-uso-estudiante
+
+' Vista por rol del diagrama completo (casos-de-uso.puml).
+' Se genera a partir de él; si cambia el completo, hay que regenerar estas vistas.
+
+title Casos de uso — Estudiante
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor Estudiante as EST
+actor "Sistema ERP del local\n(Contífico / Alpwin / Odoo…,\nvía API genérica bidireccional)" as ERP
+actor "Proveedor de Identidad\n(Google OAuth)" as IDP
+actor Operador as OP
+actor "Pasarela de pagos\n(webhooks de confirmación)" as PAY
+
+rectangle "Aliflow" {
+  usecase "UC1. Iniciar sesión institucional" as UC1
+  usecase "Autenticar con proveedor de identidad" as UC1a
+  usecase "Crear perfil y tarjeta virtual\n(primer ingreso)" as UC1b
+  usecase "UC2. Recargar saldo" as UC2
+  usecase "Generar comprobante de recarga" as UC2a
+  usecase "Confirmar recarga\n(webhook de la pasarela)" as UC2b
+  usecase "UC3. Consultar menú del día" as UC3
+  usecase "Sincronizar catálogo con\nel ERP del local" as UC3a
+  usecase "UC4. Comprar almuerzo" as UC4
+  usecase "Validar saldo y disponibilidad" as UC4a
+  usecase "Generar comprobante de compra" as UC4b
+  usecase "Notificar venta y pago al ERP\ndel local (API genérica)" as UC4c
+  usecase "UC5. Retirar y entregar almuerzo" as UC5
+  usecase "Buscar orden\n(código numérico o manual)" as UC5a
+  usecase "Validar y confirmar entrega" as UC5b
+  usecase "Manejar excepción de entrega" as UC5c
+  usecase "Acreditar sello\nen la cartilla" as UC5d
+  usecase "UC13. Consultar cartilla\nde fidelidad" as UC13
+  usecase "UC15. Canjear premio\nde la cartilla" as UC15
+}
+
+EST --> UC1
+EST --> UC2
+EST --> UC3
+EST --> UC4
+EST --> UC5
+EST --> UC13
+EST --> UC15
+OP --> UC5
+OP --> UC15
+IDP --> UC1a
+PAY --> UC2b
+ERP --> UC3a
+ERP --> UC4c
+ERP --> UC15
+UC1 .> UC1a : <<include>>
+UC1 .> UC1b : <<extend>>
+UC2 .> UC2a : <<include>>
+UC2 .> UC2b : <<include>>
+UC3 .> UC3a : <<include>>
+UC4 .> UC4a : <<include>>
+UC4 .> UC4b : <<include>>
+UC4 .> UC4c : <<include>>
+UC5 .> UC5a : <<include>>
+UC5 .> UC5b : <<include>>
+UC5 .> UC5c : <<extend>>
+UC5 .> UC5d : <<include>>
+UC15 .> UC4 : <<include>>
+@enduml
