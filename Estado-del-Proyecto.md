@@ -61,7 +61,7 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 | RNF categorizados (Sommerville) con criterio de validación | 8 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/03-Requerimientos-No-Funcionales.md` |
 | Prototipo del sistema | 12 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md` |
 | Evidencias de levantamiento de requerimientos | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/05-Evidencias-de-Levantamiento.md` |
-| Estructura del documento (integrantes, TOC, índices) | 3 | 🟡 Parcial | `Entregables/markdown/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md` |
+| Estructura del documento (integrantes, TOC, índices) | 3 | 🟡 Casi | `Entregables/markdown/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md` — integrantes, roles y reparto ya están; falta que la portada sea una página propia |
 | Contenido de otras secciones | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md` · `04-Alcance-Trazabilidad-y-Decisiones.md` |
 | Documentación de riesgos | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` |
 | **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | `Entregables/markdown/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md` |
@@ -134,7 +134,7 @@ Ordenado por lo que más mueve la aguja.
 
 **B. Sprint backlogs y cronograma con diagramas activity-on-arrow** — 3 puntos. Forman parte del mismo entregable que los riesgos (01.g). `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos, pero los sprint backlogs y el cronograma **no están ni empezados**.
 
-**C. Composición del PDF final** — 3 puntos. Lista de integrantes en la primera página, tabla de contenido, índice de tablas e índice de figuras, más los apéndices: capturas del prototipo con su flujo de ventanas, y el acta de conformidad firmada.
+**C. Composición del PDF final** — 3 puntos. La lista de integrantes con sus roles, el reparto de responsabilidades por entregable, la tabla de contenido y los índices de tablas y de figuras **ya están** (`00-Portada-e-Indices.md`). Quedan dos cosas: que la portada sea **una página propia** —hoy el `<div style="text-align:center">` no hace nada, porque pandoc lo descarta al escribir typst, así que el título arranca debajo del índice sin centrar ni salto de página— y el apéndice del acta de conformidad **firmada**, que espera al cliente.
 
 ### 5.2 Ya propagado — no queda nada desactualizado
 
