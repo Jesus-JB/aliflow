@@ -150,7 +150,7 @@ En resumen: **el arranque se destrabó y el producto creció**. El riesgo que m�
 - `uml/diagrama-clases.puml` — `TipoERP` reordenado con `CONTIFICO` primero y valor `OTRO`; método `notifyPayment()` agregado a `IInventoryProvider`; `TipoEvento.NOTIFICAR_PAGO` agregado al outbox.
 - `uml/objeto-integracion-erp.puml` — ahora muestra los dos locales reales a la vez: Barú/Contífico sincronizando bien, Caramel Coffee/Alpwin fallando tras 3 reintentos.
 - `uml/diagrama-componentes.puml` y `uml/diagrama-despliegue.puml` — flechas bidireccionales y los dos ERP externos.
-- `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` — R-01 sube a impacto Catastrófico y vuelve a ser el riesgo dominante; R-11 baja a Moderado; se agrega R-16.
+- `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` — R-01 sube a impacto Catastrófico y vuelve a ser el riesgo dominante; R-11 baja a Moderado; se agrega R-16.
 
 ---
 
@@ -224,7 +224,7 @@ Ingeniería había propuesto un UUID firmado con expiración. La decisión de Ne
 
 **Esto desbloquea el prototipo de mockups (entregable 01.f).**
 
-**Impacto en el diseño (ya aplicado):** `uml/diagrama-clases.puml`, `uml/estado-codigo-retiro.puml`, `uml/secuencia-compra-almuerzo.puml`, `uml/actividad-compra-almuerzo.puml`, `uml/objeto-billetera-orden.puml`, y `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` (R-15).
+**Impacto en el diseño (ya aplicado):** `uml/diagrama-clases.puml`, `uml/estado-codigo-retiro.puml`, `uml/secuencia-compra-almuerzo.puml`, `uml/actividad-compra-almuerzo.puml`, `uml/objeto-billetera-orden.puml`, y `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` (R-15).
 
 ---
 
@@ -248,7 +248,7 @@ Ingeniería había propuesto un UUID firmado con expiración. La decisión de Ne
 > 2. Qué pasa con el **saldo huérfano** del estudiante que se gradúa o del local que sale de la plataforma. Aliflow no puede devolverlo porque nunca lo tuvo (R-23).
 > 3. El **reembolso de órdenes expiradas** se vuelve más difícil por la misma razón: Aliflow no puede devolver dinero, a lo sumo reacreditar saldo en ese local, y eso es obligación del proveedor.
 >
-> Impacto ya aplicado en `Entregables/01-Especificacion-de-Requerimientos/` (RN-13, RN-14, RF-07, RF-08, RF-09, RF-12, RF-12b, RF-15, RF-19, RNF-E-04, RNF-E-05b, RNF-E-10, RNF-E-11b, RNF-P-19) y en `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`. **Pendiente de aplicar:** diagrama de clases, mockups y prototipo web.
+> Impacto ya aplicado en `Entregables/markdown/01-Especificacion-de-Requerimientos/` (RN-13, RN-14, RF-07, RF-08, RF-09, RF-12, RF-12b, RF-15, RF-19, RNF-E-04, RNF-E-05b, RNF-E-10, RNF-E-11b, RNF-P-19) y en `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`. **Pendiente de aplicar:** diagrama de clases, mockups y prototipo web.
 
 Se conserva abajo el análisis original que llevó a la decisión.
 
@@ -394,7 +394,7 @@ Si la intención era A, o algo intermedio (varios sellos por día pero con monto
 - `uml/casos-de-uso.puml` — UC13 (consultar cartilla), UC14 (configurar el programa), UC15 (canjear premio) y el sub-flujo "Acreditar sello" dentro de UC5.
 - `uml/actividad-retiro-entrega.puml` y `uml/secuencia-retiro-entrega.puml` — la acreditación del sello, después de confirmar la entrega.
 - `uml/diagrama-componentes.puml` — "Módulo de Fidelidad" aparte del de Órdenes.
-- `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` — riesgo **R-17**.
+- `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` — riesgo **R-17**.
 
 **Riesgo que conviene nombrar:** un requisito nuevo entrando después de cerrar el diseño es exactamente lo que R-08 advertía. Se absorbió sin rehacer nada, pero **el alcance del módulo debería congelarse en "una cartilla simple: N sellos → 1 premio, por local"**. Si más adelante aparecen puntos, niveles o campañas por temporada, eso es otro proyecto — y en un taller con fecha de entrega, conviene decirlo ahora y no después.
 
@@ -409,8 +409,8 @@ Si la intención era A, o algo intermedio (varios sellos por día pero con monto
 Estas no requieren debate, solo que Negocios las revise y apruebe o señale si algo no cuadra:
 
 - **Ruta de implementación (actualizada 28-jul):** Fase 0 = demo con Odoo Community (ya construido y probado, sirve como banco de pruebas de la arquitectura). Fase 1 = `ContificoAdapter` para Barú, el piloto real. Fase 2 = `AlpwinAdapter` para Caramel Coffee. Fase 3 = un adaptador por cada local nuevo. Detalle: `Hallazgos-Ingenieria-API-Generica.md`, sección 4.3.
-- **Un solo local por orden**: una compra nunca mezcla platos de distintos locales. Detalle: `uml/Documentacion-Diagrama-Clases.md`.
-- **Control de concurrencia** (doble compra de última unidad, doble redención de código): resuelto con bloqueo optimista, y validado empíricamente en el demo. Detalle: `uml/Documentacion-Diagramas-Secuencia.md` y `demo-odoo/README.md` sección 7.
+- **Un solo local por orden**: una compra nunca mezcla platos de distintos locales. Detalle: `Entregables/markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md`.
+- **Control de concurrencia** (doble compra de última unidad, doble redención de código): resuelto con bloqueo optimista, y validado empíricamente en el demo. Detalle: `Entregables/markdown/03-Modelamiento-Comportamiento/b-Diagramas-de-Secuencia.md` y `demo-odoo/README.md` sección 7.
 - **Registro de auditoría** para compras y entregas: modelado (`RegistroAuditoria`).
 - **Modo offline del Operador**: fuera de alcance de v1 (riesgo R-12 aceptado formalmente).
 
@@ -420,9 +420,9 @@ Estas no requieren debate, solo que Negocios las revise y apruebe o señale si a
 
 *Actualizado el 9-ago-2026.*
 
-**Hecho el 8-ago:** se escribió la **[especificación de requerimientos](Entregables/01-Especificacion-de-Requerimientos/)** (entregable 01) — 56 requerimientos funcionales con criterios de aceptación y 52 no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Su sección 7 lista exactamente qué requerimientos quedan bloqueados por cada decisión abierta de este documento, y su sección 11 declara qué falta del entregable. **Dos huecos que aparecieron al escribirla:**
+**Hecho el 8-ago:** se escribió la **[especificación de requerimientos](Entregables/markdown/01-Especificacion-de-Requerimientos/)** (entregable 01) — 56 requerimientos funcionales con criterios de aceptación y 52 no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Su sección 7 lista exactamente qué requerimientos quedan bloqueados por cada decisión abierta de este documento, y su sección 11 declara qué falta del entregable. **Dos huecos que aparecieron al escribirla:**
 
-- **Sprint backlogs y cronograma con diagramas *activity-on-arrow*** — son parte del entregable 01.g junto con los riesgos. `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos; los sprint backlogs y el cronograma **no están empezados**.
+- **Sprint backlogs y cronograma con diagramas *activity-on-arrow*** — son parte del entregable 01.g junto con los riesgos. `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos; los sprint backlogs y el cronograma **no están empezados**.
 - **Acta de conformidad firmada por el representante del cliente** (entregable 01.e), que va como apéndice del documento. Es una dependencia externa: conviene pedirla ya, no al cierre.
 
 **Hecho el 8-ago:** Negocios cerró la **decisión #13** — la recarga es por establecimiento. **Con eso el modelo de base de datos queda desbloqueado por completo, billetera incluida.**

@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+#
+# Genera todos los PDF de la carpeta Entregables desde las fuentes de markdown/.
+#
+#   ./construir.sh              → todo
+#   ./construir.sh individuales → solo los PDF sueltos de Entregables/
+#   ./construir.sh oficiales    → solo los 5 de "Documento Oficial/"
+#
+# Requiere: pandoc y typst.
+#
+# Los PDF NUNCA se editan a mano: son salida de los .md de markdown/.
+# Si cambiás un .md, volvé a correr esto o el PDF entregado deja de coincidir
+# con su fuente.
+
+set -euo pipefail
+cd "$(dirname "$0")/.."          # → Entregables/
+
+MD="markdown"
+OFICIAL="Documento Oficial"
+ESTILO="build/estilo.typ"
+QUE="${1:-todo}"
+
+mkdir -p "$OFICIAL"
+
+# pandoc con los ajustes comunes. $1 = salida, resto = fuentes en orden.
+compilar() {
+  local salida="$1"; shift
+  pandoc "$@" -o "$salida" \
+    --pdf-engine=typst \
+    --include-in-header="$ESTILO" \
+    --resource-path=".:$MD:$MD/01-Especificacion-de-Requerimientos:$MD/02-Modelamiento-Parte-Estatica:$MD/03-Modelamiento-Comportamiento" \
+    --toc --toc-depth=3
+  printf '  %-62s %s\n' "$salida" "$(pdfinfo "$salida" 2>/dev/null | awk '/^Pages/{print $2" págs"}')"
+}
+
+# ─── PDF individuales, uno por punto del enunciado ──────────────────────────
+# Existen para ver de un vistazo qué cubre cada punto y qué falta. No son lo
+# que se entrega: eso está en "Documento Oficial/".
+individuales() {
+  echo "PDF individuales:"
+  local S="$MD/01-Especificacion-de-Requerimientos"
+  local E="$MD/02-Modelamiento-Parte-Estatica"
+  local C="$MD/03-Modelamiento-Comportamiento"
+
+  compilar "01a-Estructura-del-Documento.pdf"          "$S/00-Portada-e-Indices.md"
+  compilar "01b-Requerimientos-Funcionales.pdf"        "$S/02-Requerimientos-Funcionales.md"
+  compilar "01c-Requerimientos-No-Funcionales.pdf"     "$S/03-Requerimientos-No-Funcionales.md"
+  compilar "01d-Evidencias-de-Levantamiento.pdf"       "$S/05-Evidencias-de-Levantamiento.md"
+  compilar "01e-Acta-de-Conformidad.pdf"               "$S/Apendice-B-Acta-de-Conformidad.md"
+  compilar "01f-Prototipo.pdf"                         "$S/Apendice-A-Prototipo.md"
+  compilar "01g-Gestion-de-Riesgos.pdf"                "$S/06-Gestion-de-Riesgos.md"
+  compilar "01g-Sprint-Backlogs-y-Cronograma.pdf"      "$S/07-Sprint-Backlogs-y-Cronograma.md"
+  compilar "01h-Contenido-Complementario.pdf"          "$S/01-Introduccion-y-Contexto.md" "$S/04-Alcance-Trazabilidad-y-Decisiones.md"
+
+  compilar "02a-Casos-de-Uso.pdf"                      "$E/a-Casos-de-Uso.md"
+  compilar "02b-Diagrama-de-Clases.pdf"                "$E/b-Diagrama-de-Clases.md"
+  compilar "02c-Diagramas-de-Objetos.pdf"              "$E/c-Diagramas-de-Objetos.md"
+  compilar "02d-Diagrama-de-Componentes.pdf"           "$E/d-Diagrama-de-Componentes.md"
+  compilar "02e-Diagrama-de-Despliegue.pdf"            "$E/e-Diagrama-de-Despliegue.md"
+
+  compilar "03a-Diagramas-de-Actividad.pdf"            "$C/a-Diagramas-de-Actividad.md"
+  compilar "03b-Diagramas-de-Secuencia.pdf"            "$C/b-Diagramas-de-Secuencia.md"
+  compilar "03c-Diagramas-de-Estado.pdf"               "$C/c-Diagramas-de-Estado.md"
+
+  compilar "04-Modelo-de-Base-de-Datos.pdf"            "$MD/04-Modelo-de-Base-de-Datos/Modelo-de-Base-de-Datos.md"
+  compilar "05-Mockups.pdf"                            "$MD/05-Mockups/Mockups.md"
+}
+
+# ─── Los 5 documentos oficiales que pide el enunciado ───────────────────────
+oficiales() {
+  echo "Documento Oficial:"
+  local S="$MD/01-Especificacion-de-Requerimientos"
+  local E="$MD/02-Modelamiento-Parte-Estatica"
+  local C="$MD/03-Modelamiento-Comportamiento"
+
+  # El entregable 01 va como UN solo PDF: el enunciado lo pide en singular y
+  # con el acta (01.e) y el prototipo (01.f) como apéndices de ese documento.
+  compilar "$OFICIAL/01-Especificacion-de-Requerimientos.pdf" \
+    "$S/00-Portada-e-Indices.md" \
+    "$S/01-Introduccion-y-Contexto.md" \
+    "$S/02-Requerimientos-Funcionales.md" \
+    "$S/03-Requerimientos-No-Funcionales.md" \
+    "$S/04-Alcance-Trazabilidad-y-Decisiones.md" \
+    "$S/05-Evidencias-de-Levantamiento.md" \
+    "$S/06-Gestion-de-Riesgos.md" \
+    "$S/07-Sprint-Backlogs-y-Cronograma.md" \
+    "$S/Apendice-A-Prototipo.md" \
+    "$S/Apendice-B-Acta-de-Conformidad.md"
+
+  compilar "$OFICIAL/02-Modelamiento-Parte-Estatica.pdf" \
+    "$E/a-Casos-de-Uso.md" "$E/b-Diagrama-de-Clases.md" "$E/c-Diagramas-de-Objetos.md" \
+    "$E/d-Diagrama-de-Componentes.md" "$E/e-Diagrama-de-Despliegue.md"
+
+  compilar "$OFICIAL/03-Modelamiento-Comportamiento.pdf" \
+    "$C/a-Diagramas-de-Actividad.md" "$C/b-Diagramas-de-Secuencia.md" "$C/c-Diagramas-de-Estado.md"
+
+  compilar "$OFICIAL/04-Modelo-de-Base-de-Datos.pdf" "$MD/04-Modelo-de-Base-de-Datos/Modelo-de-Base-de-Datos.md"
+  compilar "$OFICIAL/05-Mockups.pdf"                 "$MD/05-Mockups/Mockups.md"
+}
+
+case "$QUE" in
+  individuales) individuales ;;
+  oficiales)    oficiales ;;
+  todo)         individuales; echo; oficiales ;;
+  *) echo "Uso: $0 [todo|individuales|oficiales]"; exit 1 ;;
+esac
+
+cat <<'NOTA'
+
+Recordatorios:
+  · Completar la lista de integrantes en
+    markdown/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md
+  · Índice de tablas e índice de figuras (entregable 01.a): --toc genera la
+    tabla de contenido, pero los otros dos índices exigen rotular cada tabla
+    y figura ("Tabla 1: …", "Figura 1: …"). Hoy no están rotuladas.
+NOTA

@@ -35,13 +35,13 @@ En este orden. No leas el repo entero de golpe.
 | # | Documento | Por qué |
 |---|---|---|
 | 1 | `README.md` | Portada. Indexa todo y tiene el link al prototipo en vivo |
-| 2 | `Entregables/README.md` | **Qué se entrega, cuánto vale y qué falta.** Un archivo por ítem de rúbrica |
-| 3 | `Entregables/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` | **El documento más importante.** 56 requerimientos funcionales con criterios de aceptación + 52 no funcionales. Si vas a construir algo, se construye contra esto |
+| 2 | `Entregables/README.md` | **Qué se entrega, cuánto vale y qué falta.** Un PDF por punto del enunciado |
+| 3 | `Entregables/markdown/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` | **El documento más importante.** 56 requerimientos funcionales con criterios de aceptación + 52 no funcionales. Si vas a construir algo, se construye contra esto |
 | 4 | `Decisiones-Pendientes-Negocios.md` | **La fuente de verdad del estado.** Qué está cerrado, qué sigue abierto, y por qué. Si dos documentos se contradicen, este manda |
-| 5 | `uml/Documentacion-Casos-de-Uso.md` | Los 20 casos de uso desarrollados |
-| 6 | `uml/Documentacion-Diagrama-Clases.md` | El modelo de dominio y por qué está así |
+| 5 | `Entregables/markdown/02-Modelamiento-Parte-Estatica/a-Casos-de-Uso.md` | Los 20 casos de uso desarrollados |
+| 6 | `Entregables/markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md` | El modelo de dominio y por qué está así |
 | 7 | `Hallazgos-Ingenieria-API-Generica.md` | La investigación de integración con ERPs. Explica el patrón Adapter y el Outbox |
-| 8 | `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` | 23 riesgos. Varios requerimientos nacieron de un riesgo |
+| 8 | `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` | 23 riesgos. Varios requerimientos nacieron de un riesgo |
 
 **Prototipo interactivo, para entender el producto en 2 minutos:** https://jesus-jb.github.io/aliflow/
 
@@ -51,38 +51,38 @@ En este orden. No leas el repo entero de golpe.
 
 Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables .docx-1.pdf`).
 
-**Los documentos que se entregan viven en [`Entregables/`](Entregables/), uno por ítem de rúbrica.** El entregable 01 se compila a un PDF único con `Entregables/01-Especificacion-de-Requerimientos/construir-pdf.sh`, porque el enunciado lo pide en singular y con el acta y el prototipo como apéndices.
+**Todo lo que se entrega vive en [`Entregables/`](Entregables/):** un PDF por punto del enunciado sueltos en la carpeta (para ver qué falta de un vistazo), los 5 documentos oficiales en `Documento Oficial/`, y las fuentes `.md` en `markdown/`. Se compila con `Entregables/build/construir.sh` — **los PDF nunca se editan a mano, son salida de los `.md`**.
 
 | Entregable | Pts | Estado | Dónde |
 |---|---|---|---|
-| Requerimientos funcionales | 15 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` |
-| RNF categorizados (Sommerville) con criterio de validación | 8 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/03-Requerimientos-No-Funcionales.md` |
-| Prototipo del sistema | 12 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md` |
-| Evidencias de levantamiento de requerimientos | 3 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/05-Evidencias-de-Levantamiento.md` |
-| Estructura del documento (integrantes, TOC, índices) | 3 | 🟡 Parcial | `Entregables/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md` |
-| Contenido de otras secciones | 3 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md` · `04-Alcance-Trazabilidad-y-Decisiones.md` |
-| Documentación de riesgos | 3 | ✅ | `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` |
-| **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | `Entregables/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md` |
-| Diagrama de clases (SOLID, patrones) | 6 | ✅ | `uml/diagrama-clases.puml` |
-| Casos de uso | 6 | ✅ | `uml/casos-de-uso.puml` |
+| Requerimientos funcionales | 15 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` |
+| RNF categorizados (Sommerville) con criterio de validación | 8 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/03-Requerimientos-No-Funcionales.md` |
+| Prototipo del sistema | 12 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md` |
+| Evidencias de levantamiento de requerimientos | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/05-Evidencias-de-Levantamiento.md` |
+| Estructura del documento (integrantes, TOC, índices) | 3 | 🟡 Parcial | `Entregables/markdown/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md` |
+| Contenido de otras secciones | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md` · `04-Alcance-Trazabilidad-y-Decisiones.md` |
+| Documentación de riesgos | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` |
+| **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | `Entregables/markdown/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md` |
+| Diagrama de clases (SOLID, patrones) | 6 | ✅ | `Entregables/uml/diagrama-clases.puml` |
+| Casos de uso | 6 | ✅ | `Entregables/uml/casos-de-uso.puml` |
 | Diagramas de objetos | 3 | ✅ | 2 diagramas |
 | Diagramas de componentes | 3 | ✅ | 1 diagrama |
 | Diagrama de despliegue | 3 | ✅ | 1 diagrama |
 | Diagramas de actividad | 6 | ✅ | 5 diagramas |
 | Diagramas de secuencia | 10 | ✅ | 4 diagramas |
 | Diagramas de estado | 3 | ✅ | 5 diagramas |
-| **Modelado de la base de datos** | 10 | ❌ **No empezado** | `Entregables/04-Modelo-de-Base-de-Datos.md` |
+| **Modelado de la base de datos** | 10 | ❌ **No empezado** | `Entregables/markdown/04-Modelo-de-Base-de-Datos/` |
 | *Extra: definición arquitectónica* | +4 | ✅ | `Hallazgos-…md` + `demo-odoo/` |
 
 **En números: hay ~16 puntos de rúbrica todavía sin ganar** — base de datos 10, sprint backlogs 3, estructura del documento 3. Todo lo demás está hecho y al día.
 
 ### Detalle de lo construido
 
-- **20 diagramas UML** en `uml/`, cada uno con su `.puml` (fuente editable), su `.svg` renderizado y su documentación en Markdown. Hay un `render.py` para regenerar los SVG.
-- **Prototipo interactivo funcional** en `mockups/prototipo-web/` (React + Vite). No son imágenes: los cuatro roles comparten estado real. Se despliega solo a GitHub Pages en cada push a `main` que lo toque.
-- **22 pantallas de mockups** exportadas en `mockups/`, salidas de un sistema de diseño real en Figma (variables de color y escala, 10 estilos de texto, 10 componentes).
+- **20 diagramas UML** en `Entregables/uml/`, cada uno con su `.puml` (fuente editable) y su `.svg` renderizado. Su documentación está en `Entregables/markdown/02-…` y `03-…`. Hay un `render.py` para regenerar los SVG.
+- **Prototipo interactivo funcional** en `Entregables/mockups/prototipo-web/` (React + Vite). No son imágenes: los cuatro roles comparten estado real. Se despliega solo a GitHub Pages en cada push a `main` que lo toque.
+- **22 pantallas de mockups** exportadas en `Entregables/mockups/`, salidas de un sistema de diseño real en Figma (variables de color y escala, 10 estilos de texto, 10 componentes).
 - **Demo técnico funcional** en `demo-odoo/`: Odoo Community en Docker con un adaptador en Python, más pruebas de concurrencia reales. **No es teoría — se levantó y se corrió.**
-- **Identidad visual** derivada del logo, documentada en `mockups/marca/`.
+- **Identidad visual** derivada del logo, documentada en `Entregables/mockups/marca/`.
 
 ---
 
@@ -130,7 +130,7 @@ Ordenado por lo que más mueve la aguja.
 
 **A. Modelo de base de datos** — 10 puntos de rúbrica, y es el **próximo paso declarado del proyecto**. Estuvo bloqueado hasta el 8-ago porque el modelo de billetera dependía de una decisión abierta. **Ya está desbloqueado por completo**: se puede escribir el esquema entero. Es lo primero que hay que hacer.
 
-**B. Sprint backlogs y cronograma con diagramas activity-on-arrow** — 3 puntos. Forman parte del mismo entregable que los riesgos (01.g). `Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos, pero los sprint backlogs y el cronograma **no están ni empezados**.
+**B. Sprint backlogs y cronograma con diagramas activity-on-arrow** — 3 puntos. Forman parte del mismo entregable que los riesgos (01.g). `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos, pero los sprint backlogs y el cronograma **no están ni empezados**.
 
 **C. Composición del PDF final** — 3 puntos. Lista de integrantes en la primera página, tabla de contenido, índice de tablas e índice de figuras, más los apéndices: capturas del prototipo con su flujo de ventanas, y el acta de conformidad firmada.
 
@@ -140,10 +140,10 @@ Ordenado por lo que más mueve la aguja.
 
 | Dónde | Qué cambió |
 |---|---|
-| `uml/diagrama-clases.puml` + SVG | `TarjetaVirtual` perdió `saldoDisponible`; `SaldoProveedor` → `SaldoEstablecimiento` cambiando de significado; `Recarga` ganó establecimiento destino; `Orden` ganó descuento y motivo; **se eliminó el patrón Strategy** `EstrategiaDistribucionRecarga`, que quedó sin problema que resolver |
+| `Entregables/uml/diagrama-clases.puml` + SVG | `TarjetaVirtual` perdió `saldoDisponible`; `SaldoProveedor` → `SaldoEstablecimiento` cambiando de significado; `Recarga` ganó establecimiento destino; `Orden` ganó descuento y motivo; **se eliminó el patrón Strategy** `EstrategiaDistribucionRecarga`, que quedó sin problema que resolver |
 | Mockups de Figma + PNG | Pantalla nueva de selección de establecimiento; menú, recarga, historial y canje actualizados; se retiraron tres marcas amarillas ya resueltas |
 | Prototipo web | Saldo por establecimiento, selección obligatoria de local, perfil con saldos separados. Probado en navegador |
-| `uml/Documentacion-Diagrama-Clases.md` | Sección 3 reescrita |
+| `Entregables/markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md` | Sección 3 reescrita |
 
 ### 5.3 Trabajo técnico que no depende de nadie
 
@@ -165,7 +165,7 @@ Esto es lo más valioso de este documento. Cada punto costó tiempo real.
 
 **Alpwin no tiene API pública.** Lo usa Caramel Coffee, no Barú. La vía sería archivos o base de datos puente, y no está confirmada. **No bloquea el piloto** porque el local piloto es Barú, que usa Contífico (API REST documentada).
 
-**El verde del logo no sirve para botones con texto blanco.** Da 2.6:1 de contraste, por debajo de AA. Las acciones usan un verde más profundo. Y el color de "éxito" pasó a teal, porque con una marca verde un badge verde deja de leerse como estado. Está en `mockups/marca/`.
+**El verde del logo no sirve para botones con texto blanco.** Da 2.6:1 de contraste, por debajo de AA. Las acciones usan un verde más profundo. Y el color de "éxito" pasó a teal, porque con una marca verde un badge verde deja de leerse como estado. Está en `Entregables/mockups/marca/`.
 
 **Hay un documento de requerimientos que NO es oficial.** `Requerimientos del Proyecto Aliflow.pdf`, elaborado por otro equipo del curso. **No hay que cumplirlo**: describe una plataforma white-label multi-organización (universidades, empresas, hospitales) con planes y suscripciones. Es otro producto. Además contradice decisiones cerradas: propone registro con correo y contraseña (el real es Google OAuth institucional) y código QR escaneable (el real son 6 dígitos tecleados).
 
@@ -217,7 +217,7 @@ cd uml
 python render.py
 ```
 
-Cada push a `main` que toque `mockups/prototipo-web/` recompila y publica el sitio automáticamente (`.github/workflows/deploy-prototipo.yml`).
+Cada push a `main` que toque `Entregables/mockups/prototipo-web/` recompila y publica el sitio automáticamente (`.github/workflows/deploy-prototipo.yml`).
 
 ---
 
@@ -225,7 +225,7 @@ Cada push a `main` que toque `mockups/prototipo-web/` recompila y publica el sit
 
 **El modelo de base de datos.** Son 10 puntos de rúbrica, es el próximo paso declarado del proyecto, estuvo bloqueado durante semanas y **acaba de desbloquearse por completo**. Todas las decisiones estructurales están cerradas: inventario reservado, saldo por establecimiento, expiración del código, los cuatro roles, las reglas de fidelidad.
 
-Se escribe contra `Entregables/01-Especificacion-de-Requerimientos/` y `uml/Documentacion-Diagrama-Clases.md`, que están al día: describen el saldo por establecimiento y el canje como descuento del 100%.
+Se escribe contra `Entregables/markdown/01-Especificacion-de-Requerimientos/` y `Entregables/markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md`, que están al día: describen el saldo por establecimiento y el canje como descuento del 100%.
 
 ---
 

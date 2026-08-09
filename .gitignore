@@ -21,6 +21,9 @@ venv/
 node_modules/
 dist/
 
+# Salida temporal de pandoc
+*.tmp.md
+
 # ---------------------------------------------------------------------------
 # Criterio de qué se publica en el repo (definido el 9-ago-2026)
 #
@@ -28,11 +31,10 @@ dist/
 #   - Las fuentes en Markdown, que son la verdad del proyecto.
 #   - Las actas de reunión con el cliente, completas: son la evidencia del
 #     levantamiento de requerimientos (entregable 01.d).
-#   - El PDF compilado de la especificación de requerimientos, porque el
-#     entregable 01 se entrega en ese formato. Se genera concatenando las
-#     piezas de Entregables/01-Especificacion-de-Requerimientos/ con su
-#     script `construir-pdf.sh`, y hay que recompilarlo cada vez que cambie
-#     cualquiera de esas piezas.
+#   - Los PDF de Entregables/, porque el proyecto se entrega en ese formato.
+#     NO se editan a mano: son salida de Entregables/markdown/ vía
+#     Entregables/build/construir.sh. Hay que recompilarlos cada vez que
+#     cambie una fuente, o el PDF entregado deja de coincidir con ella.
 #
 #  NO se publica:
 #   - PDF derivados de un .md que ya está en el repo: duplican contenido y

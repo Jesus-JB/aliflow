@@ -255,7 +255,7 @@ El flujo del rol Proveedor (paso `prov-6` — "Re-emisión de comprobante tribut
 
 Las tres estaban abiertas y bloqueaban trabajo. Las tres se resolvieron:
 
-1. **Saldo por proveedor vs. saldo único** (paso `est-2` — "Recarga de tarjeta virtual"). **Resuelto: recarga única.** El estudiante hace una sola recarga a una bolsa común y Aliflow la distribuye internamente hacia los locales. Queda un punto fino que Ingeniería resolvió por interpretación y que conviene confirmar: *cuándo* ocurre esa distribución. Repartir el monto entre todos los locales en el momento de recargar es inviable (una recarga de $20 entre 4 locales deja $5 en cada uno, y el estudiante no puede almorzar en ninguno), así que se modeló como reparto **al momento de la compra**, con un libro interno por local. Ver `uml/Documentacion-Diagrama-Clases.md`, sección 3.
+1. **Saldo por proveedor vs. saldo único** (paso `est-2` — "Recarga de tarjeta virtual"). **Resuelto el 8-ago-2026: la recarga es por establecimiento.** El estudiante recarga *para un local* y ese saldo solo se gasta ahí; el dinero va directo a la cuenta de ese proveedor y Aliflow no custodia fondos. *(Este punto pasó por dos respuestas opuestas: el 28-jul se decidió saldo único con distribución interna, y el 8-ago se revirtió. El costo del saldo único fragmentado quedó registrado como riesgo R-21.)* Ver `Entregables/markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md`, sección 3.
 2. **Modelo de cobro de Aliflow al proveedor** (paso `prov-5`). **Sigue abierto** — es la única de las tres que no se resolvió. No bloquea el MVP técnico.
 3. **Formato del código de retiro** (pasos `est-6` y `op-2`). **Resuelto: código numérico corto.** Negocios descartó la propuesta de Ingeniería (UUID firmado) por una razón operativa correcta: el estudiante le dice el código al Operador de viva voz y este lo digita. Se implementa como 6 dígitos, únicos entre los códigos vigentes del mismo local, con expiración y un solo uso. Desbloquea el prototipo de mockups (entregable 01.f). El costo de la decisión es que el código pasa a ser adivinable por fuerza bruta, lo que se registró como riesgo R-15.
 
@@ -303,7 +303,7 @@ Las tres estaban abiertas y bloqueaban trabajo. Las tres se resolvieron:
 - [ ] Definir quién da de alta un local nuevo, ahora que no existe un rol de super-admin en el sistema (propuesta de Ingeniería: fuera de alcance de v1, lo hace el equipo manualmente).
 - [ ] Decidir el modelo de cobro de Aliflow al proveedor (comisión/suscripción).
 - [ ] Definir la regla de expiración/no-show para órdenes no retiradas.
-- [ ] Formalizar el registro de riesgos con el equipo (`Entregables/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`, 15 riesgos).
+- [ ] Formalizar el registro de riesgos con el equipo (`Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md`, 15 riesgos).
 - [ ] (Opcional, no bloqueante) Verificar oficialmente el precio de Contífico — se encontró una referencia no oficial de terceros (Lite $9/mes, Pyme $30/mes, Anual $91/año) que contradice nuestra afirmación previa de "sin costos públicos". Nota: Contífico ahora opera como **"Siigo Contífico"** tras una fusión — su portal de clientes está en `contifico.portaldeclientes.siigo.ec`. **Subió de prioridad**: ya no es un dato para una decisión futura, es el ERP del local piloto.
 
 ---

@@ -1,72 +1,107 @@
 # Entregables — Aliflow
 
-Un archivo por ítem de la rúbrica, para que se vea qué está hecho, qué falta y quién puede tomar cada pieza sin pisarse con nadie.
+Todo lo que se entrega, más las fuentes de donde sale.
 
-**La rúbrica completa está en [`../Proyecto - entregables .docx-1.pdf`](../Proyecto%20-%20entregables%20.docx-1.pdf).**
-
----
-
-## Estado por entregable
-
-| Entregable | Pts | Estado | Archivo |
-|---|---:|---|---|
-| **01 · Especificación de requerimientos** | **32** | | [`01-Especificacion-de-Requerimientos/`](01-Especificacion-de-Requerimientos/) |
-| ├ Estructura del documento (portada, integrantes, índices) | 3 | 🟡 Parcial | [`00-Portada-e-Indices.md`](01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md) |
-| ├ Contenido de otras secciones | 3 | ✅ | [`01-Introduccion-y-Contexto.md`](01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md) · [`04-Alcance-Trazabilidad-y-Decisiones.md`](01-Especificacion-de-Requerimientos/04-Alcance-Trazabilidad-y-Decisiones.md) |
-| ├ **Requerimientos funcionales** | **15** | ✅ | [`02-Requerimientos-Funcionales.md`](01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md) |
-| ├ **RNF categorizados con criterio de validación** | **8** | ✅ | [`03-Requerimientos-No-Funcionales.md`](01-Especificacion-de-Requerimientos/03-Requerimientos-No-Funcionales.md) |
-| ├ Evidencias de levantamiento y metodologías | 3 | ✅ | [`05-Evidencias-de-Levantamiento.md`](01-Especificacion-de-Requerimientos/05-Evidencias-de-Levantamiento.md) |
-| ├ Documentación de riesgos | 3 | ✅ | [`06-Gestion-de-Riesgos.md`](01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md) |
-| ├ **Sprint backlogs y activity-on-arrow** | **3** | ❌ **No empezado** | [`07-Sprint-Backlogs-y-Cronograma.md`](01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md) |
-| ├ **Prototipo del sistema** | **12** | ✅ | [`Apendice-A-Prototipo.md`](01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md) |
-| └ Acta de conformidad firmada | — | ⏳ **Esperando al cliente** | [`Apendice-B-Acta-de-Conformidad.md`](01-Especificacion-de-Requerimientos/Apendice-B-Acta-de-Conformidad.md) |
-| **02–03 · Diagramas UML** | **43** | ✅ | [`02-03-Diagramas-UML.md`](02-03-Diagramas-UML.md) |
-| **04 · Modelo de la base de datos** | **10** | ❌ **No empezado** | [`04-Modelo-de-Base-de-Datos.md`](04-Modelo-de-Base-de-Datos.md) |
-| **05 · Mockups** | *(incluido en el prototipo)* | ✅ | [`05-Mockups.md`](05-Mockups.md) |
-| *Extra · Definición arquitectónica* | +4 | ✅ | [`../Hallazgos-Ingenieria-API-Generica.md`](../Hallazgos-Ingenieria-API-Generica.md) |
-
-**Sin ganar hoy: 16 puntos** — base de datos (10), sprint backlogs (3) y estructura del documento (3).
+**El enunciado y la rúbrica están en [`../Proyecto - entregables .docx-1.pdf`](../Proyecto%20-%20entregables%20.docx-1.pdf).**
 
 ---
 
-## El entregable 01 se entrega como **un solo PDF**
+## Cómo está organizado
 
-El enunciado pide *"el documento de especificación de requerimientos del sistema de software (en formato pdf)"*, en singular, y los puntos a–g son partes de ese documento: el **e** y el **f** piden explícitamente el acta y el prototipo **como apéndices**. Por eso las piezas están separadas para trabajarlas, pero se entregan concatenadas:
+| Qué | Dónde | Para qué |
+|---|---|---|
+| **Lo que se entrega** | [`Documento Oficial/`](Documento%20Oficial/) | Los 5 documentos que pide el enunciado, ya en PDF |
+| **Un PDF por punto** | esta carpeta, sueltos | Ver de un vistazo qué cubre cada punto y qué falta. **No se entregan**, son para nosotros |
+| **Las fuentes** | [`markdown/`](markdown/) | Los `.md` organizados por entregable. **Acá se edita** |
+| Diagramas UML | [`uml/`](uml/) | Fuentes `.puml`, sus `.svg` y el script para regenerarlos |
+| Mockups y prototipo | [`mockups/`](mockups/) | Exportaciones PNG, marca y el código del prototipo web |
+| Script de compilación | [`build/`](build/) | Genera todos los PDF desde `markdown/` |
+
+> ⚠️ **Los PDF no se editan a mano.** Son salida de los `.md`. Si cambiás una fuente, recompilá o el PDF entregado deja de coincidir con ella.
 
 ```bash
-cd 01-Especificacion-de-Requerimientos
-./construir-pdf.sh
+./build/construir.sh                # todo
+./build/construir.sh individuales   # solo los PDF sueltos
+./build/construir.sh oficiales      # solo los 5 de Documento Oficial/
 ```
 
-Genera `Aliflow-Especificacion-de-Requerimientos.pdf` con las 10 piezas en orden, tabla de contenido y salto de página entre secciones. **Requiere `pandoc` y `typst`.**
-
-> ⚠️ **Hay que recompilar cada vez que cambie una pieza**, o el PDF entregado deja de coincidir con su fuente. Ya pasó una vez.
+Requiere `pandoc` y `typst`.
 
 ---
 
-## Cómo se reparte el trabajo sin pisarse
+## Estado por punto
 
-Cada archivo de esta carpeta es independiente: dos personas pueden trabajar en dos piezas distintas sin conflictos de merge. Lo único compartido es `construir-pdf.sh`, que casi nunca cambia.
+### 01 · Documento de especificación de requerimientos — 32 pts
 
-**Lo que queda libre para tomar:**
+| Punto | Rúbrica | Pts | Estado | PDF | Fuente |
+|---|---|---:|---|---|---|
+| 01.a | Estructura del documento | 3 | 🟡 **Parcial** | `01a-Estructura-del-Documento.pdf` | [`00-Portada-e-Indices.md`](markdown/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md) |
+| — | **Requerimientos funcionales** | **15** | ✅ | `01b-Requerimientos-Funcionales.pdf` | [`02-Requerimientos-Funcionales.md`](markdown/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md) |
+| 01.c | **RNF categorizados con criterio de validación** | **8** | ✅ | `01c-Requerimientos-No-Funcionales.pdf` | [`03-Requerimientos-No-Funcionales.md`](markdown/01-Especificacion-de-Requerimientos/03-Requerimientos-No-Funcionales.md) |
+| 01.d | Evidencias de levantamiento y metodologías | 3 | ✅ | `01d-Evidencias-de-Levantamiento.pdf` | [`05-Evidencias-de-Levantamiento.md`](markdown/01-Especificacion-de-Requerimientos/05-Evidencias-de-Levantamiento.md) |
+| 01.e | Acta de conformidad firmada | — | ⏳ **Esperando al cliente** | `01e-Acta-de-Conformidad.pdf` | [`Apendice-B-Acta-de-Conformidad.md`](markdown/01-Especificacion-de-Requerimientos/Apendice-B-Acta-de-Conformidad.md) |
+| 01.f | **Prototipo de alta fidelidad** | **12** | ✅ | `01f-Prototipo.pdf` | [`Apendice-A-Prototipo.md`](markdown/01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md) |
+| 01.g | Documentación de riesgos | 3 | ✅ | `01g-Gestion-de-Riesgos.pdf` | [`06-Gestion-de-Riesgos.md`](markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md) |
+| 01.g | **Sprint backlogs y activity-on-arrow** | **3** | ❌ **No empezado** | `01g-Sprint-Backlogs-y-Cronograma.pdf` | [`07-Sprint-Backlogs-y-Cronograma.md`](markdown/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md) |
+| — | Contenido de otras secciones | 3 | ✅ | `01h-Contenido-Complementario.pdf` | [`01-Introduccion-y-Contexto.md`](markdown/01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md) · [`04-Alcance-Trazabilidad-y-Decisiones.md`](markdown/01-Especificacion-de-Requerimientos/04-Alcance-Trazabilidad-y-Decisiones.md) |
 
-| Pieza | Qué falta exactamente |
-|---|---|
-| `04-Modelo-de-Base-de-Datos.md` | Todo. Es la pieza de más puntos sin empezar (10), y **ya no está bloqueada por ninguna decisión** |
-| `07-Sprint-Backlogs-y-Cronograma.md` | Los backlogs y el diagrama activity-on-arrow. El archivo ya tiene la propuesta de sprints y los insumos identificados |
-| `00-Portada-e-Indices.md` | La lista de integrantes, y rotular tablas y figuras para poder generar sus índices |
+> **Dos líneas de la rúbrica no tienen letra propia en el enunciado**: los requerimientos funcionales (15 pts, el ítem de más valor de todo el proyecto) y el contenido de otras secciones (3 pts). Se les asignó `01b` y `01h` para que no queden sin archivo visible.
+
+**Se entrega como un solo PDF.** El enunciado lo pide en singular y con el acta (01.e) y el prototipo (01.f) **como apéndices de ese documento**. Por eso `Documento Oficial/01-Especificacion-de-Requerimientos.pdf` concatena las 10 piezas.
+
+### 02 · Modelamiento de la parte estática (UML) — 21 pts
+
+| Punto | Pts | Estado | PDF | Fuente |
+|---|---:|---|---|---|
+| 02.a | Casos de uso y documentación completa | 6 | ✅ | `02a-Casos-de-Uso.pdf` | [`a-Casos-de-Uso.md`](markdown/02-Modelamiento-Parte-Estatica/a-Casos-de-Uso.md) |
+| 02.b | Clases (SOLID, patrones, malos olores) | 6 | ✅ | `02b-Diagrama-de-Clases.pdf` | [`b-Diagrama-de-Clases.md`](markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md) |
+| 02.c | Objetos | 3 | ✅ | `02c-Diagramas-de-Objetos.pdf` | [`c-Diagramas-de-Objetos.md`](markdown/02-Modelamiento-Parte-Estatica/c-Diagramas-de-Objetos.md) |
+| 02.d | Componentes | 3 | ✅ | `02d-Diagrama-de-Componentes.pdf` | [`d-Diagrama-de-Componentes.md`](markdown/02-Modelamiento-Parte-Estatica/d-Diagrama-de-Componentes.md) |
+| 02.e | Despliegue | 3 | ✅ | `02e-Diagrama-de-Despliegue.pdf` | [`e-Diagrama-de-Despliegue.md`](markdown/02-Modelamiento-Parte-Estatica/e-Diagrama-de-Despliegue.md) |
+
+### 03 · Modelamiento del comportamiento (UML) — 19 pts
+
+| Punto | Pts | Estado | PDF | Fuente |
+|---|---:|---|---|---|
+| 03.a | Actividad — *todos* los procesos | 6 | ✅ | `03a-Diagramas-de-Actividad.pdf` | [`a-Diagramas-de-Actividad.md`](markdown/03-Modelamiento-Comportamiento/a-Diagramas-de-Actividad.md) |
+| 03.b | Secuencia — algoritmos transaccionales | 10 | ✅ | `03b-Diagramas-de-Secuencia.pdf` | [`b-Diagramas-de-Secuencia.md`](markdown/03-Modelamiento-Comportamiento/b-Diagramas-de-Secuencia.md) |
+| 03.c | Estado — objetos pertinentes | 3 | ✅ | `03c-Diagramas-de-Estado.pdf` | [`c-Diagramas-de-Estado.md`](markdown/03-Modelamiento-Comportamiento/c-Diagramas-de-Estado.md) |
+
+### 04 y 05
+
+| Punto | Pts | Estado | PDF | Fuente |
+|---|---:|---|---|---|
+| 04 | **Modelo de la base de datos** | **10** | ❌ **No empezado** | `04-Modelo-de-Base-de-Datos.pdf` | [`Modelo-de-Base-de-Datos.md`](markdown/04-Modelo-de-Base-de-Datos/Modelo-de-Base-de-Datos.md) |
+| 05 | Mockups | — | ✅ | `05-Mockups.pdf` | [`Mockups.md`](markdown/05-Mockups/Mockups.md) |
+
+### Extra
+
+| Qué | Pts | Estado | Dónde |
+|---|---:|---|---|
+| Definición arquitectónica | +4 | ✅ | [`../Hallazgos-Ingenieria-API-Generica.md`](../Hallazgos-Ingenieria-API-Generica.md) + [`../demo-odoo/`](../demo-odoo/) |
 
 ---
 
-## Dónde vive el resto del proyecto
+## Lo que falta: 16 puntos
 
-Esta carpeta contiene **los documentos que se entregan**. Lo demás sigue en la raíz del repositorio:
+| Qué | Pts | Quién puede tomarlo |
+|---|---:|---|
+| **Modelo de la base de datos** | 10 | Cualquiera. **Ya no está bloqueado por ninguna decisión.** El archivo trae las seis cosas no obvias que el esquema tiene que resolver |
+| **Sprint backlogs y activity-on-arrow** | 3 | Cualquiera. El archivo trae una propuesta de seis sprints derivada de la priorización MoSCoW que ya existe |
+| **Estructura del documento** | 3 | Falta la lista de integrantes y rotular tablas y figuras para poder generar sus índices |
+
+Los tres archivos ya existen y dicen en su primera línea qué les falta. **No están vacíos: traen los insumos para que quien los tome no arranque de cero.**
+
+---
+
+## Dónde vive el resto
+
+Esta carpeta tiene lo que se entrega. Lo que no se entrega sigue en la raíz:
 
 | Qué | Dónde | Por qué no está acá |
 |---|---|---|
-| Estado del proyecto y traspaso | [`../Estado-del-Proyecto.md`](../Estado-del-Proyecto.md) | Es documentación interna, no se entrega |
-| Decisiones abiertas con el cliente | [`../Decisiones-Pendientes-Negocios.md`](../Decisiones-Pendientes-Negocios.md) | Ídem. **Es la fuente de verdad del estado** |
-| Investigación de integración con ERPs | [`../Hallazgos-Ingenieria-API-Generica.md`](../Hallazgos-Ingenieria-API-Generica.md) | Sustenta el extra de definición arquitectónica |
-| Diagramas UML (fuentes y SVG) | [`../uml/`](../uml/) | Son 20 archivos con su documentación |
-| Prototipo web y mockups | [`../mockups/`](../mockups/) | Código y exportaciones |
-| Demo técnico con Odoo | [`../demo-odoo/`](../demo-odoo/) | Código |
+| Estado del proyecto y traspaso | [`../Estado-del-Proyecto.md`](../Estado-del-Proyecto.md) | Documentación interna |
+| Decisiones abiertas con el cliente | [`../Decisiones-Pendientes-Negocios.md`](../Decisiones-Pendientes-Negocios.md) | Interna, y **es la fuente de verdad del estado** |
+| Investigación de integración con ERPs | [`../Hallazgos-Ingenieria-API-Generica.md`](../Hallazgos-Ingenieria-API-Generica.md) | Sustenta el extra, no es un entregable en sí |
+| Demo técnico con Odoo | [`../demo-odoo/`](../demo-odoo/) | Es código, no un documento |
+| Actas de reunión con el cliente | `../ACTA*.pdf` | Fuentes primarias del levantamiento |
