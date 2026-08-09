@@ -1,0 +1,28 @@
+@startuml clases-vision-general
+
+skinparam rectangle {
+  BackgroundColor #FDFDFD
+  BorderColor #666666
+  FontSize 13
+}
+skinparam ArrowFontSize 11
+skinparam defaultTextAlignment center
+
+rectangle "**Usuarios**\n\nUsuario · Estudiante\nUsuarioProveedor\nAdministrador · Operador\nSuperAdmin" as USR
+rectangle "**Proveedor y Menú**\n\nProveedor · PuntoDeEntrega\nPlato · InventarioReservado" as MEN
+rectangle "**Wallet y Pagos**\n\nTarjetaVirtual\nSaldoEstablecimiento\nRecarga · Pago · MetodoPago\nComprobanteRecarga" as WAL
+rectangle "**Órdenes**\n\nOrden · OrdenDetalle\nCodigoRetiro\nComprobanteCompra\nRegistroAuditoria" as ORD
+rectangle "**Fidelidad**\n\nProgramaFidelidad\nCartilla · Sello · Canje" as FID
+rectangle "**Integración con ERP externo**\n\nIInventoryProvider\nContifico/Alpwin/OdooAdapter\nProviderAdapterFactory\nIntegracionERP\nEventoSincronizacion\nSincronizacionWorker" as ERP
+
+USR --> MEN : el personal\npertenece a un local
+USR --> ORD : el estudiante\ncompra
+WAL --> MEN : el saldo es\nde un local
+ORD --> WAL : se paga con\nel saldo de ese local
+ORD --> MEN : consume cupo\ndel menú
+FID --> ORD : el sello nace\nde una entrega
+FID --> MEN : el programa\nes de cada local
+ORD --> ERP : la venta se\nnotifica al ERP
+ERP --> MEN : un ERP\npor local
+
+@enduml

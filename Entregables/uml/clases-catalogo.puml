@@ -1,0 +1,74 @@
+@startuml clases-catalogo
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor<<contexto>> #F4F4F4
+  BorderColor<<contexto>> #9E9E9E
+  FontColor<<contexto>> #555555
+}
+hide empty members
+
+class Proveedor {
+  - id: UUID
+  - nombreComercial: String
+  - ruc: String
+  - fechaAlta: DateTime
+  - activo: boolean
+  - horaMaximaRetiro: Time
+  - cuentaBancariaDestino: String
+  - credencialesComercioCifradas: String
+  + configurarHoraMaximaRetiro(h: Time): void
+}
+
+class PuntoDeEntrega {
+  - id: UUID
+  - nombre: String
+  - ubicacion: String
+}
+
+class Plato {
+  - id: UUID
+  - nombre: String
+  - descripcion: String
+  - precio: Money
+  - stockDisponible: int
+  - version: int
+  - activo: boolean
+  + hayStock(cantidad: int): boolean
+  + reservarStock(cantidad: int): boolean
+}
+
+class InventarioReservado {
+  - id: UUID
+  - cupoAsignado: int
+  - cupoConsumido: int
+  - version: int
+  - fechaVigencia: Date
+  + disponible(): int
+  + asignarCupo(cantidad: int): void
+  + consumir(cantidad: int): boolean
+}
+
+class Administrador <<contexto>>
+class Operador <<contexto>>
+class IntegracionERP <<contexto>>
+class ProgramaFidelidad <<contexto>>
+
+note bottom of InventarioReservado
+  Cupo **exclusivo para Aliflow** que el proveedor aparta de su producción
+  (de 100 almuerzos: 75 caja, 25 Aliflow). La compra se valida contra
+  `disponible()`, **no** contra `Plato.stockDisponible`, que queda como espejo
+  informativo del ERP. `version` habilita el bloqueo optimista sobre el cupo.
+end note
+
+Proveedor "1" *-- "1..*" Administrador : gerencia el local
+Proveedor "1" *-- "0..*" Operador : personal de entrega
+Proveedor "1" *-- "0..*" PuntoDeEntrega
+Proveedor "1" *-- "0..*" Plato : menú
+Proveedor "1" *-- "1" IntegracionERP
+Proveedor "1" *-- "0..1" ProgramaFidelidad
+Plato "1" *-- "0..1" InventarioReservado : cupo Aliflow
+Operador "0..*" --> "1" PuntoDeEntrega : trabaja en
+
+@enduml

@@ -1,0 +1,83 @@
+@startuml clases-fidelidad
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor<<contexto>> #F4F4F4
+  BorderColor<<contexto>> #9E9E9E
+  FontColor<<contexto>> #555555
+}
+hide empty members
+
+class ProgramaFidelidad {
+  - id: UUID
+  - sellosRequeridos: int
+  - descripcionPremio: String
+  - vigenciaCartillaDias: int
+  - maxSellosPorDia: int = 1
+  - activo: boolean
+  + emitirCartilla(estudiante: Estudiante): Cartilla
+}
+
+enum EstadoCartilla {
+  EN_CURSO
+  COMPLETA
+  CANJEADA
+  EXPIRADA
+}
+
+class Cartilla {
+  - id: UUID
+  - sellosAcumulados: int
+  - estado: EstadoCartilla
+  - fechaInicio: DateTime
+  - fechaExpiracion: DateTime
+  + acreditarSello(orden: Orden): boolean
+  + estaCompleta(): boolean
+  + canjear(orden: Orden): Canje
+}
+
+class Sello {
+  - id: UUID
+  - fecha: DateTime
+}
+
+class Canje {
+  - id: UUID
+  - fechaHora: DateTime
+  - premioEntregado: String
+}
+
+class Proveedor <<contexto>>
+class Estudiante <<contexto>>
+class Operador <<contexto>>
+class Orden <<contexto>>
+
+note bottom of Sello
+  El sello se acredita en `marcarEntregado()`, **no**
+  en `confirmarCompra()`: una orden comprada y nunca
+  retirada no debe llenar la cartilla, y el sello
+  premia el acto físico. `Sello --> Orden` es 1 a 1
+  con restricción de unicidad, así un reintento de la
+  entrega no acredita dos veces.
+end note
+
+note bottom of Canje
+  El canje se aplica sobre una **orden real** con
+  `esCanje = true` y descuento del 100% rotulado como
+  premio. No descuenta `SaldoEstablecimiento`: el
+  premio lo regala el local. El plato igual sale del
+  cupo y el ERP igual se entera.
+end note
+
+Proveedor "1" *-- "0..1" ProgramaFidelidad
+ProgramaFidelidad "1" --> "0..*" Cartilla : emite
+Estudiante "1" --> "0..*" Cartilla : acumula
+Cartilla "1" *-- "0..*" Sello
+Cartilla ..> EstadoCartilla
+Sello "1" --> "1" Orden : acreditado por
+Cartilla "1" --> "0..1" Canje
+Canje "1" --> "1" Orden : aplicado en
+Canje "0..*" --> "1" Operador : validado por
+
+@enduml

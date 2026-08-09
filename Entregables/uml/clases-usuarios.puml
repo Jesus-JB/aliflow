@@ -1,0 +1,66 @@
+@startuml clases-usuarios
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor<<contexto>> #F4F4F4
+  BorderColor<<contexto>> #9E9E9E
+  FontColor<<contexto>> #555555
+}
+hide empty members
+
+abstract class Usuario {
+  # id: UUID
+  # nombreCompleto: String
+  # email: String
+  # fechaRegistro: DateTime
+  # activo: boolean
+  + autenticar(): Sesion
+}
+
+class Estudiante extends Usuario {
+  - dominioInstitucional: String
+  - codigoInstitucional: String
+  + consultarSaldo(): Money
+}
+
+abstract class UsuarioProveedor extends Usuario {
+  # proveedor: Proveedor
+}
+
+class Administrador extends UsuarioProveedor {
+  + administrarMenu(): void
+  + consultarMetricas(): MetricasProveedor
+  + gestionarUsuariosDelLocal(): void
+  + configurarIntegracionERP(): IntegracionERP
+}
+
+class Operador extends UsuarioProveedor {
+  - puntoDeEntrega: PuntoDeEntrega
+  + buscarOrden(codigo: String): Orden
+  + confirmarEntrega(orden: Orden): void
+}
+
+class SuperAdmin extends Usuario {
+  + darDeAltaLocal(datos: DatosLocal): Proveedor
+  + configurarIntegracionERP(p: Proveedor): IntegracionERP
+  + brindarSoporte(p: Proveedor): void
+  + administrarPlataforma(): void
+}
+
+class Proveedor <<contexto>>
+class PuntoDeEntrega <<contexto>>
+
+note bottom of Administrador
+  El rol de negocio **"Proveedor"** es esta clase `Administrador` — la **persona**
+  que gerencia el local. La clase `Proveedor` es el **local/negocio** (el tenant).
+  `SuperAdmin` extiende `Usuario` y **no** `UsuarioProveedor`: es el único rol sin
+  local propio, con visibilidad sobre todos los tenants.
+end note
+
+Proveedor "1" *-- "1..*" Administrador : gerencia el local
+Proveedor "1" *-- "0..*" Operador : personal de entrega
+Proveedor "1" *-- "0..*" PuntoDeEntrega
+Operador "0..*" --> "1" PuntoDeEntrega : trabaja en
+
+@enduml

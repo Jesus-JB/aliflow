@@ -1,0 +1,96 @@
+@startuml clases-ordenes
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor<<contexto>> #F4F4F4
+  BorderColor<<contexto>> #9E9E9E
+  FontColor<<contexto>> #555555
+}
+hide empty members
+
+enum EstadoOrden {
+  COMPRADO
+  ENTREGADO
+  EXPIRADO
+}
+
+class Orden {
+  - id: UUID
+  - proveedor: Proveedor
+  - fechaHora: DateTime
+  - estado: EstadoOrden
+  - esCanje: boolean = false
+  - descuento: Money = 0
+  - motivoDescuento: String
+  + subtotal(): Money
+  + total(): Money
+  + confirmarCompra(): void
+  + marcarEntregado(operador: Operador): void
+  + expirar(): void
+}
+
+class OrdenDetalle {
+  - cantidad: int
+  - precioUnitario: Money
+}
+
+enum EstadoCodigoRetiro {
+  VALIDO
+  UTILIZADO
+  VENCIDO
+}
+
+class CodigoRetiro {
+  {field} - valor: String(6)
+  - fechaCompra: Date
+  - fechaExpiracion: DateTime
+  - estado: EstadoCodigoRetiro
+  + validar(): boolean
+  + invalidar(): void
+  + estaVencido(): boolean
+}
+
+class ComprobanteCompra {
+  - id: UUID
+  - fechaEmision: DateTime
+  - montoTotal: Money
+  - sinValidezTributaria: boolean = true
+}
+
+class RegistroAuditoria {
+  - id: UUID
+  - entidadAfectada: String
+  - accion: String
+  - detalle: String
+  - fechaHora: DateTime
+}
+
+class Estudiante <<contexto>>
+class Operador <<contexto>>
+class Usuario <<contexto>>
+class Proveedor <<contexto>>
+class Plato <<contexto>>
+
+Estudiante "1" --> "0..*" Orden : realiza
+Orden "0..*" --> "1" Proveedor
+Orden "1" *-- "1..*" OrdenDetalle
+OrdenDetalle "0..*" --> "1" Plato
+Orden "1" *-- "1" CodigoRetiro
+Orden "1" *-- "0..1" ComprobanteCompra
+Orden "0..*" --> "0..1" Operador : entregada por
+Orden ..> EstadoOrden
+CodigoRetiro ..> EstadoCodigoRetiro
+RegistroAuditoria "0..*" --> "1" Usuario : ejecutado por
+
+legend bottom
+  **Invariante de la orden:** todos los `OrdenDetalle` de una misma `Orden` referencian platos del mismo proveedor — una orden
+  nunca mezcla locales, y `confirmarCompra()` lo valida antes de crearla.
+  **Descuento en vez de venta de $0:** el premio de fidelidad se cobra como descuento del 100% con su motivo, de modo que
+  `total() = subtotal() - descuento` y el detalle conserva el precio real del plato.
+  **Código de retiro:** numérico de 6 dígitos, que el estudiante dicta de viva voz. Vale solo el día de la compra —
+  `fechaExpiracion` es el mínimo entre la `horaMaximaRetiro` del local y el fin del día. La unicidad se exige solo entre los
+  códigos vigentes del mismo local, que es lo que hace viables 6 dígitos.
+endlegend
+
+@enduml

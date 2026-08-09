@@ -1,0 +1,61 @@
+@startuml clases-outbox
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor<<contexto>> #F4F4F4
+  BorderColor<<contexto>> #9E9E9E
+  FontColor<<contexto>> #555555
+}
+hide empty members
+
+enum TipoEvento {
+  ACTUALIZAR_STOCK
+  NOTIFICAR_VENTA
+  NOTIFICAR_PAGO
+}
+
+enum EstadoEvento {
+  PENDIENTE
+  PROCESADO
+  FALLIDO
+}
+
+class EventoSincronizacion {
+  - id: UUID
+  - tipoEvento: TipoEvento
+  - payload: String
+  - estado: EstadoEvento
+  - intentos: int
+  - fechaCreacion: DateTime
+  + reintentar(): void
+}
+
+class SincronizacionWorker {
+  + procesarCola(): void
+  - ejecutarEvento(evento: EventoSincronizacion): void
+}
+
+class Proveedor <<contexto>>
+class Orden <<contexto>>
+class ProviderAdapterFactory <<contexto>>
+interface IInventoryProvider <<contexto>>
+
+note bottom of EventoSincronizacion
+  Patrón **Outbox**: la venta se confirma
+  escribiendo el evento en la misma transacción,
+  y el worker lo entrega después con reintentos.
+  Si el ERP está caído la orden no se pierde —
+  queda PENDIENTE. Cubre el riesgo R-02
+  (venta huérfana).
+end note
+
+Orden "1" --> "1..*" EventoSincronizacion : genera al confirmarse
+Proveedor "1" *-- "0..*" EventoSincronizacion
+EventoSincronizacion ..> TipoEvento
+EventoSincronizacion ..> EstadoEvento
+SincronizacionWorker "1" ..> "0..*" EventoSincronizacion : procesa
+SincronizacionWorker ..> ProviderAdapterFactory : usa
+ProviderAdapterFactory ..> IInventoryProvider : crea
+
+@enduml

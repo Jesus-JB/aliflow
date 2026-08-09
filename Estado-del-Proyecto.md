@@ -65,7 +65,7 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 | Contenido de otras secciones | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md` · `04-Alcance-Trazabilidad-y-Decisiones.md` |
 | Documentación de riesgos | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` |
 | **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | `Entregables/markdown/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md` |
-| Diagrama de clases (SOLID, patrones) | 6 | ✅ | `Entregables/uml/diagrama-clases.puml` |
+| Diagrama de clases (SOLID, patrones) | 6 | ✅ | `Entregables/uml/clases-*.puml` — una vista general y siete de detalle |
 | Casos de uso | 6 | ✅ | `Entregables/uml/casos-de-uso.puml` |
 | Diagramas de objetos | 3 | ✅ | 2 diagramas |
 | Diagramas de componentes | 3 | ✅ | 1 diagrama |
@@ -80,7 +80,7 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 
 ### Detalle de lo construido
 
-- **20 diagramas UML** en `Entregables/uml/`, cada uno con su `.puml` (fuente editable) y su `.svg` renderizado. Su documentación está en `Entregables/markdown/02-…` y `03-…`. Hay un `render.py` para regenerar los SVG.
+- **32 diagramas UML** en `Entregables/uml/`, cada uno con su `.puml` (fuente editable) y su `.svg` renderizado. Los casos de uso y las clases están además partidos en vistas (por rol y por paquete) para que se lean impresos. Su documentación está en `Entregables/markdown/02-…` y `03-…`. Hay un `render.py` para regenerar los SVG.
 - **Prototipo interactivo funcional** en `Entregables/mockups/prototipo-web/` (React + Vite). No son imágenes: los cuatro roles comparten estado real. Se despliega solo a GitHub Pages en cada push a `main` que lo toque.
 - **22 pantallas de mockups** exportadas en `Entregables/mockups/`, salidas de un sistema de diseño real en Figma (variables de color y escala, 10 estilos de texto, 10 componentes).
 - **Demo técnico funcional** en `demo-odoo/`: Odoo Community en Docker con un adaptador en Python, más pruebas de concurrencia reales. **No es teoría — se levantó y se corrió.**
@@ -170,6 +170,10 @@ Esto es lo más valioso de este documento. Cada punto costó tiempo real.
 **El verde del logo no sirve para botones con texto blanco.** Da 2.6:1 de contraste, por debajo de AA. Las acciones usan un verde más profundo. Y el color de "éxito" pasó a teal, porque con una marca verde un badge verde deja de leerse como estado. Está en `Entregables/mockups/marca/`.
 
 **Hay un documento de requerimientos que NO es oficial.** `Requerimientos del Proyecto Aliflow.pdf`, elaborado por otro equipo del curso. **No hay que cumplirlo**: describe una plataforma white-label multi-organización (universidades, empresas, hospitales) con planes y suscripciones. Es otro producto. Además contradice decisiones cerradas: propone registro con correo y contraseña (el real es Google OAuth institucional) y código QR escaneable (el real son 6 dígitos tecleados).
+
+**Un diagrama grande no se arregla con más resolución: se parte.** El diagrama de clases completo medía 7819 × 2494 px. Ajustado al ancho de la página queda con el texto en 0,3 mm de alto — ilegible impreso, y quitarle las notas solo lo bajó a 4493 px. Tampoco funcionan los enlaces ocultos para forzar un reparto más vertical: Graphviz reacomoda igual. Lo que sí funciona es **una vista por paquete** (`Entregables/uml/clases-*.puml`), cada una por debajo de ~1150 px de ancho, más una lámina de conjunto con los paquetes. Dos detalles que costaron intentos: una `note` empuja el ancho del diagrama aunque cuelgue de una clase — si estorba, va como `legend bottom`, que se dibuja fuera del grafo; y `String(4)` en un atributo lo manda al compartimento de métodos, hay que escribirlo `{field} - x: String(4)`.
+
+**Las figuras de los entregables flotan.** `build/estilo.typ` fija `#show figure.where(kind: image): set figure(placement: auto)`. Sin eso, un diagrama que no entra en el hueco que queda salta de página y deja media hoja en blanco. Con el flotado los entregables bajaron mucho de páginas (mockups 24 → 17, casos de uso 19 → 16) sin perder nada. A cambio, una figura puede aparecer arriba de la página antes del párrafo que la introduce: es el comportamiento normal de un flotante y la numeración se mantiene en orden de lectura, pero no lo tomes por un error.
 
 **Ojo con la palabra "cartilla".** En ese documento no oficial significa **paquete prepago de almuerzos**. En este proyecto significa **tarjeta de sellos de fidelidad**. Son dos productos distintos con el mismo nombre. Negocios confirmó el 8-ago que es la tarjeta de sellos. La ambigüedad ya está resuelta, pero si alguien la reintroduce, este es el punto donde hay que detenerse.
 

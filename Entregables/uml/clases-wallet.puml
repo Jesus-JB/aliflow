@@ -1,0 +1,85 @@
+@startuml clases-wallet
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor<<contexto>> #F4F4F4
+  BorderColor<<contexto>> #9E9E9E
+  FontColor<<contexto>> #555555
+}
+hide empty members
+
+class TarjetaVirtual {
+  - id: UUID
+  + saldoEn(proveedor: Proveedor): Money
+}
+
+class SaldoEstablecimiento {
+  - id: UUID
+  - monto: Money
+  + acreditar(cantidad: Money): void
+  + descontar(cantidad: Money): boolean
+}
+
+class Recarga {
+  - id: UUID
+  - montoTotal: Money
+  - fechaHora: DateTime
+  - numeroOperacion: String
+  - estadoTransaccion: EstadoPago
+  - idPasarela: String
+  - usuarioQueRecargo: Estudiante
+  - proveedorDestino: Proveedor
+  + aplicar(saldo: SaldoEstablecimiento): void
+}
+
+class ComprobanteRecarga {
+  - id: UUID
+  - fechaEmision: DateTime
+  - sinValidezTributaria: boolean = true
+}
+
+enum EstadoPago {
+  APROBADO
+  PENDIENTE
+  RECHAZADO
+}
+
+class Pago {
+  - id: UUID
+  - monto: Money
+  - estado: EstadoPago
+  - fechaHora: DateTime
+  - idTransaccionPasarela: String
+}
+
+class MetodoPago {
+  - id: UUID
+  - tipoTarjeta: String
+  {field} - ultimosCuatroDigitos: String(4)
+  - tokenPasarela: String
+  - predeterminado: boolean
+}
+
+class Estudiante <<contexto>>
+class Proveedor <<contexto>>
+
+note bottom of SaldoEstablecimiento
+  El saldo es **del establecimiento**, no del estudiante: la `TarjetaVirtual`
+  solo agrupa un `SaldoEstablecimiento` por cada local en el que se haya
+  recargado, y solo puede gastarse ahí (RN-13). El dinero de cada recarga va
+  **directo a la cuenta del proveedor destino**; Aliflow no custodia fondos.
+end note
+
+Estudiante "1" *-- "1" TarjetaVirtual
+Estudiante "1" *-- "0..*" MetodoPago
+TarjetaVirtual "1" *-- "0..*" SaldoEstablecimiento : uno por local
+SaldoEstablecimiento "0..*" --> "1" Proveedor
+SaldoEstablecimiento "1" *-- "0..*" Recarga
+Recarga "0..*" --> "1" Proveedor : destino del dinero
+Recarga "1" *-- "1" ComprobanteRecarga
+Pago "1" --> "0..1" Recarga : genera
+Pago "0..*" --> "0..1" MetodoPago : usa
+Pago ..> EstadoPago
+
+@enduml

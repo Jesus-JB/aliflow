@@ -9,6 +9,11 @@
 // Permitir saltos de página en las tablas
 #show figure.where(kind: table): set block(breakable: true)
 
+// Las figuras flotan al principio o al final de la página, como en LaTeX. Sin
+// esto, un diagrama que no entra en el hueco que queda salta a la página
+// siguiente y deja media página en blanco detrás.
+#show figure.where(kind: image): set figure(placement: auto)
+
 // Texto general de celdas
 #show table.cell: set text(size: 8.5pt)
 #show table.cell: set align(top + left)

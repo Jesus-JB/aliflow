@@ -1,0 +1,64 @@
+@startuml clases-integracion-erp
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor<<contexto>> #F4F4F4
+  BorderColor<<contexto>> #9E9E9E
+  FontColor<<contexto>> #555555
+}
+hide empty members
+
+interface IInventoryProvider {
+  + getMenu(tenantId: UUID): List<CanonicalProduct>
+  + getStock(tenantId: UUID, itemId: UUID): int
+  + updateStock(tenantId: UUID, itemId: UUID, delta: int): Result
+  + notifySale(tenantId: UUID, orden: Orden): Result
+  + notifyPayment(tenantId: UUID, orden: Orden, pago: Pago): Result
+  + getSyncStatus(tenantId: UUID): SyncStatus
+}
+
+class ContificoAdapter implements IInventoryProvider
+class OdooAdapter implements IInventoryProvider
+class AlpwinAdapter implements IInventoryProvider
+
+class ProviderAdapterFactory {
+  + crearAdaptador(proveedor: Proveedor): IInventoryProvider
+}
+
+enum TipoERP {
+  CONTIFICO
+  ALPWIN
+  ODOO
+  OTRO
+}
+
+class IntegracionERP {
+  - id: UUID
+  - tipoERP: TipoERP
+  - credencialesCifradas: String
+  - endpoint: String
+  - ultimaSincronizacionExitosa: DateTime
+}
+
+class Proveedor <<contexto>>
+
+note bottom of AlpwinAdapter
+  Sin API pública: su
+  implementación real es
+  por archivos / BD puente.
+end note
+
+note top of IInventoryProvider
+  La interfaz es **bidireccional**: `getMenu`/`getStock` traen el inventario del
+  local hacia Aliflow, y `updateStock`/`notifySale`/`notifyPayment` le devuelven
+  las órdenes y los pagos. Agregar un local con un ERP nuevo es un valor de enum
+  más una clase adaptadora, sin tocar el core (Open/Closed).
+end note
+
+Proveedor "1" *-- "1" IntegracionERP
+IntegracionERP ..> TipoERP
+ProviderAdapterFactory ..> IInventoryProvider : crea
+ProviderAdapterFactory ..> IntegracionERP : lee tipoERP
+
+@enduml
