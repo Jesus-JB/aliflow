@@ -35,6 +35,17 @@ verificar_fuentes() {
       echo "  ERROR: '$f' tiene solo $l líneas con contenido — ¿se vació por accidente?"
       malas=1
     fi
+    # Cuando PlantUML falla escribe el informe de error COMO SI FUERA el SVG:
+    # el archivo queda con contenido y tamaño normal. Hay que mirar adentro.
+    while read -r img; do
+      [ -n "$img" ] || continue
+      local ruta="$(dirname "$f")/$img"
+      [ -f "$ruta" ] || continue
+      if grep -qil 'has crashed\|An error has occurred' "$ruta"; then
+        echo "  ERROR: '$img' es un volcado de error de PlantUML, no un diagrama."
+        malas=1
+      fi
+    done < <(grep -oE '\]\([^)]*\.svg\)' "$f" | tr -d ']()')
   done
   [ "$malas" -eq 0 ] || { echo "Compilación abortada."; exit 1; }
 }

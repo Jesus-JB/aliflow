@@ -1,5 +1,13 @@
 @startuml casos-de-uso-aliflow
 
+actor Estudiante as EST
+actor "Proveedor\n(administrador del local)" as PROV
+actor Operador as OP
+actor "Super-Admin de Aliflow\n(administra la plataforma)" as SA
+actor "Proveedor de Identidad\n(Google OAuth)" as IDP
+actor "Sistema ERP del local\n(Contífico / Alpwin / Odoo…,\nvía API genérica bidireccional)" as ERP
+actor "Pasarela de pagos\n(webhooks de confirmación)" as PAY
+
 left to right direction
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
@@ -42,18 +50,18 @@ rectangle "Aliflow" {
 
   usecase "UC12. Gestionar usuarios del local\n(Proveedores y Operadores)" as UC12
 
-  ' ---- Fidelidad (requisito nuevo, ) ----
+  ' ---- Fidelidad ----
   usecase "UC13. Consultar cartilla\nde fidelidad" as UC13
   usecase "UC14. Configurar programa\nde fidelidad del local" as UC14
   usecase "UC15. Canjear premio\nde la cartilla" as UC15
   usecase "Acreditar sello\nen la cartilla" as UC5d
 
-  ' ---- ----
+  ' ---- Inventario reservado y horario de retiro ----
   usecase "UC16. Administrar inventario\nreservado para Aliflow" as UC16
   usecase "UC17. Configurar horario\nmáximo de retiro" as UC17
   usecase "Confirmar recarga\n(webhook de la pasarela)" as UC2b
 
-  ' ---- Super-Admin (acordado , no consta en acta) ----
+  ' ---- Super-Admin ----
   usecase "UC18. Dar de alta un local\ny crear su vista de proveedor" as UC18
   usecase "UC19. Brindar soporte\na los locales" as UC19
   usecase "UC20. Administrar\nla plataforma" as UC20
@@ -116,24 +124,18 @@ UC5 .> UC5d : <<include>>
 UC15 .> UC4 : <<include>>
 ERP --> UC15
 
-UC18 .> UC7 : <<include>>
+' Se declara invertida (mismo significado: UC18 incluye UC7) porque en este
+' sentido el motor de diagramación falla al resolver el trazado.
+UC7 <. UC18 : <<include>>
 
 note right of PROV
-  **Roles del sistema (actualizado ):**
-  son **4**. Estudiante, Proveedor y Operador
-  operan dentro de un local; el **Super-Admin**
-  es de Aliflow y está por encima de todos.
-  El rol "Administrador" **es** el Proveedor:
-  el gerente del local. Un mismo local puede
-  tener varias cuentas de Proveedor y varias
-  de Operador.
-
-  El 28-jul se había decidido que **no** existía
-  un super-admin y sus casos de uso se eliminaron;
-  el 30-jul esa decisión **se revirtió**. Los
-  números UC13/UC14 se habían reutilizado
-  mientras tanto para la cartilla de fidelidad,
-  así que el Super-Admin usa UC18–UC20.
+  **Roles del sistema:** son **4**. Estudiante,
+  Proveedor y Operador operan dentro de un local;
+  el **Super-Admin** es de Aliflow y está por
+  encima de todos. El rol "Administrador" **es**
+  el Proveedor: el gerente del local. Un mismo
+  local puede tener varias cuentas de Proveedor
+  y varias de Operador.
 end note
 
 note bottom of UC16

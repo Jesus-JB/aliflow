@@ -190,7 +190,7 @@
 
 ---
 
-## Acta — UC16 y UC17
+## Inventario reservado y horario de retiro — UC16 y UC17
 
 ### UC16 — Administrar inventario reservado para Aliflow
 
