@@ -1,8 +1,6 @@
-# Entregable 05 · Mockups
+# Mockups
 
-✅ **Completo.** Cubre además el ítem de rúbrica *"Elaboración de prototipo del sistema de software"* (12 pts), que se documenta en [`01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md`](../01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md).
-
-El enunciado admite MockupScreens o Figma. Se usó **Figma**.
+El detalle de cada pantalla y su caso de uso está en [`Apendice-A-Prototipo.md`](../01-Especificacion-de-Requerimientos/Apendice-A-Prototipo.md).
 
 ---
 

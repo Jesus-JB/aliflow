@@ -70,8 +70,8 @@ plato1 --> baru : menú
 orden1 *-- codigo1
 
 note bottom of tv1
-  Ilustra la decisión de Negocios del
-  28-jul-2026: Ana hizo **una sola recarga**
+  Ilustra la decisión de el cliente del
+  : Ana hizo **una sola recarga**
   y le quedan $8.50 en una bolsa única,
   gastables en cualquier local. Los objetos
   SaldoProveedor **no** reparten ese saldo:
@@ -82,8 +82,8 @@ end note
 
 note bottom of codigo1
   El código de retiro es **numérico corto**
-  (6 dígitos, decisión de Negocios del
-  28-jul-2026): Ana se lo dice de viva voz
+  (6 dígitos, decisión de el cliente del
+  ): Ana se lo dice de viva voz
   al Operador, que lo digita en Aliflow.
 end note
 

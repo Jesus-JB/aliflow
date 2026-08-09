@@ -4,23 +4,6 @@ skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 hide empty members
 
-' Convención visual: elementos en amarillo son PROPUESTA DE INGENIERÍA
-' pendiente de validar con Negocios, no una decisión ya confirmada.
-' Ver Documentacion-Diagrama-Clases.md, sección "Supuestos y pendientes".
-skinparam class<<propuesta>> {
-  BackgroundColor #FFF3B0
-  BorderColor #8A6D00
-}
-skinparam note<<propuesta>> {
-  BackgroundColor #FFF3B0
-  BorderColor #8A6D00
-}
-
-legend top left
-  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / decisión de Negocios
-endlegend
-
 package "Usuarios" {
   abstract class Usuario {
     # id: UUID
@@ -62,7 +45,7 @@ package "Usuarios" {
   }
 
   note right of SuperAdmin
-    **Confirmado por Negocios el 8-ago-2026.**
+    **Confirmado por el cliente el .**
     Cuarto rol, del lado de **Aliflow**. Extiende
     Usuario directamente y **no** UsuarioProveedor,
     porque no pertenece a ningún local: es el único
@@ -71,7 +54,7 @@ package "Usuarios" {
     proveedor y configura su integración con el ERP.
 
     Este rol se había eliminado el 28-jul por
-    indicación de Negocios, se repuso el 30-jul de
+    indicación de el cliente, se repuso el 30-jul de
     palabra y quedó confirmado el 8-ago. El respaldo
     documental lo aporta el acta de conformidad de la
     especificación de requerimientos.
@@ -80,12 +63,12 @@ package "Usuarios" {
   note bottom of Administrador
     **Vocabulario — cuidado con "Proveedor".**
     El sistema tiene **4 roles primarios** (confirmados
-    el 8-ago-2026): Estudiante, Operador, **Proveedor**
+    el ): Estudiante, Operador, **Proveedor**
     y Super-Admin.
 
     El rol de negocio "Proveedor" es esta clase
     `Administrador` — la **persona** que gerencia el
-    local, a la que Negocios llama indistintamente
+    local, a la que el cliente llama indistintamente
     "Proveedor" o "Administrador". La clase `Proveedor`
     de abajo es el **local/negocio** (el tenant), no
     una persona.
@@ -106,14 +89,14 @@ package "Proveedor y Menú" {
   }
 
   note left of Proveedor
-    <back:#FFF3B0>Acta 30-jul-2026:</back> **horaMaximaRetiro** no
+    **horaMaximaRetiro** no
     puede ser una constante del sistema. Cada local
     la configura y el mensaje que ve el estudiante
     tras comprar ("puedes retirar hasta las 2:00 p.m.")
     se arma con ese valor.
 
     **cuentaBancariaDestino / credencialesComercioCifradas**
-    (decisión #13, cerrada el 8-ago-2026): el dinero de
+    (, cerrada el ): el dinero de
     cada recarga llega **directo a la cuenta de ese
     proveedor** y Aliflow no custodia fondos en ningún
     punto. Como consecuencia, **cada local necesita su
@@ -168,7 +151,7 @@ package "Proveedor y Menú" {
   }
 
   note bottom of InventarioReservado
-    <back:#FFF3B0>Acta 30-jul-2026 — el cambio de fondo.</back>
+    el cambio de fondo.
     El proveedor aparta un cupo **exclusivo para
     Aliflow** (de 100 almuerzos: 75 caja, 25 Aliflow)
     y lo administra manualmente desde su panel.
@@ -199,7 +182,6 @@ package "Wallet y Pagos" {
   }
 
   note right of TarjetaVirtual
-    **Decisión de Negocios (8-ago-2026):**
     ya **no** tiene `saldoDisponible`. El saldo
     no es del estudiante sino **del establecimiento**:
     la tarjeta es solo el contenedor que agrupa
@@ -247,14 +229,14 @@ package "Wallet y Pagos" {
   }
 
   note left of Recarga
-    <back:#FFF3B0>Acta 30-jul-2026 §2.1 — campos mínimos.</back>
+    campos mínimos.
     Cada recarga debe registrar valor, fecha y hora,
     **número de operación**, **estado de la transacción**,
     **identificador de la pasarela**, usuario que
     recargó, y quedar en histórico para auditoría
     y conciliación.
 
-    **`proveedorDestino` (8-ago-2026):** toda recarga
+    **`proveedorDestino`:** toda recarga
     tiene un establecimiento destino obligatorio. El
     dinero va de la pasarela a **la cuenta de ese
     proveedor**; Aliflow no lo recibe en ningún momento.
@@ -267,7 +249,7 @@ package "Wallet y Pagos" {
 
   note as N_StrategyEliminada
     **Se eliminó el patrón Strategy
-    `EstrategiaDistribucionRecarga`** (8-ago-2026).
+    `EstrategiaDistribucionRecarga`**.
 
     Existía para encapsular *cómo* Aliflow repartía
     internamente una recarga única entre los locales.
@@ -303,7 +285,7 @@ package "Wallet y Pagos" {
     - idTransaccionPasarela: String
   }
 
-  class MetodoPago #FFF3B0 {
+  class MetodoPago {
     - id: UUID
     - tipoTarjeta: String
     - ultimosCuatroDigitos: String(4)
@@ -312,15 +294,7 @@ package "Wallet y Pagos" {
   }
 
   note bottom of MetodoPago
-    <back:#FFF3B0>Acta 30-jul-2026 §3.2 y §3.3.</back>
-    Aliflow **nunca** almacena el número completo
-    de la tarjeta ni el código de seguridad. Solo
-    guarda tipo, últimos cuatro dígitos y el
-    **token** que devuelve la pasarela; los datos
-    bancarios reales los custodia la pasarela.
-
-    Está en amarillo porque **todavía no se eligió
-    pasarela** (decisión #12): falta confirmar que
+    falta confirmar que
     la elegida soporte tokenización.
   end note
 
@@ -343,15 +317,15 @@ package "Órdenes" {
   }
 
   note right of EstadoOrden
-    **EXPIRADO** lo propuso Ingeniería para cubrir
+    **EXPIRADO** lo propuso el equipo para cubrir
     el vacío de "orden nunca retirada", y el acta
-    del 30-jul-2026 **cerró la regla**: la orden
+    del  **cerró la regla**: la orden
     expira al terminar el día de la compra.
 
     Lo único que sigue abierto es qué pasa con el
     **dinero** de una orden expirada — el acta fijó
     cuándo vence el código, no la política de
-    reembolso. Y la decisión #13 acota las salidas:
+    reembolso. Y la acota las salidas:
     Aliflow no puede devolver dinero porque nunca
     lo tuvo.
   end note
@@ -372,8 +346,8 @@ package "Órdenes" {
   }
 
   note left of Orden
-    **descuento / motivoDescuento (8-ago-2026).**
-    Negocios definió que el premio de fidelidad se
+    **descuento / motivoDescuento.**
+    El premio de fidelidad se
     cobra como **descuento del 100% con una nota que
     identifica su origen**, no como una venta de $0.
 
@@ -381,7 +355,7 @@ package "Órdenes" {
     `OrdenDetalle.precioUnitario` y el descuento vive
     aparte: `total() = subtotal() - descuento`.
 
-    Dos ventajas sobre la orden de $0 que Ingeniería
+    Dos ventajas sobre la orden de $0 que el equipo
     había propuesto: el local puede ver **cuánto le
     costaron los premios** (con $0 ese dato no existe),
     y el ERP recibe un documento que entiende mejor
@@ -420,7 +394,7 @@ package "Órdenes" {
   }
 
   note left of CodigoRetiro
-    <back:#FFF3B0>Acta 30-jul-2026 §6.2 y §6.3 — expiración cerrada.</back>
+    expiración cerrada.
     El código vale **únicamente el día de la compra**.
     `fechaExpiracion` se calcula como el mínimo entre
     la `horaMaximaRetiro` del local y el fin de ese día.
@@ -437,7 +411,6 @@ package "Órdenes" {
   end note
 
   note right of CodigoRetiro
-    **Decisión de Negocios (28-jul-2026):**
     **código numérico corto** (6 dígitos), no
     UUID ni QR — el estudiante se lo dice al
     Operador de viva voz y este lo digita.
@@ -483,7 +456,7 @@ package "Órdenes" {
 }
 
 package "Fidelidad" {
-  class ProgramaFidelidad << propuesta >> {
+  class ProgramaFidelidad {
     - id: UUID
     - sellosRequeridos: int
     - descripcionPremio: String
@@ -494,7 +467,7 @@ package "Fidelidad" {
   }
 
   note top of ProgramaFidelidad
-    **Reglas confirmadas por Negocios el 8-ago-2026.**
+    **Reglas confirmadas por el cliente el .**
     "Cartilla" es una **tarjeta de sellos de fidelidad**
     — no un paquete prepago de almuerzos, que es lo que
     la misma palabra significa en un documento de otro
@@ -510,7 +483,7 @@ package "Fidelidad" {
     (`sellosRequeridos` y `descripcionPremio`), y por
     eso están modelados como configuración y no como
     constantes: definirlos es cargar un dato, no
-    rediseñar. Ver Decisiones-Pendientes-Negocios.md,
+    rediseñar. 
     punto 9.
   end note
 
@@ -521,7 +494,7 @@ package "Fidelidad" {
     EXPIRADA
   }
 
-  class Cartilla << propuesta >> {
+  class Cartilla {
     - id: UUID
     - sellosAcumulados: int
     - estado: EstadoCartilla
@@ -532,13 +505,13 @@ package "Fidelidad" {
     + canjear(orden: Orden): Canje
   }
 
-  class Sello << propuesta >> {
+  class Sello {
     - id: UUID
     - fecha: DateTime
   }
 
   note bottom of Sello
-    **Decisión de diseño de Ingeniería:** el sello
+    **Decisión de diseño de el equipo:** el sello
     se acredita en `marcarEntregado()`, **no** en
     `confirmarCompra()`. Dos razones:
     (1) una orden comprada y nunca retirada no
@@ -552,7 +525,7 @@ package "Fidelidad" {
     dos sellos, aunque la entrega se reintente.
   end note
 
-  class Canje << propuesta >> {
+  class Canje {
     - id: UUID
     - fechaHora: DateTime
     - premioEntregado: String
@@ -561,8 +534,8 @@ package "Fidelidad" {
   note bottom of Canje
     El canje se aplica sobre una **Orden real** con
     `esCanje = true` y un **descuento del 100%**
-    rotulado como premio (decisión de Negocios del
-    8-ago-2026). No es una venta de $0: conserva el
+    rotulado como premio (decisión de el cliente del
+    ). No es una venta de $0: conserva el
     precio del plato y lo descuenta entero.
 
     El plato igual sale del cupo y el ERP igual tiene

@@ -2,30 +2,13 @@
 
 ![Diagrama de casos de uso de Aliflow](../../uml/casos-de-uso.svg)
 
-**Diagrama fuente:** `../../uml/casos-de-uso.puml` (mismo directorio) — es la fuente editable; `../../uml/casos-de-uso.svg` es la imagen renderizada que se muestra arriba (generada con el servidor público de PlantUML). Si editas el `.puml`, regenera el SVG para que la imagen quede sincronizada — instrucciones en `../../uml/README-diagramas.md`.
-
 **Referencia:** cada caso de uso indica el paso correspondiente de `../../../Flujos-Aliflow-Revision.html` (formato `{rol}-{número}`, ver nota en `../../../Hallazgos-Ingenieria-API-Generica.md` sección 5) del que se derivó.
-
-**Convención visual:** fondo amarillo = propuesta de Ingeniería sin validar con Negocios. Misma convención usada en `../../uml/diagrama-clases.puml` y `../../uml/diagrama-componentes.puml`. En esta revisión (28-jul-2026) los tres casos de uso que estaban en amarillo (UC12/UC13/UC14, del rol Administrador) fueron eliminados o reasignados. Los que están en amarillo ahora son otros: **UC13, UC14, UC15 y "Acreditar sello"**, del requisito nuevo de cartilla de fidelidad. Los números UC13/UC14 se reutilizaron y **no tienen relación con los anteriores**.
-
-## Cambios de esta revisión (28-jul-2026, decisiones de Negocios)
-
-| Qué cambió | Antes | Ahora |
-|---|---|---|
-| **Número de roles** | 4 actores primarios (Estudiante, Proveedor, Operador, Administrador de plataforma) | **3** — Estudiante, Proveedor, Operador. El "Administrador" **es** el Proveedor: el gerente del local. No existe un super-admin de plataforma. |
-| **UC12/UC13/UC14** | Propuesta de Ingeniería para el super-admin (alta de proveedores, métricas globales, gestión de usuarios) | UC13 y UC14 **eliminados**. UC12 se redefine como "Gestionar usuarios del local" y pasa al Proveedor. |
-| **Personal múltiple por local** | Pendiente de definir | **Confirmado**: un local puede tener varias cuentas de Proveedor y varias de Operador. |
-| **ERP del proveedor** | Un solo ERP objetivo (se creía que Barú usaba Alpwin) | **Multi-ERP**: cada local usa el suyo (Barú → Contífico, Caramel Coffee → Alpwin), con conexión **bidireccional**. |
-| **Código de retiro (UC5)** | Pendiente entre QR y numérico; propuesta de UUID firmado | **Código numérico corto** (6 dígitos), dictado de viva voz al Operador. |
-| **Recarga de saldo (UC2)** | Pendiente entre saldo por proveedor y saldo único | **Recarga única**, distribuida internamente por Aliflow. |
-| **Cartilla de fidelidad** | No existía como requisito | **Requisito nuevo**: el estudiante acumula sellos por compra y al completar la cartilla gana un premio. Se agregan UC13, UC14, UC15 y el sub-flujo UC5d. Cuántos sellos y qué premio siguen sin definir. |
-
 ## Actores
 
 | Actor | Tipo | Descripción |
 |---|---|---|
 | **Estudiante** | Primario | Usuario institucional que recarga saldo, consulta el menú, compra y retira almuerzos. |
-| **Proveedor** | Primario | La **persona** que administra un local: menú, inventario, métricas, integración con su ERP y las cuentas de su propio personal. Es el gerente del local — Negocios confirmó (28-jul-2026) que el rol "Administrador" y el rol "Proveedor" son el mismo. Un local puede tener **varias** cuentas de Proveedor. |
+| **Proveedor** | Primario | La **persona** que administra un local: menú, inventario, métricas, integración con su ERP y las cuentas de su propio personal. Es el gerente del local — se definió que el rol "Administrador" y el rol "Proveedor" son el mismo. Un local puede tener **varias** cuentas de Proveedor. |
 | **Operador** | Primario | Valida las compras realizadas por los estudiantes y marca la entrega física del almuerzo en el punto de entrega. Un local puede tener varios. (En discusiones previas del equipo aparecía como "cajero"; el nombre oficial del rol es **Operador**.) |
 | **Proveedor de Identidad (Google OAuth)** | Secundario / sistema externo | Autentica al Estudiante mediante OAuth 2.0 / OpenID Connect. |
 | **Sistema ERP del local** | Secundario / sistema externo | **No es uno solo**: cada local de la universidad usa un ERP distinto (Barú → **Contífico**, Caramel Coffee → **Alpwin**, etc.). La conexión es **bidireccional** — Aliflow lee inventario/menú del ERP y le devuelve órdenes y pagos. Todos entran por la misma API genérica (patrón Adapter, ver `../../../Hallazgos-Ingenieria-API-Generica.md` sección 3). |
@@ -54,9 +37,9 @@
 | **Actor primario** | Estudiante |
 | **Referencia** | `est-2` — Recarga de tarjeta virtual |
 | **Precondición** | El estudiante está autenticado (UC1). |
-| **Flujo principal** | 1. El estudiante selecciona "Recargar saldo" e ingresa un monto (o elige uno predefinido).<br>2. Se redirige al método de recarga definido por el negocio.<br>3. Al confirmarse el pago, el sistema actualiza el saldo (operación atómica) e incluye la generación del comprobante (`<<include>>` UC2a).<br>4. El estudiante ve su saldo actualizado. |
-| **Postcondición** | El saldo del estudiante queda incrementado; existe un comprobante de recarga asociado. |
-| **Resuelto (28-jul-2026)** | El estudiante hace **una única recarga**, que va a una bolsa común gastable en cualquier local; Aliflow distribuye internamente hacia cada proveedor. Ya no hay recarga separada por local. Lo único abierto es *cuándo* ocurre esa distribución interna — ver `../../../Decisiones-Pendientes-Negocios.md`, punto 4. |
+| **Flujo principal** | 1. El estudiante elige el **establecimiento destino** de la recarga.<br>2. Ingresa un monto o elige uno predefinido.<br>3. Se redirige a la pasarela de pagos.<br>4. Al confirmarse el pago, el sistema acredita el saldo de ese establecimiento (operación atómica) e incluye la generación del comprobante (`<<include>>` UC2a).<br>5. El estudiante ve el saldo actualizado de ese establecimiento. |
+| **Postcondición** | El saldo del estudiante en ese establecimiento queda incrementado; existe un comprobante de recarga asociado. |
+| **Regla de negocio** | El saldo pertenece al establecimiento y solo puede gastarse ahí. El dinero se dirige a la cuenta de ese proveedor: Aliflow no lo recibe ni lo custodia. |
 
 ## UC3 — Consultar menú del día
 
@@ -93,8 +76,6 @@
 | **Flujo principal** | 1. El estudiante se presenta en el punto de entrega con su código de validación.<br>2. El operador busca la orden (`<<include>>` UC5a — por código o búsqueda manual por nombre/ID institucional si el estudiante no tiene el código).<br>3. El sistema valida y confirma la entrega (`<<include>>` UC5b): verifica que el estado sea "Comprado" (no "Entregado"), cambia el estado a "Entregado", registra timestamp y operador, e invalida el código (uso único). |
 | **Flujo alternativo (extend)** | **UC5c — Manejar excepción de entrega:** código inválido/ya usado (mensaje de error con hora de entrega previa), o fallo de conexión (v1 no tiene modo offline — riesgo ya documentado). |
 | **Postcondición** | Orden en estado "Entregado"; código invalidado. |
-| **Resuelto (28-jul-2026)** | Formato del código: **numérico corto de 6 dígitos**. El estudiante se lo presenta/dicta al Operador, que lo digita en Aliflow para marcar el retiro. Desbloquea el prototipo de mockups. |
-| **Pendiente** | Regla de expiración de una orden nunca retirada (sección 5.3 del hallazgo de Ingeniería). |
 
 ## UC6 — Iniciar sesión operativa
 
@@ -110,7 +91,7 @@
 
 | Campo | Detalle |
 |---|---|
-| **Actor primario** | Proveedor (junto con Ingeniería) |
+| **Actor primario** | Proveedor (junto con el equipo de desarrollo) |
 | **Actor secundario** | Sistema ERP del Proveedor |
 | **Referencia** | `prov-2` |
 | **Precondición** | El local está dado de alta en Aliflow; su ERP (Contífico, Alpwin, Odoo u otro) ya fue identificado. |
@@ -137,7 +118,6 @@
 | **Precondición** | El proveedor está autenticado. |
 | **Flujo principal** | 1. El proveedor accede a su panel de métricas.<br>2. El sistema calcula y muestra: almuerzos vendidos por día/semana, ingresos, platos más vendidos, y órdenes "Comprado" pendientes de "Entregado", a partir del histórico de órdenes de Aliflow. |
 | **Postcondición** | El proveedor visualiza el estado operativo de su negocio. |
-| **Pendiente** | Modelo de cobro de Aliflow al proveedor (comisión/suscripción) — decisión abierta, sección 5.2 del hallazgo de Ingeniería. |
 
 ## UC10 — Consultar estado de sincronización
 
@@ -159,7 +139,7 @@
 | **Precondición** | Existen ventas registradas en Aliflow (UC4). |
 | **Flujo principal** | 1. El proveedor consulta o descarga el detalle de una venta (monto, plato, estudiante, fecha/hora) desde Aliflow.<br>2. El proveedor re-emite la factura válida en su propio sistema contable/ERP, usando ese detalle como fuente de datos. |
 | **Postcondición** | El proveedor cuenta con la información necesaria para emitir su factura fiscal real; Aliflow nunca emite un comprobante con validez tributaria. |
-| **Nota importante** | Este es el caso de uso donde se detectó la contradicción entre el Acta (25-jun-2026) y el flujo documentado respecto al comprobante tributario — ver `../../../Hallazgos-Ingenieria-API-Generica.md` sección 5.1. El modelo correcto es el aquí descrito: re-emisión por el proveedor, no emisión fiscal directa de Aliflow. |
+| **Nota importante** | Este es el caso de uso donde se detectó la contradicción entre el Acta y el flujo documentado respecto al comprobante tributario — ver `../../../Hallazgos-Ingenieria-API-Generica.md` sección 5.1. El modelo correcto es el aquí descrito: re-emisión por el proveedor, no emisión fiscal directa de Aliflow. |
 
 ## UC12 — Gestionar usuarios del local
 
@@ -172,16 +152,9 @@
 | **Postcondición** | El personal del local queda habilitado con el rol que le corresponde, con acceso limitado a ese local. |
 | **Regla de alcance** | Un Proveedor solo puede gestionar cuentas **de su propio local**. No hay ningún rol con visibilidad sobre todos los locales. |
 
-> **Cambio del 28-jul-2026:** este caso de uso reemplaza al antiguo UC14 ("Gestionar usuarios y roles", del super-admin). Los antiguos **UC12** ("Dar de alta / gestionar proveedores") y **UC13** ("Métricas globales de la plataforma") quedaron **eliminados** junto con el rol Administrador de plataforma que los justificaba. Ambos eran hipótesis de Ingeniería y estaban marcados en amarillo justamente por eso.
->
-> **Consecuencia abierta:** si nadie dentro del sistema da de alta un local nuevo, ese paso es **manual y fuera del alcance de v1** — lo hace el equipo de Aliflow directamente contra la base de datos, junto con la configuración de la integración (UC7). Está registrado como punto abierto en `../../../Decisiones-Pendientes-Negocios.md`.
-
 ## Cartilla de fidelidad — UC13, UC14, UC15
 
-> ⚠️ **Requisito nuevo (28-jul-2026), modelado como propuesta de Ingeniería.** Negocios pidió una "cartilla de fidelidad": el estudiante acumula un sello por compra y al completar la cartilla gana un premio. **Cuántos sellos hacen falta y cuál es el premio todavía están en definición**, así que se modelan como *configuración por local* (UC14) y no como constantes del sistema — cuando Negocios los defina, es un valor en base de datos, no un cambio de código.
 >
-> **Nota sobre la numeración:** UC13 y UC14 existieron antes con otro significado (métricas globales y gestión de usuarios del super-admin) y fueron eliminados en esta misma revisión. Estos son casos de uso nuevos que reutilizan esos números.
-
 ### UC13 — Consultar cartilla de fidelidad
 
 | Campo | Detalle |
@@ -210,34 +183,33 @@
 | **Actor primario** | Estudiante y Operador (transacción compartida, igual que UC5) |
 | **Referencia** | Ninguna aún — requisito nuevo. |
 | **Precondición** | El estudiante tiene una cartilla en estado `COMPLETA` en ese local. |
-| **Flujo principal** | 1. El estudiante elige el plato del premio y confirma el canje.<br>2. El sistema crea una **orden real** (`<<include>>` UC4) con `esCanje = true` y total $0: se descuenta el stock y se genera código de retiro como en cualquier compra, pero **no** se descuenta saldo.<br>3. La cartilla pasa a `CANJEADA` mediante una actualización atómica y condicional (`WHERE estado = 'COMPLETA'`), igual que la redención del código de retiro.<br>4. El Operador entrega el premio y confirma, como en UC5. |
+| **Flujo principal** | 1. El estudiante elige el plato del premio y confirma el canje.<br>2. El sistema crea una **orden real** (`<<include>>` UC4) con `esCanje = true`, que conserva el precio del plato y le aplica un descuento del 100% rotulado como premio: se descuenta el cupo y se genera código de retiro como en cualquier compra, pero **no** se descuenta saldo.<br>3. La cartilla pasa a `CANJEADA` mediante una actualización atómica y condicional (`WHERE estado = 'COMPLETA'`), igual que la redención del código de retiro.<br>4. El Operador entrega el premio y confirma, como en UC5. |
 | **Flujo alternativo** | Si la cartilla ya fue canjeada entre el paso 1 y el 3 (doble canje concurrente), la actualización afecta 0 filas y se informa error sin crear la orden. |
 | **Postcondición** | Cartilla en `CANJEADA`; orden de canje entregada; inventario del local descontado. |
-| **Pendiente** | Cómo debe representarse una venta de $0 en el ERP del local (documento de cortesía / descuento 100%) — se resuelve distinto en Contífico que en Alpwin. Ver `../../../Decisiones-Pendientes-Negocios.md`, punto 9. |
+| **Nota de integración** | El canje se notifica al ERP del establecimiento como venta con descuento del 100%, no como venta de importe cero. |
 
 ---
 
-## Acta del 30-jul-2026 — UC16 y UC17
+## Acta — UC16 y UC17
 
 ### UC16 — Administrar inventario reservado para Aliflow
 
 | Campo | Detalle |
 |---|---|
 | **Actor primario** | Proveedor |
-| **Referencia** | Acta del 30-jul-2026, sección 1.3. |
+| **Referencia** | Acta, sección 1.3. |
 | **Precondición** | El proveedor está autenticado (UC6) y tiene platos publicados (UC8). |
 | **Flujo principal** | 1. El proveedor consulta el cupo actualmente asignado a Aliflow por plato.<br>2. Asigna, aumenta o reduce las unidades destinadas exclusivamente a las ventas por Aliflow.<br>3. El sistema valida que el cupo no sea negativo ni menor al ya consumido.<br>4. El cupo queda disponible para la compra de estudiantes (UC4). |
 | **Postcondición** | Aliflow puede vender hasta el cupo asignado, con independencia de lo que ocurra en la caja del local. |
 | **Regla de negocio** | **Aliflow valida la compra contra este cupo, no contra el stock total del ERP.** Si el local tiene 100 almuerzos y asigna 25 a Aliflow, la aplicación deja de vender al llegar a 25 aunque el ERP reporte unidades libres. |
-| **Por qué se diseñó así** | Elimina la sobreventa **por diseño** en lugar de mitigarla sincronizando más seguido. Aliflow deja de competir con la caja por el mismo contador. Ver `../../../Decisiones-Pendientes-Negocios.md`, punto 10. |
-| **Pendiente** | El proceso de asignación y su visualización en el panel quedaron como tarea para la próxima reunión. |
+| **Fundamento** | Elimina la sobreventa **por diseño** en lugar de mitigarla sincronizando más seguido. Aliflow deja de competir con la caja por el mismo contador. Ver `../../../Decisiones-Pendientes-Negocios.md`, punto 10. |
 
 ### UC17 — Configurar horario máximo de retiro
 
 | Campo | Detalle |
 |---|---|
 | **Actor primario** | Proveedor |
-| **Referencia** | Acta del 30-jul-2026, secciones 6.1 y 6.2. |
+| **Referencia** | Acta, secciones 6.1 y 6.2. |
 | **Precondición** | El proveedor está autenticado (UC6). |
 | **Flujo principal** | 1. El proveedor define la hora máxima hasta la que se pueden retirar los almuerzos de su local.<br>2. El sistema la guarda en `Proveedor.horaMaximaRetiro`.<br>3. A partir de ahí, el mensaje de confirmación que ve el estudiante al comprar se arma con ese valor, y la expiración del código de retiro se calcula con él. |
 | **Postcondición** | El horario aplica solo a ese local y se refleja automáticamente en la app del estudiante. |
@@ -247,10 +219,7 @@
 
 ## Super-Admin de Aliflow — UC18, UC19 y UC20
 
-> ⚠️ **Acordado verbalmente en la reunión del 30-jul-2026; no consta en el acta.** Conviene incorporarlo al acta para que quede constancia formal.
 >
-> **Nota sobre el vaivén:** el 28-jul Negocios indicó que este rol **no existía** y sus casos de uso se eliminaron (ver la tabla de cambios al inicio de este documento). El 30-jul la decisión se revirtió. Los números UC13 y UC14 ya se habían reutilizado para la cartilla de fidelidad, así que este rol usa **UC18–UC20**.
-
 Es un administrador **del lado de Aliflow**, no de ningún local. Es el único rol con visibilidad sobre todos los tenants.
 
 ### UC18 — Dar de alta un local y crear su vista de proveedor
@@ -300,4 +269,4 @@ Estos no son procesos de negocio independientes, sino pasos reutilizados dentro 
 
 ---
 
-*Documento preparado por el Grupo de Ingeniería como parte del entregable 02.a (Diagramas de casos de uso y documentación completa de cada caso de uso).*
+*Documento preparado por el Grupo de el equipo de desarrollo como parte del entregable 02.a (Diagramas de casos de uso y documentación completa de cada caso de uso).*

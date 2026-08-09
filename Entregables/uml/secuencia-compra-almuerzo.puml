@@ -48,7 +48,7 @@ else saldo suficiente
   API -> Tarjeta : descontar(monto, proveedor)
   API -> Saldo : acreditar(monto)\n[distribución interna hacia el local]
   note right of Saldo
-    Decisión de Negocios (28-jul-2026):
+    Decisión de el cliente:
     la recarga es única y va a una bolsa
     común; lo que Aliflow le debe a cada
     local se acredita aquí, al comprar.

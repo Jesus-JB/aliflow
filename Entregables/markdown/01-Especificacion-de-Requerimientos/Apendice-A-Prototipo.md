@@ -1,17 +1,13 @@
-# Prototipo de interfaz (mockups) — Aliflow
+# Apéndice A · Prototipo de interfaz
 
-**Preparado por:** Grupo de Ingeniería
-**Creado:** 28-jul-2026
-**Actualizado:** 9-ago-2026 — saldo por establecimiento, canje como descuento del 100%, cuatro roles confirmados y menú sin cantidades
-**Entregable:** 01.f — prototipo de interfaz
-**Objetivo:** mostrar cómo se ven las decisiones ya cerradas con Negocios, y dejar visualmente marcado lo que sigue abierto.
+Prototipo de alta fidelidad del sistema, con el flujo de ventanas de los cuatro roles.
 
-**Prototipo interactivo:** **https://jesus-jb.github.io/aliflow/** — se abre en el navegador, sin instalar nada
-**Archivo fuente en Figma:** https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt
-**Exportaciones (PNG a 2x):** carpeta [`../../mockups/`](../../mockups/)
-**Código del prototipo:** carpeta [`mockups/prototipo-web/`](../../mockups/prototipo-web/)
+**Prototipo interactivo:** https://jesus-jb.github.io/aliflow/ — se abre en el navegador, sin instalar nada
+**Archivo fuente:** [Aliflow · Mockups](https://www.figma.com/design/nIaVLcvVdibWfoBqWmJ4Tt)
+**Exportaciones (PNG a 2x):** [`../../mockups/`](../../mockups/)
+**Código del prototipo:** [`../../mockups/prototipo-web/`](../../mockups/prototipo-web/)
 
-Este documento no repite los casos de uso ni el modelo de datos — apunta al caso de uso exacto que cada pantalla representa. El detalle está en [`../../uml/Documentacion-Casos-de-Uso.md`](../02-Modelamiento-Parte-Estatica/a-Casos-de-Uso.md) y el estado de las decisiones en [`../../../Decisiones-Pendientes-Negocios.md`](../../../Decisiones-Pendientes-Negocios.md).
+Cada pantalla se mapea al caso de uso que representa; su desarrollo está en [`a-Casos-de-Uso.md`](../02-Modelamiento-Parte-Estatica/a-Casos-de-Uso.md).
 
 ---
 
@@ -26,14 +22,6 @@ Este documento no repite los casos de uso ni el modelo de datos — apunta al ca
 | Operador | 5 | [`mockups/03-operador.png`](../../mockups/03-operador.png) |
 | **Super-Admin** *(nuevo 30-jul)* | 3 | [`mockups/04-super-admin.png`](../../mockups/04-super-admin.png) |
 | Sistema de diseño | — | [`mockups/00-design-system.png`](../../mockups/00-design-system.png) |
-
----
-
-## Convención visual
-
-Se usa la **misma convención que los diagramas UML**: el color amarillo con la etiqueta **"Pendiente de Negocios"** marca lo que Ingeniería propuso pero Negocios todavía no validó. Es el equivalente al estereotipo `<<propuesta>>` de `diagrama-clases.puml`.
-
-**Importante:** el amarillo aparece **solo** donde hay una decisión genuinamente abierta. Todo lo que Negocios cerró el 28-jul-2026 se dibuja como definitivo, sin marca.
 
 ---
 
@@ -75,36 +63,11 @@ Se usa la **misma convención que los diagramas UML**: el color amarillo con la 
 
 ### Super-Admin de Aliflow
 
-> ✅ Rol **confirmado por Negocios el 8-ago-2026**. El sistema tiene cuatro roles primarios.
-
 | # | Pantalla | Caso de uso | Qué decisión refleja |
 |---|---|---|---|
 | 01 | Login Super-Admin | UC6 | Acceso solo para el equipo de Aliflow, no de ningún local |
 | 02 | Locales | **UC18**, UC20 | **Dar de alta un local** y crear su vista de proveedor — cierra el punto abierto del 28-jul |
 | 03 | Soporte | **UC19** | Vista transversal de todos los locales: incidencias de sincronización y órdenes vencidas |
-
----
-
-## Lo que el prototipo deja marcado como abierto
-
-Cada marca amarilla corresponde a una decisión que **sigue abierta**:
-
-| Dónde aparece | Decisión | Qué falta |
-|---|---|---|
-| Estudiante 05 — Recargar saldo | **#12** Pasarela de pagos | Cuál se elige, y confirmar que cada local pueda abrir su propia cuenta de comercio (riesgo R-22) |
-| Estudiante 07 / Proveedor 05 | **#9** Cartilla | Cuántos sellos y qué premio — los dos únicos valores que quedan; por eso se modelaron como configuración |
-| Proveedor 02 — Panel de métricas | **#7** Modelo de cobro | No se muestra comisión ni cobro porque no está definido, y la decisión #13 lo volvió más restringido |
-| Operador 05 — Código vencido | *(sin número)* | El acta fijó **cuándo** vence el código, pero no qué pasa con el **dinero** de esa orden |
-
-**Marcas que se retiraron el 9-ago-2026**, porque sus decisiones quedaron cerradas:
-
-| Dónde estaba | Por qué se retiró |
-|---|---|
-| Estudiante 05 — "acreditar al comprar es interpretación de Ingeniería (#4)" | La decisión #4 fue **revertida** por la #13: no hay saldo único ni distribución interna que interpretar |
-| Estudiante 08 — "cómo se representa una venta de $0 en el ERP" | Resuelto: **descuento del 100%**, no venta de importe cero. Queda solo verificarlo contra la documentación de cada ERP, que es trabajo técnico y no una decisión de Negocios |
-| Super-Admin 02 — "el rol se acordó verbalmente" | El rol quedó **confirmado** el 8-ago-2026 |
-
-**Marca que se retiró el 30-jul:** la pantalla del código de retiro ya no lleva el aviso de expiración pendiente. El acta cerró la regla — el código vale solo el día de la compra — así que esa pantalla pasó a dibujarse como definitiva.
 
 ---
 
@@ -117,7 +80,7 @@ A diferencia del prototipo anterior, las pantallas **no** son frames sueltos: se
 - **10 estilos de texto** sobre la familia Inter, incluido uno específico para el código de 6 dígitos.
 - **10 componentes**, varios con variantes: `StatusBar`, `Button` (4), `Badge` (6 estados), `AppBar`, `TabBar` (4), `TabBarProveedor` (4), `Sello` (lleno/vacío), `Tecla`, `InputField`, `PlatoCard`.
 
-Consecuencia práctica: si Negocios cambia un valor (por ejemplo el color de un estado, o el número de sellos), se cambia en un solo lugar.
+Consecuencia práctica: cambiar un valor —el color de un estado, el número de sellos— se hace en un solo lugar y se propaga a todas las pantallas.
 
 ---
 
@@ -129,6 +92,5 @@ Conviene decirlas antes de que las pregunten:
 - **El prototipo interactivo no tiene backend.** Todo el estado vive en memoria del navegador y se pierde al recargar. No hay base de datos, ni ERP, ni pagos reales.
 - **Los datos son de ejemplo** (nombres de platos, montos, órdenes). No provienen del demo con Odoo ni de Contífico.
 - **Las fotos de platos son marcadores de posición**, no imágenes reales.
-- **No hay pantallas para UC7** (configurar la integración ERP) ni **UC12** (gestionar usuarios del local). UC7 es trabajo técnico conjunto con Ingeniería, no una pantalla de autoservicio; UC12 quedó fuera de esta ronda.
+- **No hay pantallas para UC7** (configurar la integración ERP) ni **UC12** (gestionar usuarios del local).
 - **No hay pantallas de pasarela de pagos.** El acta abrió ese frente como investigación (comparar pasarelas, tokenización, webhooks), no como diseño. No se puede maquetar un flujo de pago sin saber si será modal, ventana integrada o página externa.
-- **El archivo fuente vive en drafts de un equipo de Figma que no es institucional.** Las exportaciones de esta carpeta son la copia de referencia del repositorio.

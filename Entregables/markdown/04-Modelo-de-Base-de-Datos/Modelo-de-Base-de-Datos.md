@@ -1,6 +1,6 @@
-# Entregable 04 · Modelo de la base de datos
+# Modelo de la base de datos
 
-**10 puntos de rúbrica.** Motor: **PostgreSQL 16**.
+Motor: **PostgreSQL 16**.
 
 | Artefacto | Archivo |
 |---|---|
@@ -28,9 +28,7 @@ No todo se puede. Donde no se pudo, está dicho explícitamente y con la razón 
 
 `saldo_establecimiento.monto_actual` existe, pero **es un caché**. La verdad son las filas de `movimiento_saldo`, que es *append-only*: un trigger rechaza cualquier `UPDATE` o `DELETE`.
 
-Se eligió así por RF-56, que exige histórico sin borrado y correcciones mediante **movimiento compensatorio**. Pero tiene un segundo efecto que valió la decisión: **desactiva por adelantado la única decisión de negocio que todavía puede cambiar la billetera.** Qué pasa con el dinero de una orden vencida sigue sin definirse; con este modelo, cualquiera de las respuestas posibles —se devuelve, se pierde, se le queda al proveedor— es un movimiento más y no un cambio de esquema.
-
-Si el saldo fuera una columna mutable, la respuesta "se devuelve" obligaría a rehacer la billetera.
+Responde a RF-56, que exige histórico sin borrado y correcciones mediante **movimiento compensatorio**. El modelo admite además cualquier política futura de devolución —al saldo del mismo local, pérdida o liquidación al proveedor— como un movimiento más, sin cambios de esquema.
 
 Cada movimiento guarda `saldo_anterior` y `saldo_posterior`, y una restricción verifica que cuadren:
 
@@ -69,9 +67,9 @@ Las dos claves foráneas comparten la columna `proveedor_id`. Un plato de otro l
 CONSTRAINT cupo_no_sobrevendido CHECK (cupo_consumido <= cupo_asignado)
 ```
 
-Es la traducción a SQL de la decisión #10. Aliflow vende contra `inventario_reservado`, nunca contra `plato.stock_erp`, que queda como espejo informativo del ERP. Con esta restricción, sobrevender requeriría violar la base de datos.
+Aliflow vende contra `inventario_reservado`, nunca contra `plato.stock_erp`, que queda como espejo informativo del ERP. Con esta restricción, sobrevender requeriría violar la base de datos.
 
-`inventario_reservado` y `plato` llevan campo `version` para bloqueo optimista. **Ese control vive acá y no en el ERP** porque se probó delegarlo y falló: cinco hilos comprando con tres unidades vendieron cinco (`demo-odoo/README.md` §7).
+`inventario_reservado` y `plato` llevan campo `version` para bloqueo optimista. **Ese control vive acá y no en el ERP**: se verificó empíricamente que delegarlo a un ERP externo por RPC falla bajo concurrencia real.
 
 ### 2.5 El código de retiro y su unicidad acotada
 
@@ -121,7 +119,7 @@ Así el local puede ver cuánto le costaron los premios (RF-38), dato que con un
 
 ## 4. Verificación
 
-**El esquema se ejecutó contra PostgreSQL 16.14 el 9-ago-2026.** No es un DDL escrito y no probado: corre limpio y crea las 24 tablas.
+**El esquema se ejecutó contra PostgreSQL 16.14.** No es un DDL escrito y no probado: corre limpio y crea las 24 tablas.
 
 `pruebas-restricciones.sql` no prueba la aplicación — prueba que **la base impide lo que dice impedir**. Cada bloque de la primera parte debe fallar; si alguno pasa, esa regla no está protegida.
 
@@ -136,7 +134,7 @@ Así el local puede ver cuánto le costaron los premios (RF-38), dato que con un
 | 7 | Modificar un movimiento ya registrado | ✅ Rechazado — trigger append-only |
 | 8 | Acreditar dos sellos por la misma orden | ✅ Rechazado — `sello.orden_id` UNIQUE |
 | 9 | Un canje que no descuenta el 100% | ✅ Rechazado — `CHECK canje_descuento_total` |
-| 10 | Un comprobante con validez tributaria | ✅ Rechazado — `CHECK ..._nunca_fiscal` |
+| 10 | Un comprobante con validez tributaria | ✅ Rechazado — `CHECK..._nunca_fiscal` |
 
 **10 de 10 rechazadas.** Y lo que sí debe funcionar funciona: el canje con descuento total y sin saldo se inserta, la columna `total` se calcula sola, y el reverso de un movimiento se registra sin tocar el original.
 
@@ -170,7 +168,7 @@ Decirlo explícitamente vale más que fingir cobertura total.
 
 **1 · El tope de sellos por día.** Sería un `UNIQUE (cartilla_id, fecha)`, pero `max_sellos_por_dia` es **configurable por local** (RF-32): un local podría poner 2. Una restricción fija contradiría esa configurabilidad. Se verifica en la transacción de entrega. Lo que sí garantiza la base es que **una orden nunca genere dos sellos**, que es el caso de reintento y el más probable.
 
-**2 · El filtrado por local en cada consulta.** Las FK compuestas cubren los cruces estructurales, pero que cada `SELECT` lleve su `WHERE proveedor_id = ...` es responsabilidad del backend. **Recomendación:** activar *Row Level Security* por `proveedor_id`, para que deje de depender de que ninguna consulta se olvide.
+**2 · El filtrado por local en cada consulta.** Las FK compuestas cubren los cruces estructurales, pero que cada `SELECT` lleve su `WHERE proveedor_id =...` es responsabilidad del backend. **Recomendación:** activar *Row Level Security* por `proveedor_id`, para que deje de depender de que ninguna consulta se olvide.
 
 **3 · La expiración del código y de la orden.** Es una transición disparada por el paso del tiempo, no una restricción. La ejecuta una tarea programada al cierre del día.
 
@@ -180,8 +178,8 @@ Decirlo explícitamente vale más que fingir cobertura total.
 
 | Qué | Cuándo |
 |---|---|
-| Tabla de facturación de Aliflow al proveedor | Solo si la decisión #7 sale "comisión" o "suscripción". Es aditivo |
-| Política de saldo que ya no se puede gastar | Ya cabe: es un movimiento `REVERSO` o `AJUSTE`. No cambia el esquema |
+| Tabla de facturación de Aliflow al proveedor | Solo si se define un modelo de cobro por comisión o suscripción. Es aditivo |
+| Política de saldo que ya no se puede gastar | Ya cabe en el modelo: es un movimiento `REVERSO` o `AJUSTE`, sin cambios de esquema |
 | *Row Level Security* por local | Recomendado antes de producción |
 | Migraciones versionadas | Hoy es un DDL de creación. Para el piloto conviene una herramienta de migraciones |
 | Datos de prueba | `pruebas-restricciones.sql` siembra lo mínimo; falta un juego realista para las pruebas de carga (RNF-P-07 a RNF-P-10) |

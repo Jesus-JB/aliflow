@@ -51,7 +51,9 @@ En este orden. No leas el repo entero de golpe.
 
 Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables .docx-1.pdf`).
 
-**Todo lo que se entrega vive en [`Entregables/`](Entregables/):** un PDF por punto del enunciado sueltos en la carpeta (para ver qué falta de un vistazo), los 5 documentos oficiales en `Documento Oficial/`, y las fuentes `.md` en `markdown/`. Se compila con `Entregables/build/construir.sh` — **los PDF nunca se editan a mano, son salida de los `.md`**.
+**Todo lo que se entrega vive en [`Entregables/`](Entregables/):** los 5 documentos oficiales en `Documento Oficial/`, un PDF por tema sueltos en la carpeta, y las fuentes `.md` en `markdown/`. Se compila con `Entregables/build/construir.sh` — **los PDF nunca se editan a mano, son salida de los `.md`**.
+
+> ⚠️ **`Entregables/` es material de cara al público.** Ahí no va nada de proceso interno: ni decisiones abiertas, ni marcas de "pendiente de Negocios", ni historial de qué cambió y por qué, ni puntos de rúbrica. Todo eso vive acá y en `Decisiones-Pendientes-Negocios.md`. Si al escribir un entregable hace falta explicar *por qué* se eligió algo, va en la justificación técnica, no en la crónica del equipo.
 
 | Entregable | Pts | Estado | Dónde |
 |---|---|---|---|

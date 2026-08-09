@@ -3,11 +3,6 @@
 skinparam componentStyle rectangle
 left to right direction
 
-legend top left
-  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / decisión de Negocios
-endlegend
-
 actor Estudiante
 actor "Proveedor\n(administrador del local)" as Proveedor
 actor Operador
@@ -24,8 +19,8 @@ package "Aliflow API (FastAPI)" {
   [Módulo de Proveedores y Menú] as PROVMOD
   [Módulo de Inventario Reservado\n(cupo exclusivo de Aliflow)] as INVMOD
   [Módulo de Usuarios del Local\n(altas de Proveedores y Operadores)] as USERMOD
-  [Módulo de Fidelidad\n(cartillas, sellos, canjes)] as LOYALTY #FFF3B0
-  [Módulo de Plataforma\n(alta de locales, soporte)] as PLATMOD #FFF3B0
+  [Módulo de Fidelidad\n(cartillas, sellos, canjes)] as LOYALTY
+  [Módulo de Plataforma\n(alta de locales, soporte)] as PLATMOD
 }
 
 package "Capa de Integración" {
@@ -106,7 +101,7 @@ note bottom of ALPWINA
 end note
 
 note bottom of LOYALTY
-  <back:#FFF3B0>Requisito nuevo (28-jul-2026):</back> cartilla
+  Requisito nuevo: cartilla
   de fidelidad. Módulo aparte y no lógica
   dentro de Órdenes, porque las reglas
   (cuántos sellos, qué premio, si caduca)

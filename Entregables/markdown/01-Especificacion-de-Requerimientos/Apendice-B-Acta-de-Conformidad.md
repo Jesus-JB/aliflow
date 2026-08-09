@@ -1,21 +1,9 @@
-> **Entregable 01.e · acta de conformidad firmada por el representante del cliente**
-> Va como apéndice del documento de especificación de requerimientos. Se ensambla en el PDF único con `construir-pdf.sh` — ver [`../../README.md`](../../README.md).
-
----
-
 # Apéndice B · Acta de conformidad
-
-> ⏳ **PENDIENTE DE FIRMA.** El entregable 01.e exige que este documento vaya firmado por el representante del cliente. **Es una dependencia externa con tiempo de respuesta que no controlamos: conviene pedirla ahora, no al cierre.**
->
-> Abajo está el texto propuesto, listo para imprimir y firmar. Una vez firmado, se escanea y se reemplaza esta plantilla por el documento escaneado.
-
----
 
 ## Acta de conformidad con la especificación de requerimientos
 
 **Proyecto:** Aliflow — plataforma para pedir y pagar el almuerzo dentro del campus de la UEES
-**Documento sobre el que se declara conformidad:** *Documento de Especificación de Requerimientos del Sistema de Software*, versión del 9 de agosto de 2026
-**Repositorio de referencia:** https://github.com/Jesus-JB/aliflow
+**Documento sobre el que se declara conformidad:** *Documento de Especificación de Requerimientos del Sistema de Software*
 
 ---
 
@@ -47,8 +35,6 @@ El cliente reconoce que las siguientes decisiones **siguen sin resolverse** y qu
 
 ### 4. Declaración
 
-Se deja constancia de que los elementos marcados como **propuesta de Ingeniería** en la especificación no constituyen decisiones del cliente y requieren validación posterior.
-
 ---
 
 <div style="text-align:center">
@@ -69,7 +55,7 @@ Fecha: _______________________________
 
 _____________________________________
 
-**Por el Grupo de Ingeniería**
+**Por el equipo de desarrollo**
 
 Nombre: ______________________________
 

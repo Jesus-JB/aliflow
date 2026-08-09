@@ -2,14 +2,8 @@
 
 title Diagrama de Estado — CodigoRetiro
 
-skinparam state {
-  BackgroundColor<<propuesta>> #FFF3B0
-  BorderColor<<propuesta>> #8A6D00
-}
-
 legend top left
-  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-  <back:#F1F1F1>  </back> = confirmado en acta / decisión de Negocios
+  <back:#F1F1F1>  </back> = confirmado en acta / decisión de el cliente
 endlegend
 
 [*] --> Valido : generar(6 dígitos numéricos)\nfechaExpiracion = min(horaMaximaRetiro,\nfin del día de la compra)\n[al confirmar la compra]
@@ -30,7 +24,7 @@ note right of Valido
 end note
 
 note left of Valido
-  **Formato (decisión de Negocios, 28-jul-2026):**
+  **Formato (decisión de el cliente, ):**
   código **numérico corto de 6 dígitos**, no UUID
   ni QR — el estudiante se lo dice de viva voz al
   Operador y este lo digita en Aliflow.
@@ -41,14 +35,14 @@ note left of Valido
 end note
 
 note bottom of Vencido
-  **Regla de expiración (acta 30-jul-2026, §6.2):**
+  **Regla de expiración §6.2):**
   el código vale **únicamente durante el día en que
   se hizo la compra**. Si se presenta otro día, el
   sistema debe mostrarlo como vencido o inválido.
   La vigencia termina, como máximo, al terminar ese
   mismo día.
 
-  Esto **cierra la decisión #5**, que estaba abierta
+  Esto **cierra la**, que estaba abierta
   desde el 27-jul, y refuerza la mitigación del
   riesgo R-15: acotar la vigencia a un día reduce
   drásticamente el universo de códigos vigentes a la
@@ -57,7 +51,7 @@ note bottom of Vencido
   Dispara además la transición de la Orden asociada
   a EXPIRADO — ver estado-orden.puml.
 
-  <back:#FFF3B0>Lo que sigue abierto:</back> qué pasa con el **dinero**
+  Lo que sigue abierto: qué pasa con el **dinero**
   de una orden vencida. El acta define cuándo vence
   el código, no si hay reembolso.
 end note

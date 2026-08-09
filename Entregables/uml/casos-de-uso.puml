@@ -4,21 +4,6 @@ left to right direction
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
 
-' Convención visual: amarillo = propuesta de Ingeniería, pendiente de
-' validar con Negocios. Ver Documentacion-Casos-de-Uso.md.
-legend top left
-  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-  <back:#F1F1F1>  </back> = confirmado en acta / flujo funcional / decisión de Negocios
-endlegend
-
-actor Estudiante as EST
-actor "Proveedor\n(administrador del local)" as PROV
-actor Operador as OP
-actor "Super-Admin de Aliflow\n(administra la plataforma)" as SA
-actor "Proveedor de Identidad\n(Google OAuth)" as IDP
-actor "Sistema ERP del local\n(Contífico / Alpwin / Odoo…,\nvía API genérica bidireccional)" as ERP
-actor "Pasarela de pagos\n(webhooks de confirmación)" as PAY
-
 rectangle "Aliflow" {
 
   ' ---- Estudiante ----
@@ -57,21 +42,21 @@ rectangle "Aliflow" {
 
   usecase "UC12. Gestionar usuarios del local\n(Proveedores y Operadores)" as UC12
 
-  ' ---- Fidelidad (requisito nuevo, 28-jul-2026) ----
-  usecase "UC13. Consultar cartilla\nde fidelidad" as UC13 #FFF3B0
-  usecase "UC14. Configurar programa\nde fidelidad del local" as UC14 #FFF3B0
-  usecase "UC15. Canjear premio\nde la cartilla" as UC15 #FFF3B0
-  usecase "Acreditar sello\nen la cartilla" as UC5d #FFF3B0
+  ' ---- Fidelidad (requisito nuevo, ) ----
+  usecase "UC13. Consultar cartilla\nde fidelidad" as UC13
+  usecase "UC14. Configurar programa\nde fidelidad del local" as UC14
+  usecase "UC15. Canjear premio\nde la cartilla" as UC15
+  usecase "Acreditar sello\nen la cartilla" as UC5d
 
-  ' ---- Acta del 30-jul-2026 ----
+  ' ---- ----
   usecase "UC16. Administrar inventario\nreservado para Aliflow" as UC16
   usecase "UC17. Configurar horario\nmáximo de retiro" as UC17
   usecase "Confirmar recarga\n(webhook de la pasarela)" as UC2b
 
-  ' ---- Super-Admin (acordado 30-jul-2026, no consta en acta) ----
-  usecase "UC18. Dar de alta un local\ny crear su vista de proveedor" as UC18 #FFF3B0
-  usecase "UC19. Brindar soporte\na los locales" as UC19 #FFF3B0
-  usecase "UC20. Administrar\nla plataforma" as UC20 #FFF3B0
+  ' ---- Super-Admin (acordado , no consta en acta) ----
+  usecase "UC18. Dar de alta un local\ny crear su vista de proveedor" as UC18
+  usecase "UC19. Brindar soporte\na los locales" as UC19
+  usecase "UC20. Administrar\nla plataforma" as UC20
 }
 
 ' ---- Asociaciones actor - caso de uso ----
@@ -134,7 +119,7 @@ ERP --> UC15
 UC18 .> UC7 : <<include>>
 
 note right of PROV
-  **Roles del sistema (actualizado 30-jul-2026):**
+  **Roles del sistema (actualizado ):**
   son **4**. Estudiante, Proveedor y Operador
   operan dentro de un local; el **Super-Admin**
   es de Aliflow y está por encima de todos.
@@ -152,7 +137,7 @@ note right of PROV
 end note
 
 note bottom of UC16
-  <back:#FFF3B0>Acta 30-jul-2026 — inventario reservado.</back>
+  inventario reservado.
   El proveedor aparta un **cupo exclusivo para
   Aliflow** (ej. de 100 almuerzos: 75 a caja,
   25 a Aliflow) y lo administra manualmente
@@ -164,7 +149,7 @@ note bottom of UC16
 end note
 
 note bottom of UC17
-  <back:#FFF3B0>Acta 30-jul-2026 — horario de retiro.</back>
+  horario de retiro.
   La hora máxima **no está fija en el código**:
   cada proveedor la configura y el mensaje que
   ve el estudiante tras comprar se actualiza
@@ -173,7 +158,7 @@ note bottom of UC17
 end note
 
 note right of SA
-  <back:#FFF3B0>Acordado verbalmente el 30-jul-2026.</back>
+  Acordado verbalmente el .
   **No consta en el acta** — conviene agregarlo.
   El Super-Admin es de **Aliflow**, no de ningún
   local: da soporte, da de alta locales nuevos,
@@ -184,19 +169,18 @@ note right of SA
 end note
 
 note bottom of UC14
-  <back:#FFF3B0>Requisito nuevo (28-jul-2026):</back> cartilla de
+  Requisito nuevo: cartilla de
   fidelidad. Cuántos sellos hacen falta y cuál
   es el premio **todavía no están definidos**
-  por Negocios, así que se modelan como
+  por el cliente, así que se modelan como
   configuración por local (UC14), no como
   constantes del sistema. El sello se acredita
   al **entregar** el almuerzo (UC5), no al
-  comprarlo. Ver Decisiones-Pendientes-Negocios.md,
+  comprarlo. 
   punto 9.
 end note
 
 note right of ERP
-  **Decisión de Negocios (28-jul-2026):**
   cada local de la universidad usa un ERP
   distinto (Barú → Contífico, Caramel Coffee
   → Alpwin, etc.). La conexión es **bidireccional**:

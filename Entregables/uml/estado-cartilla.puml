@@ -2,19 +2,10 @@
 
 title Diagrama de Estado — Cartilla de fidelidad
 
-skinparam state {
-  BackgroundColor<<propuesta>> #FFF3B0
-  BorderColor<<propuesta>> #8A6D00
-}
-
-legend top left
-  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-endlegend
-
-state EnCurso <<propuesta>>
-state Completa <<propuesta>>
-state Canjeada <<propuesta>>
-state Expirada <<propuesta>>
+state EnCurso
+state Completa
+state Canjeada
+state Expirada
 
 [*] --> EnCurso : emitirCartilla(estudiante)\n[primera entrega en ese local]
 
@@ -58,8 +49,8 @@ note bottom of Canjeada
 end note
 
 note bottom of Expirada
-  <back:#FFF3B0>`vigenciaCartillaDias` es propuesta.</back>
-  Negocios no definió si una cartilla a medio
+  `vigenciaCartillaDias` es opcional: si el local no la define, la cartilla no caduca.
+  el cliente no definió si una cartilla a medio
   llenar caduca. Si decide que no caduca,
   basta con dejar el campo en nulo — el
   modelo no cambia.

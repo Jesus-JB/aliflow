@@ -28,14 +28,14 @@ endif
 stop
 
 note right
-  **Decisión de Negocios (8-ago-2026):** la recarga es
+  la recarga es
   **por establecimiento**. Toda recarga tiene un local
   destino obligatorio y el saldo solo se gasta ahí.
   El dinero va de la pasarela **directo a la cuenta de
   ese proveedor**: Aliflow registra el movimiento pero
   no custodia fondos en ningún momento.
 
-  Revierte la decisión #4 del 28-jul, que definía una
+  Revierte la del 28-jul, que definía una
   bolsa única con distribución interna al comprar.
 end note
 

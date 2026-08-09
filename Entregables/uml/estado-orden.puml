@@ -2,14 +2,8 @@
 
 title Diagrama de Estado — Orden
 
-skinparam state {
-  BackgroundColor<<propuesta>> #FFF3B0
-  BorderColor<<propuesta>> #8A6D00
-}
-
 legend top left
-  <back:#FFF3B0>  </back> = propuesta de Ingeniería, pendiente de validar con Negocios
-  <back:#F1F1F1>  </back> = confirmado en acta / decisión de Negocios
+  <back:#F1F1F1>  </back> = confirmado en acta / decisión de el cliente
 endlegend
 
 [*] --> COMPRADO : confirmarCompra()\n(saldo validado y cupo reservado\nde Aliflow consumido)
@@ -22,14 +16,14 @@ ENTREGADO --> [*]
 EXPIRADO --> [*]
 
 note right of EXPIRADO
-  **Regla cerrada (acta 30-jul-2026, §6.2).**
-  Ya no es una propuesta de Ingeniería: la
+  **Regla cerrada §6.2).**
+  La
   Orden pasa a EXPIRADO cuando vence su
   CodigoRetiro, y este vence como máximo al
   terminar el mismo día de la compra.
   Ver estado-codigo-retiro.puml.
 
-  <back:#FFF3B0>Lo único que sigue abierto</back> es qué pasa con
+  Lo único que sigue abierto es qué pasa con
   el **dinero**: si se reembolsa al saldo del
   estudiante, si se pierde, o si se le liquida
   igual al proveedor porque el almuerzo se
@@ -38,7 +32,7 @@ note right of EXPIRADO
 end note
 
 note left of COMPRADO
-  **Cambio del 30-jul-2026:** la validación de
+  **Cambio del :** la validación de
   disponibilidad ya no se hace contra el stock
   del ERP sino contra el **inventario reservado**
   para Aliflow (`InventarioReservado.disponible()`).

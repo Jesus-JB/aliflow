@@ -27,7 +27,7 @@ else APROBADO
   API -> Pago : crear(estado=APROBADO)
   API -> Saldo : acreditar(monto)\n(saldo del local destino, atómico)
   note right of Saldo
-    Decisión de Negocios (8-ago-2026):
+    Decisión de el cliente:
     la recarga es **por establecimiento**.
     El dinero va directo a la cuenta de
     ese proveedor — Aliflow no lo custodia.

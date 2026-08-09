@@ -67,7 +67,7 @@ worker ..> adapterCaramel : invoca notifySale()
 
 note bottom of eventoOk
   Snapshot de la arquitectura multi-tenant
-  confirmada el 28-jul-2026: **cada local trae
+  confirmada el : **cada local trae
   su propio ERP**. Barú usa Contífico, que sí
   tiene API REST documentada — el evento se
   procesa al primer intento.

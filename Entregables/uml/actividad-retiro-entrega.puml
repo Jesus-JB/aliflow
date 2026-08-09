@@ -40,7 +40,7 @@ endif
 :Invalidar CodigoRetiro\n(uso único);
 :Registrar timestamp y Operador\nen RegistroAuditoria;
 
-partition "Fidelidad (propuesta, 28-jul-2026)" {
+partition "Fidelidad" {
   if (¿El local tiene\nProgramaFidelidad activo?) then (no)
   else (sí)
     if (¿Ya se acreditó un sello\nhoy en este local?) then (sí)

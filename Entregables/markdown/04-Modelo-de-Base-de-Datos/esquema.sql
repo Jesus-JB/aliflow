@@ -48,9 +48,9 @@ CREATE TABLE proveedor (
     -- acá sale la expiración del código de retiro y el mensaje al estudiante.
     hora_maxima_retiro          TIME        NOT NULL,
 
-    -- RN-14 / decisión #13: el dinero de cada recarga va DIRECTO a la cuenta de
-    -- este proveedor. Aliflow no custodia fondos, solo registra el movimiento.
-    -- Cada local necesita su propia cuenta de comercio en la pasarela (R-22).
+    -- RN-14: el dinero de cada recarga va DIRECTO a la cuenta de este proveedor.
+    -- Aliflow no custodia fondos, solo registra el movimiento. Por eso cada local
+    -- necesita su propia cuenta de comercio en la pasarela.
     cuenta_bancaria_destino     TEXT,
     credenciales_comercio_cifradas TEXT,
 
@@ -175,7 +175,7 @@ CREATE TABLE inventario_reservado (
     cupo_consumido INTEGER NOT NULL DEFAULT 0,
 
     -- RN-11: el bloqueo optimista vive acá, no en el ERP. Se probó delegarlo a
-    -- Odoo por RPC y falló bajo concurrencia real (demo-odoo/README.md §7).
+    -- un ERP externo por RPC y falló bajo concurrencia real.
     version        INTEGER NOT NULL DEFAULT 0,
 
     UNIQUE (plato_id, fecha_vigencia),
@@ -196,9 +196,9 @@ COMMENT ON CONSTRAINT cupo_no_sobrevendido ON inventario_reservado IS
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 4. BILLETERA — saldo POR ESTABLECIMIENTO, como libro de movimientos
 --
--- Decisión #13 (8-ago-2026): el saldo pertenece al local, no al estudiante.
--- Se recarga para un local y solo se gasta ahí (RN-13). Aliflow no custodia
--- fondos: el dinero va de la pasarela a la cuenta del proveedor (RN-14).
+-- El saldo pertenece al local, no al estudiante: se recarga para un local y solo
+-- se gasta ahí (RN-13). Aliflow no custodia fondos — el dinero va de la pasarela
+-- a la cuenta del proveedor (RN-14).
 -- ═════════════════════════════════════════════════════════════════════════════
 
 CREATE TABLE saldo_establecimiento (
@@ -219,8 +219,8 @@ CREATE TABLE saldo_establecimiento (
 
 COMMENT ON TABLE saldo_establecimiento IS
     'RN-13: un saldo por (estudiante, local). No existe saldo único ni '
-    'transferencia entre locales — mover dinero entre cuentas de terceros es '
-    'lo que el acta §3.9 prohíbe. Costo asumido: R-21, saldo fragmentado.';
+    'transferencia entre locales: mover dinero entre cuentas de terceros queda '
+    'fuera del alcance del sistema.';
 
 
 CREATE TABLE recarga (
@@ -230,7 +230,7 @@ CREATE TABLE recarga (
     -- RF-08: toda recarga tiene establecimiento destino obligatorio.
     proveedor_destino_id   UUID NOT NULL REFERENCES proveedor(id),
 
-    -- RF-09: los siete campos que exige el acta §2.1.
+    -- RF-09: los siete campos mínimos de toda recarga.
     monto_total            NUMERIC(10,2) NOT NULL,
     fecha_hora             TIMESTAMPTZ   NOT NULL DEFAULT now(),
     numero_operacion       TEXT          NOT NULL,
@@ -396,7 +396,7 @@ CREATE TABLE codigo_retiro (
 -- Unicidad ACOTADA: seis dígitos solo alcanzan si se exige unicidad entre los
 -- códigos VIGENTES de un mismo local — no global ni histórica. Con ~10⁶
 -- combinaciones y unas pocas decenas de códigos vivos por local, la colisión es
--- rara y la generación reintenta. Ver riesgo R-15.
+-- rara y la generación reintenta ante colisión.
 CREATE UNIQUE INDEX ux_codigo_vigente_por_local
     ON codigo_retiro (proveedor_id, valor)
     WHERE estado = 'VALIDO';
@@ -487,8 +487,8 @@ CREATE TABLE programa_fidelidad (
     -- absorbe el local, así que cada uno define el suyo — o no tiene ninguno.
     proveedor_id          UUID NOT NULL UNIQUE REFERENCES proveedor(id) ON DELETE CASCADE,
 
-    -- RN-05: configuración, no constantes. Los dos valores que Negocios todavía
-    -- no definió (cuántos sellos, qué premio) se cargan acá sin tocar código.
+    -- RN-05: configuración por local, no constantes del sistema. Cuántos sellos
+    -- y qué premio se cargan acá sin tocar código.
     sellos_requeridos     INTEGER NOT NULL,
     descripcion_premio    TEXT    NOT NULL,
     max_sellos_por_dia    INTEGER NOT NULL DEFAULT 1,

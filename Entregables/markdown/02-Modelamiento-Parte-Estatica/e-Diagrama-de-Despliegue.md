@@ -2,13 +2,11 @@
 
 ![Diagrama de despliegue de Aliflow](../../uml/diagrama-despliegue.svg)
 
-**Diagrama fuente:** `../../uml/diagrama-despliegue.puml`.
-
 Este diagrama traduce el diagrama de componentes (`../../uml/diagrama-componentes.puml`) a infraestructura física/de hosting concreta, combinando tres fuentes reales:
 
 1. Las opciones de despliegue investigadas previamente por el equipo (Vercel, Render/Fly.io/Railway/AWS, Supabase/AWS RDS).
 2. La infraestructura que **ya se levantó y probó** en el demo técnico con Odoo Community (`../../../Hallazgos-Ingenieria-API-Generica.md` sección 4.2).
-3. La confirmación de Negocios (28-jul-2026) de que **cada local trae su propio ERP**: Barú usa Contífico (SaaS, con API REST) y Caramel Coffee usa Alpwin (on-premise, sin API pública) — sección 4.3 del mismo documento.
+3. La confirmación de el cliente de que **cada local trae su propio ERP**: Barú usa Contífico (SaaS, con API REST) y Caramel Coffee usa Alpwin (on-premise, sin API pública) — sección 4.3 del mismo documento.
 
 ## Nodos
 
@@ -37,5 +35,5 @@ Este diagrama traduce el diagrama de componentes (`../../uml/diagrama-componente
 
 1. **Proveedor de hosting final para la API** (Render vs. Fly.io vs. Railway vs. AWS) — no se ha decidido, solo se documentan como candidatas ya investigadas.
 2. **Si el Worker corre como proceso separado o dentro del mismo contenedor que la API** — aquí se muestran como dos artefactos independientes (más correcto para escalar cada uno según su carga), pero es una decisión de implementación pendiente.
-3. **La conexión real con Alpwin** — este diagrama asume la vía de archivos/BD puente como hipótesis de trabajo; podría cambiar completamente si Syscompsa ofrece algo distinto, o si el local que lo usa (Caramel Coffee) decide migrar (ver sección 4.3 del hallazgo de Ingeniería). Ya **no bloquea el piloto**, porque el local piloto es Barú con Contífico.
+3. **La conexión real con Alpwin** — este diagrama asume la vía de archivos/BD puente como hipótesis de trabajo; podría cambiar completamente si Syscompsa ofrece algo distinto, o si el local que lo usa (Caramel Coffee) decide migrar (ver sección 4.3 del hallazgo de el equipo de desarrollo). Ya **no bloquea el piloto**, porque el local piloto es Barú con Contífico.
 4. **El diagrama muestra dos ERP externos, pero el modelo admite N** — se dibujan Contífico y Alpwin porque son los dos locales confirmados; cada local nuevo agrega un nodo externo más, sin cambiar nada de la infraestructura de Aliflow.

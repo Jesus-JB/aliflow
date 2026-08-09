@@ -64,7 +64,7 @@ note bottom of ODOO_VPS
 end note
 
 note bottom of CONTIFICO_NODE
-  Local piloto (confirmado 28-jul-2026):
+  Local piloto (confirmado ):
   Barú usa Contífico, SaaS con API REST
   documentada — no hay que desplegar nada
   de su lado. Ver

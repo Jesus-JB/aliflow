@@ -5,7 +5,7 @@
 -- impedir. Cada bloque de la primera parte DEBE fallar; si alguno pasa, esa
 -- regla de negocio no está protegida y vive solo en el código.
 --
--- Ejecutado contra PostgreSQL 16.14 el 9-ago-2026: 10 de 10 rechazadas.
+-- Verificado contra PostgreSQL 16: las 10 violaciones son rechazadas.
 --
 -- Uso:
 --   createdb aliflow_test
