@@ -52,9 +52,11 @@ Por dónde empezar, en este orden:
 
 | Documento | Qué contiene |
 |---|---|
+| **[Estado-del-Proyecto.md](Estado-del-Proyecto.md)** | **Empezá acá si te estás sumando al proyecto.** Qué está hecho, qué falta, qué está bloqueado, y las trampas que ya costaron tiempo (para no repetirlas). |
+| **[Especificacion-de-Requerimientos.md](Especificacion-de-Requerimientos.md)** | **56 requerimientos funcionales con criterios de aceptación** y los no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Incluye reglas de negocio, alcance excluido, trazabilidad y qué está bloqueado por decisiones abiertas. |
 | **[Decisiones-Pendientes-Negocios.md](Decisiones-Pendientes-Negocios.md)** | Qué está decidido, qué sigue abierto y qué cambió en el diseño como consecuencia. **Es la fuente de verdad del estado del proyecto.** |
 | **[Hallazgos-Ingenieria-API-Generica.md](Hallazgos-Ingenieria-API-Generica.md)** | Investigación de la integración con ERPs: comparación, patrón Adapter y patrón Outbox. |
-| **[Gestion-de-Riesgos.md](Gestion-de-Riesgos.md)** | 20 riesgos. R-18 (contradicción entre custodia de fondos y saldo único) es el único que puede obligar a rehacer diseño. |
+| **[Gestion-de-Riesgos.md](Gestion-de-Riesgos.md)** | 23 riesgos. R-18 y R-19 se cerraron el 8-ago con la decisión de recarga por establecimiento; esa misma decisión abrió R-21 (saldo fragmentado), R-22 y R-23. |
 | **[Mockups-Prototipo.md](Mockups-Prototipo.md)** | Las 21 pantallas mapeadas a sus casos de uso. |
 | **[uml/](uml/)** | Casos de uso, clases, objetos, componentes, despliegue, actividad, secuencia y estado. Cada `.puml` tiene su `.svg` y su documentación. |
 | **[demo-odoo/](demo-odoo/)** | Demo funcional en Docker con Odoo Community, adaptador en Python y pruebas reales de concurrencia. |
@@ -63,11 +65,13 @@ Por dónde empezar, en este orden:
 
 - **Cuatro roles:** Estudiante, Proveedor y Operador operan dentro de un local; el **Super-Admin** es de Aliflow y es el único con visibilidad sobre todos.
 - **Inventario reservado:** cada local aparta un cupo exclusivo para Aliflow. La app vende contra ese cupo, no contra el stock del ERP — así deja de competir con la caja por el mismo dato y la sobreventa se elimina por diseño.
-- **Un solo saldo:** el estudiante recarga una vez; Aliflow reparte internamente por local.
+- **Saldo por establecimiento:** el estudiante recarga *para un local* y ese saldo solo se gasta ahí. El dinero va directo a la cuenta del proveedor — **Aliflow no custodia fondos en ningún momento**. El modelo de referencia lo dio el cliente: la app de Parqueo Positivo, donde eliges un servicio por defecto y el saldo pertenece a ese servicio.
 - **Código de retiro numérico de 6 dígitos:** se dicta de viva voz y el Operador lo teclea. No hay QR ni escáner. Vale **solo el día de la compra**.
 - **Concurrencia en la base de datos de Aliflow, no en el ERP:** validado empíricamente en el demo, ver `demo-odoo/README.md` sección 7.
 
-> ⚠️ **Decisión abierta que bloquea el modelo de billetera:** el acta del 30-jul dice que el dinero va directo a la cuenta de cada proveedor y que Aliflow no custodia fondos; la decisión #4 define un saldo único gastable en cualquier local. Al recargar todavía no se sabe dónde se comprará. Ver `Decisiones-Pendientes-Negocios.md`, punto 13.
+> ✅ **La decisión que bloqueaba el modelo de billetera se cerró el 8-ago-2026.** Había una contradicción entre el acta (el dinero va directo a cada proveedor, Aliflow no custodia fondos) y la decisión #4 (saldo único gastable en cualquier local): al recargar todavía no se sabía dónde se compraría. Negocios resolvió que **la recarga es por establecimiento**. Con eso el modelo de datos queda desbloqueado por completo. El costo es la fragmentación del saldo entre locales, registrada como riesgo R-21. Ver `Decisiones-Pendientes-Negocios.md`, punto 13.
+>
+> El prototipo en vivo y los mockups **todavía muestran el saldo único** — falta propagarles este cambio.
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Preparado por:** Grupo de Ingeniería
 **Creado:** 27-jul-2026, para la reunión con el Grupo de Negocios
-**Actualizado:** 30-jul-2026 — reunión con Negocios: se cerró la expiración del código, cambió la estrategia de inventario, se revirtió la decisión sobre el super-admin, y se abrió el frente de pasarela de pagos
+**Actualizado:** 8-ago-2026 — Negocios cerró la custodia de fondos (la recarga es **por establecimiento**), confirmó las cinco reglas de la cartilla de fidelidad y confirmó los **cuatro roles primarios**. Con eso el modelo de base de datos queda desbloqueado por completo.
 **Objetivo:** llevar la cuenta de qué está decidido, qué sigue abierto, y qué cambió en el diseño como consecuencia.
 
 Todo lo trabajado (arquitectura, casos de uso, diagramas de clases/objetos/componentes/despliegue/actividad/secuencia/estado, registro de riesgos, demo funcional) está en el repositorio: **https://github.com/Jesus-JB/aliflow**. Este documento no repite ese contenido — apunta a la sección exacta de cada documento donde está el detalle.
@@ -14,20 +14,20 @@ Todo lo trabajado (arquitectura, casos de uso, diagramas de clases/objetos/compo
 | # | Decisión | Estado | Bloqueaba |
 |---|---|---|---|
 | 1 | Proveedor y sistema ERP reales | ✅ **Resuelta y corregida** | Modelo de datos |
-| 2 | Alcance del rol Administrador | 🔄 **Revertida el 30-jul** — sí existe un Super-Admin | Modelo de datos |
+| 2 | Alcance del rol Administrador | ✅ **Confirmada el 8-ago** — son **4 roles**: Estudiante, Operador, Proveedor y Super-Admin | Modelo de datos |
 | 3 | Personal múltiple por proveedor | ✅ **Resuelta** | Modelo de datos |
-| 4 | Mecanismo de recarga de saldo | ✅ **Resuelta**, con un punto fino por confirmar | Lógica de wallet |
+| 4 | Mecanismo de recarga de saldo | 🔄 **Revertida el 8-ago** por la #13 — la recarga es por establecimiento, no hay saldo único | Lógica de wallet |
 | 5 | Regla de expiración de orden no retirada | ✅ **Resuelta el 30-jul** — vence al terminar el día | Modelo de estados |
 | 6 | Formato del código de retiro | ✅ **Resuelta** | Prototipo de mockups |
-| 7 | Modelo de cobro de Aliflow al proveedor | ⬜ Abierta | Nada crítico |
+| 7 | Modelo de cobro de Aliflow al proveedor | ⬜ Abierta — **más restringida desde la #13** | Condiciona qué se le pide a la pasarela |
 | 8 | Corrección del Acta (comprobante tributario) | ✅ **Resuelta el 30-jul** — el acta nueva confirma el modelo correcto | Documento de requerimientos |
-| 9 | **Cartilla de fidelidad** | 🆕 **Modelada**, faltan las reglas | Nada — se modeló como configuración |
+| 9 | **Cartilla de fidelidad** | ✅ **Reglas confirmadas el 8-ago** — faltan solo dos valores de configuración | Nada |
 | 10 | **Estrategia de inventario** *(nueva)* | ✅ **Resuelta el 30-jul** — inventario reservado para Aliflow | Modelo de datos y panel del proveedor |
 | 11 | **Horario máximo de retiro** *(nueva)* | ✅ **Resuelta el 30-jul** — configurable por proveedor | Mockups |
 | 12 | **Pasarela de pagos** *(nueva)* | ⬜ Abierta — investigación en curso | Flujo de recarga |
-| 13 | **Custodia de fondos vs. saldo único** *(nueva)* | 🔴 **Abierta y contradictoria** — ver abajo | **Lógica de wallet** |
+| 13 | **Custodia de fondos vs. saldo único** *(nueva)* | ✅ **Resuelta el 8-ago** — la recarga es **por establecimiento** | **Lógica de wallet** |
 
-**Las decisiones que bloqueaban el modelo de base de datos están cerradas.** La #13 es la única que puede volver a mover el diseño del wallet, y es una contradicción entre dos decisiones ya tomadas, no un vacío.
+**Todas las decisiones que bloqueaban el modelo de base de datos están cerradas, incluida la billetera.** Con la respuesta a la #13, el esquema completo se puede escribir. Lo que queda abierto (#7, #12, reembolso de órdenes expiradas, saldo huérfano) no bloquea el modelo de datos.
 
 ---
 
@@ -230,9 +230,29 @@ Ingeniería había propuesto un UUID firmado con expiración. La decisión de Ne
 
 ## ⬜ Puntos que siguen abiertos
 
-### 13. 🔴 Custodia de fondos vs. saldo único — **dos decisiones tomadas que se contradicen**
+### 13. Custodia de fondos vs. saldo único — ✅ **CERRADA el 8-ago-2026**
 
-**Este es el punto más importante de esta lista, y no es un vacío: son dos cosas ya decididas que no encajan.**
+> **Respuesta de Negocios: la recarga se hará por establecimiento.** Referencia aportada por el cliente: el proceso de recarga de la aplicación **Parqueo Positivo** — el usuario debe seleccionar un servicio por defecto antes de operar, un indicador permanente le recuerda en cuál está, y el saldo mostrado pertenece a ese servicio.
+>
+> **Es la salida B** de las tres analizadas. Qué implica:
+>
+> - **Se revierte la decisión #4.** No hay saldo único. El estudiante tiene un saldo por establecimiento y solo puede gastarlo ahí.
+> - **Se cumple el acta §3.9 sin contradicción:** el dinero de cada recarga va directo a la cuenta del proveedor destino, y Aliflow no custodia fondos en ningún punto.
+> - **Se desbloquea el esquema completo de la base de datos** — la billetera era lo único que quedaba congelado.
+> - **Se cierran los riesgos R-18 y R-19.** El *split payments* deja de ser necesario, así que la comparación de pasarelas (#12) ya no tiene criterio eliminatorio y el universo de candidatas se amplía.
+>
+> **Lo que cuesta, dicho sin adornos.** Ingeniería había recomendado la salida A; la B se había descartado el 28-jul justamente por esto. El costo es la **fragmentación del saldo**: un estudiante con $6 en Barú y $4 en Caramel Coffee no puede comprar un almuerzo de $7 en ninguno, teniendo $10. Es tolerable porque el estudiante *elige* dónde pone su dinero —no es un reparto automático como la lectura A que se descartó—, pero va a ocurrir, y quien lo paga es el estudiante. Registrado como **riesgo R-21**, con cuatro mitigaciones de interfaz. Si la métrica de compras perdidas por saldo insuficiente resulta alta, es evidencia concreta para volver a abrir la conversación.
+>
+> **Tres puntos nuevos que esta respuesta abre** (ninguno bloquea el esquema; ver abajo, en los puntos que siguen abiertos):
+> 1. Cada local necesita su **propia cuenta de comercio** en la pasarela — es una condición de alta, no un detalle técnico (R-22).
+> 2. Qué pasa con el **saldo huérfano** del estudiante que se gradúa o del local que sale de la plataforma. Aliflow no puede devolverlo porque nunca lo tuvo (R-23).
+> 3. El **reembolso de órdenes expiradas** se vuelve más difícil por la misma razón: Aliflow no puede devolver dinero, a lo sumo reacreditar saldo en ese local, y eso es obligación del proveedor.
+>
+> Impacto ya aplicado en `Especificacion-de-Requerimientos.md` (RN-13, RN-14, RF-07, RF-08, RF-09, RF-12, RF-12b, RF-15, RF-19, RNF-E-04, RNF-E-05b, RNF-E-10, RNF-E-11b, RNF-P-19) y en `Gestion-de-Riesgos.md`. **Pendiente de aplicar:** diagrama de clases, mockups y prototipo web.
+
+Se conserva abajo el análisis original que llevó a la decisión.
+
+**Este era el punto más importante de esta lista, y no era un vacío: eran dos cosas ya decididas que no encajaban.**
 
 - **Decisión #4 (28-jul):** el estudiante hace **una sola recarga** a un **saldo único** que puede gastar en cualquier local; Aliflow distribuye internamente.
 - **Acta §3.9 (30-jul):** *"el dinero llegará directamente a la cuenta de cada proveedor. AliFlow no actuará como custodio de los fondos de los estudiantes ni recibirá directamente el dinero generado por las recargas."*
@@ -253,6 +273,11 @@ Ingeniería había propuesto un UUID firmado con expiración. La decisión de Ne
 
 ### 12. Pasarela de pagos — investigación abierta *(nueva)*
 
+> **Actualizado el 8-ago-2026 tras cerrarse la #13.** La respuesta cambia esta investigación en dos sentidos, y para mejor:
+>
+> - **El *split payments* deja de ser criterio eliminatorio.** Al ser la recarga por establecimiento, cada pago tiene un único destinatario. Se cae el riesgo R-19 y el universo de pasarelas candidatas se amplía en lugar de reducirse.
+> - **Aparece un criterio nuevo, y es duro:** la pasarela tiene que permitir que la aplicación opere con **una cuenta de comercio por establecimiento**, depositando cada recarga en la cuenta del local destino. El punto 5 de la lista de abajo pasa de "verificar si permiten" a **requisito**. Y antes de elegir hay que confirmar que los dos locales confirmados **pueden abrir cuenta ahí** (riesgo R-22) — si no coinciden en una misma pasarela, habría que soportar más de una.
+
 El acta define **qué hay que averiguar**, no cuál se elige. Tareas acordadas:
 
 1. **Comparar varias pasarelas disponibles en Ecuador** (costos, comisiones y tiempos de liquidación).
@@ -271,15 +296,38 @@ El acta define **qué hay que averiguar**, no cuál se elige. Tareas acordadas:
 ### Reembolso de órdenes vencidas — *lo que la decisión #5 dejó abierto*
 
 **Por qué importa:** el acta del 30-jul definió **cuándo vence un código** (al terminar el día), pero no **qué pasa con el dinero** de esa orden.
-**Necesitamos que Negocios decida:** ¿el saldo se devuelve al estudiante, se pierde, o se le liquida igual al proveedor porque el almuerzo se preparó?
+**Necesitamos que Negocios decida:** ¿el saldo se devuelve al estudiante, se pierde, o se le queda al proveedor porque el almuerzo se preparó?
 **Nota:** si la respuesta implica devolución, hace falta el mecanismo de **movimientos compensatorios** (nunca borrar el movimiento original, generar uno inverso). Hoy el modelo no lo tiene.
+**Actualizado el 8-ago:** la decisión #13 acota las salidas posibles. Como Aliflow **no custodia fondos**, no puede devolver dinero: a lo sumo puede **reacreditar saldo en ese mismo establecimiento**, y eso es una obligación del proveedor, no de Aliflow. La opción "se le devuelve al estudiante en efectivo" queda descartada por construcción. Conviene resolver esta pregunta junto con la del saldo huérfano, porque son la misma pregunta con dos disparadores distintos.
+
+### 🆕 Saldo huérfano — *lo que la decisión #13 abrió* (8-ago-2026)
+
+**Por qué importa:** un estudiante se gradúa, o un local sale de la plataforma, y queda saldo sin consumir. **Aliflow no puede devolverlo porque nunca tuvo el dinero** — es una obligación del establecimiento con el estudiante. Pero el reclamo va a llegar a Aliflow igual, porque es la cara visible.
+**Necesitamos que Negocios decida:** ¿el saldo caduca tras un plazo? ¿El local lo devuelve? ¿Qué se le dice al estudiante cuando un local se desactiva?
+**Nota de Ingeniería:** esto se resuelve principalmente **por contrato con cada local**, no por software. Lo que sí tiene que hacer el software es avisar al estudiante antes de que su saldo quede inaccesible. Riesgo **R-23**.
+
+### 🆕 Cuenta de comercio por establecimiento — *lo que la decisión #13 abrió* (8-ago-2026)
+
+**Por qué importa:** que el dinero vaya directo a la cuenta de cada proveedor significa que **cada local necesita su propia cuenta de comercio** en la pasarela. Un local que no pueda abrirla —requisitos bancarios, RUC, volumen mínimo— o que no quiera asumir su comisión **no puede vender por Aliflow**, aunque su ERP esté integrado y su menú publicado.
+**Necesitamos confirmar con los dos locales:** que pueden abrir cuenta, y preferiblemente en la misma pasarela.
+**Nota de Ingeniería:** es un requisito de admisión a la plataforma, no un detalle técnico. Debe entrar en la lista de verificación de alta de local. Riesgo **R-22**.
 
 ### 7. Modelo de cobro de Aliflow al proveedor
 
 **Por qué importa:** si se decide una comisión o suscripción, hace falta una tabla de facturación de Aliflow hacia el local (distinta de la del local hacia el estudiante).
 **Estado:** sin propuesta — es una decisión de modelo de negocio, no algo que Ingeniería deba proponer.
 **Necesitamos que Negocios decida:** ¿comisión por transacción, suscripción fija, u otro esquema?
-**Nota nueva (28-jul):** con la decisión #4, Aliflow ya lleva internamente cuánto le debe a cada local. Si el cobro fuera una comisión por transacción, se descontaría exactamente en ese punto — el modelo ya tiene el lugar donde encajarlo.
+**Nota del 28-jul — ya no vale.** Decía que, con la decisión #4, Aliflow llevaba internamente cuánto le debía a cada local y que una comisión por transacción se descontaría exactamente en ese punto. **La decisión #13 eliminó ese punto:** el dinero va de la pasarela a la cuenta del proveedor sin pasar por Aliflow, así que **no hay ningún momento en el que Aliflow tenga el dinero para retener una comisión.**
+
+**Nota nueva (8-ago) — esta decisión pasó de "no bloquea nada" a "quedó restringida".** Solo quedan tres formas de cobrarle al local, y ninguna es la obvia:
+
+| Esquema | Cómo funcionaría | Costo |
+|---|---|---|
+| **Suscripción fija** | Aliflow le factura al local un monto periódico, al margen de las transacciones | La más simple con este modelo. No requiere tocar el flujo de dinero |
+| **Comisión facturada a posteriori** | Aliflow calcula la comisión sobre las ventas del período y se la factura al local | Aliflow queda expuesto a que el local no pague. Cobranza, no retención |
+| **Comisión retenida por la pasarela** | La pasarela separa la comisión de Aliflow antes de depositar al local | Vuelve a exigir capacidad de *split* — justo lo que la decisión #13 nos permitió dejar de exigir |
+
+**Necesitamos que Negocios decida:** ¿comisión por transacción, suscripción fija, u otro esquema? Si la respuesta es comisión y se quiere retener automáticamente, hay que reabrir el requisito de *split* en la pasarela (RNF-E-10) **antes** de elegirla.
 
 ### 8. Corrección del Acta original (comprobante tributario) — ✅ **CERRADA el 30-jul-2026**
 
@@ -300,7 +348,21 @@ Negocios preguntó qué significa este punto. Explicación completa:
 
 **Detalle:** `Hallazgos-Ingenieria-API-Generica.md`, sección 5.1.
 
-### 9. Cartilla de fidelidad — requisito nuevo, ya modelado
+### 9. Cartilla de fidelidad — ✅ **CERRADA el 8-ago-2026**
+
+> **Negocios confirmó las cinco decisiones que Ingeniería había tomado**, y las cinco a favor de lo propuesto:
+>
+> 1. **"Cartilla" es tarjeta de sellos de fidelidad**, no paquete prepago de almuerzos. Cierra la ambigüedad más peligrosa que tenía el proyecto.
+> 2. **Tope de 1 sello por día.** Era la lectura B de "10 veces diarias": vuelve 10 días, no compra 10 veces hoy.
+> 3. **El sello se acredita al retirar**, no al comprar.
+> 4. **La cartilla es por local**, no global.
+> 5. **El premio se cobra como descuento del 100%** con una nota que identifica su origen ("Premio"), **no** como una venta de $0.
+>
+> **La quinta respuesta mejoró la propuesta de Ingeniería, y conviene decirlo.** Habíamos modelado el canje como orden de total $0. Negocios pidió descuento del 100% con motivo, que es mejor por dos razones que no habíamos visto: (a) conserva el precio original, así que el local puede ver **cuánto le costaron los premios** —una métrica que con $0 simplemente no existía—, y (b) le entrega al ERP un documento que entiende mucho mejor que una venta de importe cero. **De paso cierra el punto técnico que estaba abierto** sobre cómo representar el canje: ya no hay que elegir entre documento de cortesía y descuento, la respuesta es descuento. Solo queda verificar contra la documentación de cada ERP que admite descuento del 100% en línea de venta.
+>
+> **Lo único que sigue sin definirse son dos valores:** cuántos sellos requiere la cartilla y en qué consiste el premio. No bloquean nada — están modelados como configuración por local a propósito.
+
+Se conserva abajo el análisis original.
 
 **Lo que pidió Negocios:** una cartilla de fidelidad — por cada compra el estudiante acumula un sello, y al completarla gana un premio. **Cuántos sellos hacen falta y cuál es el premio siguen en definición.**
 
@@ -356,14 +418,23 @@ Estas no requieren debate, solo que Negocios las revise y apruebe o señale si a
 
 ## Próximo paso de Ingeniería
 
-*Actualizado el 30-jul-2026.*
+*Actualizado el 8-ago-2026.*
 
-**Empieza el modelo de base de datos.** Las decisiones estructurales están cerradas, y el inventario reservado (#10) le agrega la única tabla estructural que faltaba. Lo único que puede volver a moverlo es la **decisión #13** (custodia de fondos vs. saldo único): según cuál de las tres salidas elija Negocios, la billetera cambia. Todo lo demás del esquema se puede escribir ya.
+**Hecho el 8-ago:** se escribió la **[especificación de requerimientos](Especificacion-de-Requerimientos.md)** (entregable 01) — 56 requerimientos funcionales con criterios de aceptación y 52 no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Su sección 7 lista exactamente qué requerimientos quedan bloqueados por cada decisión abierta de este documento, y su sección 11 declara qué falta del entregable. **Dos huecos que aparecieron al escribirla:**
 
-**En paralelo, tres acciones que no son técnicas y que no dependen de Ingeniería:**
+- **Sprint backlogs y cronograma con diagramas *activity-on-arrow*** — son parte del entregable 01.g junto con los riesgos. `Gestion-de-Riesgos.md` cubre los riesgos; los sprint backlogs y el cronograma **no están empezados**.
+- **Acta de conformidad firmada por el representante del cliente** (entregable 01.e), que va como apéndice del documento. Es una dependencia externa: conviene pedirla ya, no al cierre.
+
+**Hecho el 8-ago:** Negocios cerró la **decisión #13** — la recarga es por establecimiento. **Con eso el modelo de base de datos queda desbloqueado por completo, billetera incluida.** Aplicado ya en la especificación de requerimientos y en el registro de riesgos; **falta propagarlo** al diagrama de clases (y su SVG), a los mockups y al prototipo web, donde el saldo todavía se muestra como único.
+
+**Sigue pendiente: el modelo de base de datos.** Las decisiones estructurales están cerradas, y el inventario reservado (#10) le agrega la única tabla estructural que faltaba. Lo único que puede volver a moverlo es la **decisión #13** (custodia de fondos vs. saldo único): según cuál de las tres salidas elija Negocios, la billetera cambia. Todo lo demás del esquema se puede escribir ya.
+
+**En paralelo, cinco acciones que no son técnicas y que no dependen de Ingeniería:**
 
 1. **Pedirle a Barú las credenciales de API de Contífico** (R-01). Sigue siendo el riesgo de mayor impacto, aunque el inventario reservado le quitó parte del poder de bloqueo: ahora afecta al registro contable de la venta, no a la capacidad de vender.
 2. **Resolver la decisión #13**, porque condiciona qué pasarelas son siquiera candidatas.
 3. **Agregar al acta el rol de Super-Admin**, que se acordó en la reunión del 30-jul pero no quedó escrito.
+4. **Confirmar qué significa "cartilla".** En este proyecto se modeló como tarjeta de sellos de fidelidad. Otro equipo del curso la entendió como paquete prepago de almuerzos. Son productos distintos con el mismo nombre: si Negocios dijo la palabra y cada equipo entendió una cosa, uno de los dos modeló el requisito equivocado. Afecta a todo el módulo de fidelidad (RF-32 a RF-37).
+5. **Pedir el acta de conformidad firmada** por el representante del cliente (entregable 01.e). Tiempo de respuesta de un tercero, igual que las credenciales — no conviene dejarlo para el cierre.
 
 **Lo que Ingeniería sí puede hacer sin esperar a nadie:** construir el `ContificoAdapter` contra la documentación y probarlo con un **ERP simulado**, para que el día que lleguen las credenciales solo haya que enchufarlo.

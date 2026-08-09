@@ -86,6 +86,16 @@ Se usa la **misma convención que los diagramas UML**: el color amarillo con la 
 
 ## Lo que el prototipo deja marcado como abierto
 
+> ⚠️ **Desactualizado desde el 8-ago-2026.** Negocios respondió tres cosas que estas pantallas todavía no reflejan, y una de ellas cambia el flujo principal:
+>
+> | Qué respondió Negocios | Qué hay que rehacer |
+> |---|---|
+> | **La recarga es por establecimiento** — no hay saldo único (decisión #13) | Estudiante 02 (el saldo está rotulado "único para todos los locales", que ya es falso), Estudiante 05 (recarga), y un paso nuevo de selección de establecimiento por defecto con indicador de contexto permanente |
+> | **El premio se cobra como descuento del 100%** con nota identificable, no como venta de $0 | Estudiante 08 (canje) y Estudiante 06 (historial): deben mostrar precio original + descuento "Premio", no `$0.00` |
+> | **Los cuatro roles están confirmados**, Super-Admin incluido | Quitar la marca amarilla de Super-Admin 02 |
+>
+> Las marcas amarillas de la tabla de abajo que correspondan a decisiones ya cerradas **siguen dibujadas en los PNG** porque las exportaciones no se han regenerado. Hasta que se rehagan, la tabla de abajo describe el estado del 30-jul, no el actual.
+
 Cada marca amarilla corresponde a una decisión abierta del documento de decisiones:
 
 | Dónde aparece | Decisión | Qué falta |
