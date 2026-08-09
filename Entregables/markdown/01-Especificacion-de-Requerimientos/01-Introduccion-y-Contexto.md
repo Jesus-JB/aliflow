@@ -1,3 +1,55 @@
+## 1. Introducción
+
+### 1.1 Propósito del documento
+
+Este documento especifica **qué debe hacer Aliflow y bajo qué restricciones**, de forma verificable. Es la fuente única de los requerimientos del sistema: todo lo demás del repositorio (casos de uso, diagramas UML, modelo de datos, prototipo) es la *realización* de lo que aquí se especifica, y debe poder trazarse hasta un requerimiento de esta lista.
+
+No repite el contenido de los otros documentos. Cuando un requerimiento necesita justificación de diseño, apunta a la sección exacta donde vive.
+
+### 1.2 Alcance del producto
+
+Aliflow es una plataforma **multi-tenant** que permite a un estudiante de la UEES recargar saldo, ver el menú de cualquier local de comida del campus, comprar su almuerzo con anticipación y retirarlo presentando un código. Cada local (Barú, Caramel Coffee, …) opera como un tenant independiente, con su propio menú, su propio personal y **su propio sistema ERP**, con el que Aliflow se integra a través de una API genérica.
+
+**Aliflow no es** un ERP, ni un emisor de facturas electrónicas, ni un sistema de punto de venta. No reemplaza la caja del local: convive con ella.
+
+### 1.3 Audiencia
+
+| Lector | Qué busca aquí |
+|---|---|
+| Cliente | Confirmar que lo especificado corresponde a lo acordado |
+| Equipo de desarrollo | Construir contra criterios de aceptación verificables |
+| Evaluación académica | Verificar el cumplimiento de los requisitos del proyecto |
+
+: Audiencia del documento
+
+### 1.4 Convenciones
+
+**Identificadores.** `RF-nn` requerimiento funcional · `RNF-P-nn` no funcional de producto · `RNF-O-nn` organizacional · `RNF-E-nn` externo · `RN-nn` regla de negocio transversal · `UCnn` caso de uso · `R-nn` riesgo.
+
+**Prioridad (MoSCoW).**
+
+| Nivel | Significado |
+|---|---|
+| **Debe** | Sin esto no hay producto. Entra en v1 obligatoriamente. |
+| **Debería** | Importante, pero el producto funciona sin ello. Entra en v1 si el cronograma lo permite. |
+| **Podría** | Deseable. Primer candidato a salir si hay presión de tiempo. |
+| **No en v1** | Explícitamente fuera de alcance, con la razón declarada. |
+
+: Niveles de prioridad MoSCoW
+
+### 1.5 Documentos de referencia
+
+| Documento | Qué aporta |
+|---|---|
+| `02-Modelamiento-Parte-Estatica/a-Casos-de-Uso.md` | Desarrollo narrativo de cada caso de uso citado en la columna *Origen* |
+| `02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md` | Entidades y atributos nombrados en los criterios de aceptación |
+| `04-Modelo-de-Base-de-Datos/` | Esquema de datos que materializa las reglas de negocio |
+| `06-Gestion-de-Riesgos.md` | Los riesgos del proyecto y su plan de acción |
+
+: Documentos de referencia
+
+---
+
 ## 2. Glosario y desambiguaciones
 
 Tres términos de este proyecto admiten más de un significado. El documento usa exclusivamente el que se fija en esta tabla.

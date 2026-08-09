@@ -36,7 +36,7 @@ En este orden. No leas el repo entero de golpe.
 |---|---|---|
 | 1 | `README.md` | Portada. Indexa todo y tiene el link al prototipo en vivo |
 | 2 | `Entregables/README.md` | **Qué se entrega, cuánto vale y qué falta.** Un PDF por punto del enunciado |
-| 3 | `Entregables/markdown/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` | **El documento más importante.** 56 requerimientos funcionales con criterios de aceptación + 52 no funcionales. Si vas a construir algo, se construye contra esto |
+| 3 | `Entregables/markdown/01-Especificacion-de-Requerimientos/02-Requerimientos-Funcionales.md` | **El documento más importante.** 57 requerimientos funcionales con criterios de aceptación + 53 no funcionales. Si vas a construir algo, se construye contra esto |
 | 4 | `Decisiones-Pendientes-Negocios.md` | **La fuente de verdad del estado.** Qué está cerrado, qué sigue abierto, y por qué. Si dos documentos se contradicen, este manda |
 | 5 | `Entregables/markdown/02-Modelamiento-Parte-Estatica/a-Casos-de-Uso.md` | Los 20 casos de uso desarrollados |
 | 6 | `Entregables/markdown/02-Modelamiento-Parte-Estatica/b-Diagrama-de-Clases.md` | El modelo de dominio y por qué está así |
@@ -227,7 +227,7 @@ Cada push a `main` que toque `Entregables/mockups/prototipo-web/` recompila y pu
 
 **Los sprint backlogs con el cronograma en activity-on-arrow.** Son los últimos 3 puntos que dependen solo de nosotros —los otros 3 esperan la lista de integrantes— y es lo único del proyecto que no está ni empezado.
 
-Los insumos ya están: los 56 requerimientos funcionales están priorizados con MoSCoW y agrupados en 10 módulos, así que el backlog sale de tomar los módulos como épicas y los `RF-nn` como ítems. El archivo `07-Sprint-Backlogs-y-Cronograma.md` trae una propuesta de seis sprints que respeta las dependencias reales del sistema.
+Los insumos ya están: los 57 requerimientos funcionales están priorizados con MoSCoW y agrupados en 10 módulos, así que el backlog sale de tomar los módulos como épicas y los `RF-nn` como ítems. El archivo `07-Sprint-Backlogs-y-Cronograma.md` trae una propuesta de seis sprints que respeta las dependencias reales del sistema.
 
 ---
 

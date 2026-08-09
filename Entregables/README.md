@@ -29,8 +29,8 @@ Los mismos contenidos, separados por tema, para consultar un punto concreto sin 
 | Documento | Contenido |
 |---|---|
 | [Estructura del documento](01a-Estructura-del-Documento.pdf) | Portada, integrantes, convenciones e índices |
-| [Requerimientos funcionales](01b-Requerimientos-Funcionales.pdf) | 56 requerimientos con sus criterios de aceptación |
-| [Requerimientos no funcionales](01c-Requerimientos-No-Funcionales.pdf) | 52 requerimientos clasificados según Sommerville, con criterio de validación |
+| [Requerimientos funcionales](01b-Requerimientos-Funcionales.pdf) | 57 requerimientos con sus criterios de aceptación |
+| [Requerimientos no funcionales](01c-Requerimientos-No-Funcionales.pdf) | 53 requerimientos clasificados según Sommerville, con criterio de validación |
 | [Contenido complementario](01h-Contenido-Complementario.pdf) | Introducción, glosario, actores, reglas de negocio, alcance excluido y trazabilidad |
 | [Evidencias de levantamiento](01d-Evidencias-de-Levantamiento.pdf) | Técnicas de elicitación empleadas y sus resultados |
 | [Gestión de riesgos](01g-Gestion-de-Riesgos.pdf) | Matriz de riesgos y plan de acción |

@@ -1,3 +1,30 @@
+## 7. Fuera del alcance de la versión 1
+
+Declarado explícitamente, con su razón. Lo que no está en este documento **no forma parte del sistema**.
+
+| Fuera de alcance | Razón |
+|---|---|
+| **Modo offline del Operador** | La validación de códigos requiere conexión. Existe un procedimiento manual de contingencia (RNF-O-10). |
+| **Aliflow como emisor de facturas electrónicas** | RNF-E-01. Cambiaría el modelo de negocio, no solo el software. |
+| **Aplicaciones móviles nativas** | Una sola aplicación web responsiva cubre los cuatro roles (RNF-P-23). |
+| **Lector de códigos QR o de barras** | El código es numérico y se dicta de viva voz. No hay escáner en ninguna parte del sistema. |
+| **Programa de fidelidad con puntos, niveles o campañas por temporada** | El alcance es una cartilla simple: N sellos por local dan un premio (RNF-O-14). |
+| **Integración con más de dos locales en el piloto** | El modelo admite N establecimientos; el piloto integra dos (RNF-O-12). |
+| **Pedidos programados para días futuros** | No solicitado. El código vale solo el día de la compra (RN-03), lo que presupone compra y consumo el mismo día. |
+| **Entrega a domicilio o a un punto distinto del local** | No solicitado. La entrega es presencial en el punto de entrega del local. |
+| **Reservas sin pago** | La orden solo existe después de descontar el saldo (RF-19). |
+| **Recuperación de contraseña autoservicio para roles operativos** | Lo resuelve el Proveedor de cada local (RF-04) o el Super-Admin (RF-45). |
+
+: Alcance excluido de la versión 1
+| **Saldo único gastable en cualquier local** | El saldo pertenece al establecimiento y solo se gasta ahí (RN-13). |
+| **Transferir saldo de un establecimiento a otro** | Exigiría que Aliflow mueva dinero entre cuentas de terceros, algo que el sistema no hace (RN-14). Ver RF-12b. |
+| **Retiro del saldo en efectivo** | Mismo motivo: Aliflow no tiene el dinero, no puede devolverlo. |
+| **Reembolsos y devoluciones** | Fuera del alcance de la versión 1. El modelo de datos los admite como movimiento compensatorio cuando se definan. |
+
+---
+
+---
+
 ## 8. Trazabilidad
 
 ### 8.1 Requerimientos ↔ casos de uso ↔ pantalla del prototipo

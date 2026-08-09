@@ -420,7 +420,7 @@ Estas no requieren debate, solo que Negocios las revise y apruebe o señale si a
 
 *Actualizado el 9-ago-2026.*
 
-**Hecho el 8-ago:** se escribió la **[especificación de requerimientos](Entregables/markdown/01-Especificacion-de-Requerimientos/)** (entregable 01) — 56 requerimientos funcionales con criterios de aceptación y 52 no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Su sección 7 lista exactamente qué requerimientos quedan bloqueados por cada decisión abierta de este documento, y su sección 11 declara qué falta del entregable. **Dos huecos que aparecieron al escribirla:**
+**Hecho el 8-ago:** se escribió la **[especificación de requerimientos](Entregables/markdown/01-Especificacion-de-Requerimientos/)** (entregable 01) — 57 requerimientos funcionales con criterios de aceptación y 53 no funcionales clasificados según Sommerville, cada uno con su criterio de validación. Su sección 7 lista exactamente qué requerimientos quedan bloqueados por cada decisión abierta de este documento, y su sección 11 declara qué falta del entregable. **Dos huecos que aparecieron al escribirla:**
 
 - **Sprint backlogs y cronograma con diagramas *activity-on-arrow*** — son parte del entregable 01.g junto con los riesgos. `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos; los sprint backlogs y el cronograma **no están empezados**.
 - **Acta de conformidad firmada por el representante del cliente** (entregable 01.e), que va como apéndice del documento. Es una dependencia externa: conviene pedirla ya, no al cierre.

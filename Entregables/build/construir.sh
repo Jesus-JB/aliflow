@@ -23,8 +23,25 @@ QUE="${1:-todo}"
 mkdir -p "$OFICIAL"
 
 # pandoc con los ajustes comunes. $1 = salida, resto = fuentes en orden.
+# Una fuente vacía o casi vacía produce un PDF en blanco sin que nada falle.
+# Ya pasó una vez: un reemplazo masivo vació un archivo y el PDF salió con una
+# sola página. Cortar acá es más barato que descubrirlo al abrir el entregable.
+verificar_fuentes() {
+  local malas=0
+  for f in "$@"; do
+    [ -f "$f" ] || { echo "  ERROR: no existe '$f'"; malas=1; continue; }
+    local l; l=$(grep -cve '^[[:space:]]*$' "$f")
+    if [ "$l" -lt 5 ]; then
+      echo "  ERROR: '$f' tiene solo $l líneas con contenido — ¿se vació por accidente?"
+      malas=1
+    fi
+  done
+  [ "$malas" -eq 0 ] || { echo "Compilación abortada."; exit 1; }
+}
+
 compilar() {
   local salida="$1"; shift
+  verificar_fuentes "$@"
   pandoc "$@" -o "$salida" \
     --pdf-engine=typst \
     --include-in-header="$ESTILO" \
@@ -110,7 +127,6 @@ cat <<'NOTA'
 Recordatorios:
   · Completar la lista de integrantes en
     markdown/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md
-  · Índice de tablas e índice de figuras (entregable 01.a): --toc genera la
-    tabla de contenido, pero los otros dos índices exigen rotular cada tabla
-    y figura ("Tabla 1: …", "Figura 1: …"). Hoy no están rotuladas.
+  · Toda tabla nueva necesita su leyenda (una línea ": Título" debajo), o
+    aparecerá en blanco en el índice de tablas.
 NOTA

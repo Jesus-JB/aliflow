@@ -1,9 +1,73 @@
+## 5. Requerimientos funcionales
+
+### 5.1 Módulo A — Autenticación, cuentas y control de acceso
+
+#### RF-01 · Iniciar sesión con cuenta institucional
+**Prioridad:** Debe · **Origen:** UC1, UC1a, `est-1`
+
+El sistema debe autenticar al Estudiante exclusivamente mediante Google OAuth 2.0 / OpenID Connect, aceptando únicamente correos del dominio institucional autorizado.
+
+**Criterios de aceptación**
+1. Con un correo del dominio institucional y consentimiento otorgado, se crea una sesión válida y el estudiante llega al menú del día.
+2. Con un correo de un dominio no autorizado, el acceso se rechaza con un mensaje explícito y **no** se crea ningún perfil.
+3. La validación del dominio ocurre en el backend. Manipular la respuesta del cliente no otorga acceso.
+4. El sistema no almacena en ningún momento la contraseña de la cuenta de Google.
+
+#### RF-02 · Crear perfil y tarjeta virtual en el primer ingreso
+**Prioridad:** Debe · **Origen:** UC1b
+
+En el primer ingreso exitoso de un estudiante, el sistema debe crear su perfil y su tarjeta virtual con saldo inicial en cero, antes de darle acceso a cualquier otra funcionalidad.
+
+**Criterios de aceptación**
+1. Tras el primer login, existe exactamente un perfil y una tarjeta virtual con saldo `0.00`.
+2. En los ingresos siguientes no se crean duplicados: el sistema reutiliza el perfil existente.
+
+#### RF-03 · Iniciar sesión operativa con credenciales de rol
+**Prioridad:** Debe · **Origen:** UC6, `prov-1`, `op-1`
+
+Proveedor, Operador y Super-Admin deben autenticarse con credenciales propias del rol —no con OAuth institucional— y ser dirigidos a la interfaz que les corresponde.
+
+**Criterios de aceptación**
+1. Cada rol aterriza en su propia interfaz: panel de administración (Proveedor), interfaz simplificada de validación (Operador), consola de plataforma (Super-Admin).
+2. Las contraseñas se almacenan con una función de derivación de clave con sal, nunca en claro ni con un hash simple.
+3. Un Operador que intenta abrir una ruta del panel de Proveedor recibe un rechazo del backend, no solo la ausencia del enlace en la interfaz.
+
+#### RF-04 · Gestionar las cuentas del propio local
+**Prioridad:** Debería · **Origen:** UC12
+
+El Proveedor debe poder crear, revocar y restablecer credenciales de cuentas de **su propio local**, eligiendo el rol Proveedor u Operador, y asociando a los Operadores a un punto de entrega.
+
+**Criterios de aceptación**
+1. Un local puede tener varias cuentas de Proveedor y varias de Operador simultáneamente activas.
+2. Un Proveedor no puede crear, ver ni modificar cuentas de otro local (RN-07), ni crear una cuenta de Super-Admin.
+3. Al revocar una cuenta, sus sesiones activas dejan de ser válidas en la siguiente petición al backend.
+
+#### RF-05 · Cerrar sesión y expirar sesiones inactivas
+**Prioridad:** Debería
+
+El sistema debe permitir cerrar sesión explícitamente y debe expirar automáticamente las sesiones inactivas.
+
+**Criterios de aceptación**
+1. Tras cerrar sesión, el token deja de ser aceptado por el backend.
+2. Una sesión de Operador sin actividad expira en un plazo configurable.
+
+#### RF-06 · Restringir cada rol a su ámbito de datos
+**Prioridad:** Debe · **Origen:** RN-07, UC19
+
+Toda consulta y toda escritura debe filtrarse por el local del usuario autenticado. Solo el Super-Admin puede acceder a datos de más de un local.
+
+**Criterios de aceptación**
+1. Una petición que referencia el identificador de un recurso de otro local devuelve "no encontrado", sin revelar que el recurso existe.
+2. Las consultas del Super-Admin que cruzan locales quedan registradas en auditoría (RN-10).
+
+---
+
 ### 5.2 Módulo B — Billetera y recarga de saldo
 
 > El saldo pertenece al establecimiento: se recarga para un local concreto y solo puede gastarse ahí. El dinero de cada recarga se dirige a la cuenta de ese proveedor, sin que Aliflow lo reciba ni lo custodie en ningún momento.
 
 #### RF-07 · Consultar el saldo por establecimiento
-**Prioridad:** Debe · **Origen:** UC1b
+**Prioridad:** Debe · **Origen:** UC1b, RN-13
 
 El estudiante debe poder consultar su saldo **de cada establecimiento en el que haya recargado**. El saldo pertenece al establecimiento, no a la cuenta del estudiante.
 
@@ -36,7 +100,7 @@ Cada recarga debe registrar como mínimo: valor, fecha y hora, número de operac
 3. El histórico permite conciliar, por establecimiento, lo recargado contra lo que su cuenta bancaria recibió.
 
 #### RF-10 · Emitir comprobante interno de recarga
-**Prioridad:** Debe · **Origen:** UC2a
+**Prioridad:** Debe · **Origen:** UC2a, RN-09
 
 Cada recarga aprobada debe generar un comprobante interno **marcado explícitamente como sin validez tributaria**.
 
@@ -45,7 +109,7 @@ Cada recarga aprobada debe generar un comprobante interno **marcado explícitame
 2. No se invoca ningún servicio de facturación electrónica en el flujo de recarga.
 
 #### RF-11 · Guardar métodos de pago tokenizados
-**Prioridad:** Podría
+**Prioridad:** Podría · **Origen:** RN-06
 
 El estudiante debería poder guardar un método de pago para recargas futuras, almacenando **solo** tipo de tarjeta, últimos cuatro dígitos y el token de la pasarela.
 
@@ -54,7 +118,7 @@ El estudiante debería poder guardar un método de pago para recargas futuras, a
 2. Si la pasarela elegida no soporta tokenización, este requerimiento se retira del alcance (no se implementa una alternativa propia).
 
 #### RF-12 · Impedir el gasto cruzado entre establecimientos
-**Prioridad:** Debe
+**Prioridad:** Debe · **Origen:** RN-13
 
 Una compra solo puede consumir el saldo del establecimiento donde se realiza. El sistema debe hacer imposible que el saldo de un local pague una compra en otro.
 
@@ -94,7 +158,7 @@ El estudiante debe poder consultar el menú del día de cada local, con plato, p
 4. El menú se puede consultar aunque el ERP del local esté caído. *(Consecuencia directa del inventario reservado.)*
 
 #### RF-15 · Elegir establecimiento y mantener el contexto visible
-**Prioridad:** Debe · **Origen:** Pantalla Estudiante 02
+**Prioridad:** Debe · **Origen:** Pantalla Estudiante 02, RN-13
 
 El estudiante debe elegir un establecimiento **por defecto** antes de poder operar, y debe poder cambiarlo en cualquier momento. La aplicación debe indicar de forma permanente en qué establecimiento está, porque de eso dependen el menú, el saldo y la cartilla.
 
@@ -157,7 +221,7 @@ La validación de saldo y cupo debe repetirse dentro de la transacción de confi
 2. El tiempo transcurrido en la pantalla no afecta la corrección del resultado.
 
 #### RF-21 · Impedir la sobreventa bajo concurrencia
-**Prioridad:** Debe · **Origen:** UC4 (excepción crítica)
+**Prioridad:** Debe · **Origen:** UC4 (excepción crítica), RN-11
 
 Dos o más compras simultáneas de la última unidad del cupo deben resultar en exactamente una compra confirmada.
 
@@ -167,7 +231,7 @@ Dos o más compras simultáneas de la última unidad del cupo deben resultar en 
 3. Existe una prueba automatizada de concurrencia que ejercita este escenario.
 
 #### RF-22 · Emitir comprobante interno de compra
-**Prioridad:** Debe · **Origen:** UC4b
+**Prioridad:** Debe · **Origen:** UC4b, RN-09
 
 Cada compra confirmada debe generar un comprobante interno marcado como sin validez tributaria.
 
@@ -217,7 +281,7 @@ Al confirmar, el sistema debe cambiar la orden a `ENTREGADO`, invalidar el códi
 2. Quedan registrados el Operador que confirmó y el instante exacto (RN-10).
 
 #### RF-27 · Impedir la doble redención del código
-**Prioridad:** Debe
+**Prioridad:** Debe · **Origen:** RN-04
 
 Dos intentos de validar el mismo código —incluso desde puntos de entrega distintos y casi simultáneos— deben resultar en exactamente una entrega.
 
@@ -235,7 +299,7 @@ El sistema debe distinguir y comunicar de forma diferenciada: código **inexiste
 2. Un código de una compra de un día anterior se reporta como **vencido**, no como inexistente.
 
 #### RF-29 · Expirar automáticamente las órdenes no retiradas
-**Prioridad:** Debe
+**Prioridad:** Debe · **Origen:** RN-03
 
 Al terminar el día de la compra, toda orden en `COMPRADO` debe pasar a `EXPIRADO` y su código a `VENCIDO`.
 
@@ -281,7 +345,7 @@ El Proveedor debe poder activar o desactivar el programa de fidelidad de su loca
 4. El tope de sellos por día viene con valor **1** por defecto (RN-08).
 
 #### RF-33 · Acreditar el sello al confirmar la entrega
-**Prioridad:** Debería · **Origen:** UC5d
+**Prioridad:** Debería · **Origen:** UC5d, RN-08
 
 Al confirmarse una entrega en un local con programa activo, el sistema debe acreditar un sello a la cartilla vigente del estudiante en ese local.
 
@@ -302,7 +366,7 @@ El estudiante debe poder ver **una cartilla por local** en el que haya comprado,
 3. La cartilla mostrada corresponde al establecimiento activo (RF-15 criterio 3).
 
 #### RF-35 · Canjear el premio como descuento del 100%
-**Prioridad:** Podría · **Origen:** UC15
+**Prioridad:** Podría · **Origen:** UC15, RN-12
 
 Con una cartilla completa, el estudiante debe poder canjear el premio. El canje genera una **orden real con el precio normal del plato y un descuento del 100% identificado como "Premio"**, de modo que el total a pagar sea $0 sin perder el rastro de cuánto costó.
 
@@ -364,7 +428,7 @@ El Proveedor debe poder ver la última comunicación exitosa con su ERP y los ev
 2. Un evento fallido es identificable junto con la orden a la que corresponde, para permitir conciliación manual.
 
 #### RF-41 · Consultar el detalle de una venta para re-emitir la factura
-**Prioridad:** Debe · **Origen:** UC11, `prov-6`
+**Prioridad:** Debe · **Origen:** UC11, `prov-6`, RN-09
 
 El Proveedor debe poder consultar y descargar el detalle de una venta (monto, platos, estudiante, fecha y hora) para emitir su factura fiscal en su propio ERP.
 
@@ -499,7 +563,7 @@ Para un local cuyo ERP no expone API —el caso de Alpwin—, el sistema deberí
 ### 5.10 Módulo J — Auditoría
 
 #### RF-54 · Registrar en auditoría las operaciones sensibles
-**Prioridad:** Debe
+**Prioridad:** Debe · **Origen:** RN-10
 
 El sistema debe registrar quién ejecutó cada operación que mueve dinero o cambia el estado de una orden: confirmación de compra, confirmación de entrega, invalidación de código, acreditación al local, y accesos transversales del Super-Admin.
 

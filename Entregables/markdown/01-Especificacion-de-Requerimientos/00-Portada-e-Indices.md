@@ -37,8 +37,8 @@ Facultad de Ingenierías · Computación
 | Sección | Qué contiene |
 |---|---|
 | 1 | Introducción, alcance, glosario, actores y reglas de negocio transversales |
-| 2 | **Requerimientos funcionales** — 56 requerimientos con criterios de aceptación |
-| 3 | **Requerimientos no funcionales** — 52 clasificados según Sommerville, con criterio de validación |
+| 2 | **Requerimientos funcionales** — 57 requerimientos con criterios de aceptación |
+| 3 | **Requerimientos no funcionales** — 53 clasificados según Sommerville, con criterio de validación |
 | 4 | Alcance excluido y matrices de trazabilidad |
 | 5 | Evidencias de las técnicas de levantamiento empleadas |
 | 6 | Gestión de riesgos |
