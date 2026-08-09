@@ -126,7 +126,7 @@ Así el local puede ver cuánto le costaron los premios (RF-38), dato que con un
 `pruebas-restricciones.sql` no prueba la aplicación — prueba que **la base impide lo que dice impedir**. Cada bloque de la primera parte debe fallar; si alguno pasa, esa regla no está protegida.
 
 | # | Se intentó | Resultado |
-|---|---|---|
+|---|------------------------------------------|---------------------------------------------------|
 | 1 | Meter en una orden un plato de otro local | ✅ Rechazado — FK compuesta |
 | 2 | Asignarle un local al Super-Admin | ✅ Rechazado — `CHECK usuario_proveedor_rol_valido` |
 | 3 | Consumir más cupo del asignado | ✅ Rechazado — `CHECK cupo_no_sobrevendido` |
@@ -155,7 +155,7 @@ psql -d aliflow_test -f pruebas-restricciones.sql
 El esquema está en **tercera forma normal**, con dos desnormalizaciones deliberadas:
 
 | Dónde | Qué se repite | Por qué |
-|---|---|---|
+|-------------------------------------------------------|-----------------------------------|---------------------------------------------------|
 | `codigo_retiro.proveedor_id` | Se deduce vía `orden` | Un índice parcial único necesita la columna en su propia tabla. Sin esto, la unicidad acotada del código de 6 dígitos no se puede expresar |
 | `orden_detalle.proveedor_id` | Se deduce vía `orden` y vía `plato` | Es justamente lo que permite la FK compuesta que impide mezclar locales. La redundancia **es** el mecanismo |
 | `saldo_establecimiento.monto_actual` | Es la suma de los movimientos | Evita agregar todo el libro en cada consulta de menú. Se declara como caché y hay consulta de conciliación |

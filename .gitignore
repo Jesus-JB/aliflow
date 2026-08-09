@@ -24,6 +24,10 @@ dist/
 # Salida temporal de pandoc
 *.tmp.md
 
+# PDF compilados dentro de las fuentes: los PDF viven en Entregables/ y en
+# "Documento Oficial/", nunca en markdown/. Un PDF acá es una prueba local.
+Entregables/markdown/**/*.pdf
+
 # ---------------------------------------------------------------------------
 # Criterio de qué se publica en el repo (definido el 9-ago-2026)
 #
