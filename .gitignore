@@ -17,7 +17,35 @@ venv/
 # Claude Code (config local del proyecto, no compartida)
 .claude/settings.local.json
 
-# Documentos fuente / exportados que no se publican en el repo
+# Node
+node_modules/
+dist/
+
+# ---------------------------------------------------------------------------
+# Criterio de qué se publica en el repo (definido el 9-ago-2026)
+#
+#  SÍ se publica:
+#   - Las fuentes en Markdown, que son la verdad del proyecto.
+#   - Las actas de reunión con el cliente, completas: son la evidencia del
+#     levantamiento de requerimientos (entregable 01.d).
+#   - El PDF compilado de la especificación de requerimientos, porque el
+#     entregable 01 se entrega en ese formato. Se regenera con `estilo.typ`
+#     (ver README) y hay que recompilarlo cada vez que cambie su .md.
+#
+#  NO se publica:
+#   - PDF derivados de un .md que ya está en el repo: duplican contenido y
+#     se desincronizan. La única excepción es la de arriba.
+#   - Documentos de terceros que no son trabajo de este equipo.
+# ---------------------------------------------------------------------------
+
+# PDF derivados de un .md que ya vive en el repo
 Hallazgos-Ingenieria-API-Generica_1.pdf
 Hallazgos-Ingenieria-API-Generica.pdf
-Acta Reunión Aliflow 3.pdf
+
+# Documento de otro equipo del curso — no es trabajo nuestro y se publicaba sin
+# que su autor lo supiera. Se cita en Estado-del-Proyecto.md solo como
+# advertencia (describe otro producto); la advertencia no necesita el archivo.
+Requerimientos del Proyecto Aliflow.pdf
+
+# Logo duplicado que llegaba por WhatsApp — la copia buena vive en mockups/marca/
+WhatsApp Image *.jpeg

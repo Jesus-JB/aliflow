@@ -75,6 +75,21 @@ Por dónde empezar, en este orden:
 
 ---
 
+## 📄 Regenerar el PDF de la especificación
+
+El entregable 01 se entrega en PDF. **Hay que recompilarlo cada vez que cambie `Especificacion-de-Requerimientos.md`**, o el PDF publicado deja de coincidir con su fuente.
+
+```bash
+pandoc Especificacion-de-Requerimientos.md \
+  -o Especificacion-de-Requerimientos.pdf \
+  --pdf-engine=typst --include-in-header=estilo.typ \
+  --toc --toc-depth=3
+```
+
+Requiere `pandoc` y `typst`. Los ajustes de página y de tablas viven en `estilo.typ`.
+
+---
+
 ## 🔧 Correr el prototipo localmente
 
 Solo hace falta si vas a modificarlo; para verlo basta el enlace de arriba.
