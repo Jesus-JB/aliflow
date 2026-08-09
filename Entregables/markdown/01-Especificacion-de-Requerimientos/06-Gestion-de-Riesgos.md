@@ -29,6 +29,8 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 | R-22 | **Un local no puede o no quiere abrir cuenta de comercio** en la pasarela elegida — sin ella no puede recibir recargas ni vender por Aliflow | Organizacional | Media | **Grave** | Mitigar |
 | R-23 | **Saldo huérfano** — el estudiante se gradúa o el local sale de la plataforma y queda saldo sin usar que Aliflow no puede devolver porque nunca tuvo el dinero | Organizacional | Media | Moderado | Transferir |
 
+: Matriz de riesgos del proyecto
+
 ## Descripción y plan de acción por riesgo
 
 ### R-01 — No contar con acceso real a la API de Contífico (riesgo dominante)
@@ -92,13 +94,15 @@ Escalas usadas: **Probabilidad** (Muy Baja / Baja / Media / Alta / Muy Alta), **
 
 ## Riesgos identificados en la revisión del flujo funcional
 
-Estos se detectaron en `../../Hallazgos-Ingenieria-API-Generica.md` sección 5.3 y conviene incorporarlos formalmente:
+Detectados durante la revisión del flujo funcional del sistema:
 
 | ID | Nombre | Tipo | Probabilidad | Impacto | Estrategia |
 |---|---|---|---|---|---|
 | R-12 | Operador sin modo offline en v1 (decisión de negocio ya confirmada) — un fallo de conectividad en el punto de entrega bloquea toda entrega de almuerzos | Tecnológico | Media | Grave | Aceptar (con plan de contingencia manual documentado) |
 | R-13 | Órdenes "Comprado" sin estado de expiración/no-show — no hay regla definida para una orden nunca retirada | Requerimientos | Media | Moderado | Mitigar (definir el estado y su regla de negocio antes de construir el diagrama de estados) |
 | R-14 | Doble redención del código de retiro — dos Operadores podrían validar el mismo código casi simultáneamente | Tecnológico | Baja | Grave | Mitigar |
+
+: Riesgos identificados en la revisión del flujo funcional
 
 ### R-14 — Doble redención del código de retiro
 **Descripción:** si dos Operadores (posiblemente en distintos puntos de entrega del mismo local) intentan validar el mismo `CodigoRetiro` casi al mismo tiempo, sin un mecanismo atómico ambos podrían marcar la entrega como exitosa, resultando en dos entregas físicas de un mismo almuerzo.

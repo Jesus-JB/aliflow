@@ -24,6 +24,8 @@ El representante del cliente declara haber revisado la especificación de requer
 | 7 | Al estudiante **no se le muestra la cantidad de unidades disponibles**, solo si el plato está disponible o agotado | RN-15 |
 | 8 | El alcance excluido de la versión 1 es el declarado en la sección de alcance | §8 |
 
+: Alcance sobre el que se declara conformidad
+
 ### 3. Puntos que quedan expresamente abiertos
 
 El cliente reconoce que las siguientes decisiones **siguen sin resolverse** y que su definición posterior puede requerir control de cambios y reestimación:

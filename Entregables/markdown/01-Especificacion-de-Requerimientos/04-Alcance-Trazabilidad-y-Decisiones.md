@@ -40,6 +40,8 @@
 | RF-53 | UC7 | — | R-11 |
 | RF-54, RF-55, RF-56 | — | *(transversal)* | R-09, R-15 |
 
+: Trazabilidad de requerimientos a casos de uso y pantallas
+
 ### 8.2 Riesgos ↔ requerimientos que los mitigan
 
 Solo los riesgos que se mitigan **con requerimientos del sistema**. El registro completo está en `06-Gestion-de-Riesgos.md`.
@@ -64,5 +66,7 @@ Solo los riesgos que se mitigan **con requerimientos del sistema**. El registro 
 | R-21 — Saldo fragmentado entre establecimientos | RF-07 (criterio 2), RF-08 (criterio 6), RF-12 (criterio 3), RF-15 |
 | R-22 — Local sin cuenta de comercio en la pasarela | RNF-E-10, RNF-E-11b, RNF-O-06 |
 | R-23 — Saldo huérfano | RNF-E-05b *(se transfiere por contrato — ver sección 7)* |
+
+: Trazabilidad de riesgos a requerimientos
 
 ---

@@ -13,6 +13,8 @@ Tres términos de este proyecto admiten más de un significado. El documento usa
 | **Comprobante** | Constancia **interna sin validez tributaria** que emite Aliflow. | Con la **factura**, que emite el ERP del local y sí tiene validez tributaria. Ver RN-09. |
 | **Operador** | Rol que valida el código y marca la entrega física. | Con "cajero", denominación informal del mismo rol. |
 
+: Glosario de términos
+
 ---
 
 ## 3. Actores del sistema
@@ -26,6 +28,8 @@ Tres términos de este proyecto admiten más de un significado. El documento usa
 | **Proveedor de Identidad (Google)** | Secundario / externo | — | Autentica al Estudiante |
 | **ERP del local** (Contífico, Alpwin, Odoo, …) | Secundario / externo | Credenciales por local | Uno por local; heterogéneos |
 | **Pasarela de pagos** | Secundario / externo | — | Procesa las recargas |
+
+: Actores del sistema
 
 > El sistema tiene **cuatro roles primarios**: Estudiante, Operador, Proveedor y Super-Admin de Aliflow. Los tres primeros operan dentro de un establecimiento; el Super-Admin es el único con visibilidad sobre todos.
 
@@ -54,5 +58,7 @@ Restricciones que aplican a varios requerimientos a la vez. Se enuncian una sola
 | **RN-13** | **El saldo pertenece al establecimiento, no al estudiante.** La recarga es por establecimiento y solo puede gastarse ahí. No hay saldo único ni transferencias entre locales. |
 | **RN-14** | **Aliflow no recibe ni custodia fondos en ningún punto.** El dinero de la recarga va de la pasarela a la cuenta del proveedor destino. Aliflow registra el movimiento, no lo posee. |
 | **RN-15** | **Al estudiante nunca se le muestra la cantidad de unidades disponibles**, solo si el plato está *Disponible* o *Agotado*. La cifra del cupo es información interna del local y sí se le muestra al Proveedor. |
+
+: Reglas de negocio transversales
 
 ---

@@ -12,6 +12,8 @@
 | **Análisis de riesgos** | Matriz de 23 riesgos con probabilidad, impacto y estrategia. Varios requerimientos de este documento se derivan de un riesgo identificado. | `06-Gestion-de-Riesgos.md` |
 | **Modelado UML como herramienta de descubrimiento** | Diagramar reveló vacíos que la conversación no había expuesto —orden multi-local no prevenida, ausencia de estado para orden no retirada, ausencia de auditoría—, corregidos como requerimientos. | `../../uml/` |
 
+: Técnicas de levantamiento empleadas
+
 ### 9.2 Resultados del levantamiento
 
 El uso combinado de estas técnicas produjo tres resultados que el solo relevamiento por entrevista no habría dado:

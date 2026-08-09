@@ -21,6 +21,8 @@ Facultad de Ingenierías · Computación
 | 3 | |
 | 4 | |
 
+: Integrantes del equipo
+
 **Repositorio público con las evidencias:** https://github.com/Jesus-JB/aliflow
 **Prototipo de alta fidelidad:** https://jesus-jb.github.io/aliflow/
 
@@ -44,6 +46,8 @@ Facultad de Ingenierías · Computación
 | Apéndice A | Prototipo del sistema y flujo de ventanas |
 | Apéndice B | Acta de conformidad firmada por el cliente |
 
+: Organización del documento
+
 Cada sección puede leerse por separado.
 
 ---
@@ -56,7 +60,15 @@ Cada sección puede leerse por separado.
 
 ---
 
-## Índice de tablas y de figuras
+## Índice de tablas
 
-Se generan automáticamente al compilar el documento.
+```{=typst}
+#outline(title: none, target: figure.where(kind: table))
+```
+
+## Índice de figuras
+
+```{=typst}
+#outline(title: none, target: figure.where(kind: image))
+```
 

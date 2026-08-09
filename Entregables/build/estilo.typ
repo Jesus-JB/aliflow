@@ -1,5 +1,10 @@
 #set page(paper: "a4", margin: (x: 1.5cm, y: 2cm))
 #set par(leading: 0.65em)
+#set text(lang: "es")
+
+// Rótulos en español para el índice de tablas y de figuras
+#set figure(supplement: [Figura])
+#show figure.where(kind: table): set figure(supplement: [Tabla])
 
 // Permitir saltos de página en las tablas
 #show figure.where(kind: table): set block(breakable: true)

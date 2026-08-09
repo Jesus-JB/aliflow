@@ -17,6 +17,8 @@ El orden responde a las dependencias reales entre módulos: ninguno puede constr
 | 5 | Módulo I — integración con ERP, contra el ERP simulado | Sprint 3 |
 | 6 | Módulo F — cartilla de fidelidad · Módulo H — Super-Admin | Sprints 4 y 5 |
 
+: Organización de los sprints
+
 **Por qué ese orden.** Todo el sistema necesita usuarios autenticados y tablas donde escribir, así que el módulo A y el esquema abren el trabajo. Sin menú publicado y cupo asignado no hay nada que comprar, de modo que el catálogo precede a la compra. El retiro cierra el ciclo del estudiante y solo tiene sentido con órdenes existentes. La integración con el ERP se construye contra el simulador (RF-52), lo que la independiza de la disponibilidad de credenciales externas. Fidelidad y Super-Admin quedan al final por ser los de menor prioridad MoSCoW.
 
 ---
@@ -33,6 +35,8 @@ Cada ítem del backlog se registra con:
 | Prioridad | MoSCoW, heredada del requerimiento |
 | Responsable | Integrante asignado |
 | Estimación | En puntos de historia |
+
+: Campos de cada ítem del backlog
 
 Los requerimientos no funcionales transversales —seguridad, rendimiento, auditoría— no forman un sprint propio: se incorporan como criterios de aceptación de los ítems de cada sprint, porque verificarlos al final impide corregirlos a tiempo.
 
@@ -57,3 +61,5 @@ Dos actividades condicionan esa ruta y no dependen del equipo:
 | Criterios de aceptación | Ídem, ficha de cada requerimiento |
 | Holguras y planes de contingencia | `06-Gestion-de-Riesgos.md` |
 | Orden de los sprints de integración | Ruta de implementación por fases del análisis de integración |
+
+: Insumos para el backlog y el cronograma

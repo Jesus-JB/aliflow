@@ -20,8 +20,10 @@ Cada pantalla se mapea al caso de uso que representa; su desarrollo está en [`a
 | Estudiante | 9 | [`mockups/01-estudiante.png`](../../mockups/01-estudiante.png) |
 | Proveedor | 5 | [`mockups/02-proveedor.png`](../../mockups/02-proveedor.png) |
 | Operador | 5 | [`mockups/03-operador.png`](../../mockups/03-operador.png) |
-| **Super-Admin** *(nuevo 30-jul)* | 3 | [`mockups/04-super-admin.png`](../../mockups/04-super-admin.png) |
+| **Super-Admin** | 3 | [`mockups/04-super-admin.png`](../../mockups/04-super-admin.png) |
 | Sistema de diseño | — | [`mockups/00-design-system.png`](../../mockups/00-design-system.png) |
+
+: Pantallas por rol
 
 ---
 
@@ -29,10 +31,13 @@ Cada pantalla se mapea al caso de uso que representa; su desarrollo está en [`a
 
 ### Estudiante
 
+![Flujo de ventanas del rol Estudiante](../../mockups/01-estudiante.png)
+
+
 | # | Pantalla | Caso de uso | Qué decisión refleja |
 |---|---|---|---|
 | 01 | Login institucional | UC1, UC1a | Solo Google OAuth con dominio `@uees.edu.ec` |
-| **01b** | **Elegir establecimiento** *(nueva)* | **UC1b**, RF-15 | Selección **obligatoria** antes de operar, con el saldo de cada local a la vista. Patrón que aportó el cliente: la app de Parqueo Positivo |
+| 01b | Elegir establecimiento | UC1b, RF-15 | Selección obligatoria antes de operar, con el saldo de cada establecimiento a la vista |
 | 02 | Menú del día | UC3, UC3a | **Saldo del establecimiento activo**, rotulado con su nombre · disponibilidad como **Disponible / Agotado**, sin cantidad (RN-15) |
 | 03 | Detalle y confirmación de compra | UC4, UC4a | Revalidación del saldo **de ese local** y del cupo antes de descontar |
 | 04 | **Compra confirmada y código** | UC5 | **6 dígitos, sin QR**, se dicta de viva voz · confirmación de compra con el **horario máximo de retiro** del local · estado `Válido` |
@@ -41,7 +46,12 @@ Cada pantalla se mapea al caso de uso que representa; su desarrollo está en [`a
 | 07 | Mi cartilla de fidelidad | UC13 | Una cartilla **por local**; progreso de sellos |
 | 08 | Canjear premio | UC15 | El canje es una **orden real con descuento del 100%** rotulado como premio: se ve el precio del plato, el descuento y el total en $0 |
 
+: Pantallas del rol Estudiante
+
 ### Proveedor
+
+![Flujo de ventanas del rol Proveedor](../../mockups/02-proveedor.png)
+
 
 | # | Pantalla | Caso de uso | Qué decisión refleja |
 |---|---|---|---|
@@ -51,7 +61,12 @@ Cada pantalla se mapea al caso de uso que representa; su desarrollo está en [`a
 | 04 | Estado de sincronización ERP | UC10 | **Cola Outbox** con un evento fallido reintentándose; lectura por **polling** |
 | 05 | Configurar programa de fidelidad | UC14 | Sellos y premio como **configuración por local**, no constantes del sistema |
 
+: Pantallas del rol Proveedor
+
 ### Operador
+
+![Flujo de ventanas del rol Operador](../../mockups/03-operador.png)
+
 
 | # | Pantalla | Caso de uso | Qué decisión refleja |
 |---|---|---|---|
@@ -59,15 +74,22 @@ Cada pantalla se mapea al caso de uso que representa; su desarrollo está en [`a
 | 02 | **Validar código de retiro** | UC5a | El Operador **teclea** el código en un teclado numérico. **No se escanea nada** |
 | 03 | Entrega confirmada | UC5b, UC5d | Estado a Entregado, código invalidado, y **sello acreditado en la cartilla** |
 | 04 | Código inválido o ya usado | UC5c | Uso único del código; se nombran los otros casos de fallo |
-| 05 | **Código vencido** *(nuevo)* | UC5c | Tercer estado del código: valía **solo el día de la compra**. Caso distinto de "inválido" y de "ya usado" |
+| 05 | **Código vencido** | UC5c | Tercer estado del código: valía **solo el día de la compra**. Caso distinto de "inválido" y de "ya usado" |
+
+: Pantallas del rol Operador
 
 ### Super-Admin de Aliflow
+
+![Flujo de ventanas del rol Super-Admin de Aliflow](../../mockups/04-super-admin.png)
+
 
 | # | Pantalla | Caso de uso | Qué decisión refleja |
 |---|---|---|---|
 | 01 | Login Super-Admin | UC6 | Acceso solo para el equipo de Aliflow, no de ningún local |
 | 02 | Locales | **UC18**, UC20 | **Dar de alta un local** y crear su vista de proveedor — cierra el punto abierto del 28-jul |
 | 03 | Soporte | **UC19** | Vista transversal de todos los locales: incidencias de sincronización y órdenes vencidas |
+
+: Pantallas del rol Super-Admin
 
 ---
 
