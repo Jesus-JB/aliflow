@@ -1,0 +1,42 @@
+@startgantt
+
+printscale weekly
+Project starts 2026-08-17
+
+[A Sprint 1 Cimientos] lasts 2 weeks
+[B Sprint 2 Catálogo y cupo] lasts 2 weeks
+[C Sprint 3 Billetera y compra] lasts 2 weeks
+[D Sprint 4 Retiro y auditoría] lasts 2 weeks
+[E Sprint 5 Integración simulador] lasts 2 weeks
+[F Sprint 6 Fidelidad y Super-Admin] lasts 2 weeks
+[G Credenciales del ERP piloto] lasts 8 weeks
+[H Conexión al ERP real] lasts 1 week
+[I Firma del acta de conformidad] lasts 3 weeks
+[J Aceptación y estabilización] lasts 2 weeks
+[K Cierre documental y entrega] lasts 1 week
+
+[B Sprint 2 Catálogo y cupo] starts at [A Sprint 1 Cimientos]'s end
+[C Sprint 3 Billetera y compra] starts at [B Sprint 2 Catálogo y cupo]'s end
+[D Sprint 4 Retiro y auditoría] starts at [C Sprint 3 Billetera y compra]'s end
+[E Sprint 5 Integración simulador] starts at [C Sprint 3 Billetera y compra]'s end
+[F Sprint 6 Fidelidad y Super-Admin] starts at [D Sprint 4 Retiro y auditoría]'s end
+[F Sprint 6 Fidelidad y Super-Admin] starts at [E Sprint 5 Integración simulador]'s end
+[H Conexión al ERP real] starts at [G Credenciales del ERP piloto]'s end
+[H Conexión al ERP real] starts at [E Sprint 5 Integración simulador]'s end
+[J Aceptación y estabilización] starts at [F Sprint 6 Fidelidad y Super-Admin]'s end
+[J Aceptación y estabilización] starts at [H Conexión al ERP real]'s end
+[K Cierre documental y entrega] starts at [J Aceptación y estabilización]'s end
+
+[A Sprint 1 Cimientos] is colored in #B00020
+[B Sprint 2 Catálogo y cupo] is colored in #B00020
+[C Sprint 3 Billetera y compra] is colored in #B00020
+[D Sprint 4 Retiro y auditoría] is colored in #B00020
+[E Sprint 5 Integración simulador] is colored in #B00020
+[F Sprint 6 Fidelidad y Super-Admin] is colored in #B00020
+[J Aceptación y estabilización] is colored in #B00020
+[K Cierre documental y entrega] is colored in #B00020
+[G Credenciales del ERP piloto] is colored in #9E9E9E
+[H Conexión al ERP real] is colored in #9E9E9E
+[I Firma del acta de conformidad] is colored in #9E9E9E
+
+@endgantt

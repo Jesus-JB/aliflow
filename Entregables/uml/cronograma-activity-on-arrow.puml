@@ -1,0 +1,49 @@
+@startuml cronograma-activity-on-arrow
+
+skinparam ArrowFontSize 11
+skinparam defaultTextAlignment center
+skinparam ranksep 22
+skinparam nodesep 30
+skinparam circle {
+  BackgroundColor #FDFDFD
+  BorderColor #444444
+  FontSize 13
+}
+
+circle "1" as n1
+circle "2" as n2
+circle "3" as n3
+circle "4" as n4
+circle "5" as n5
+circle "6" as n6
+circle "7" as n7
+circle "8" as n8
+circle "9" as n9
+circle "10" as n10
+circle "11" as n11
+circle "12" as n12
+
+n1 -[#B00020,bold]-> n2 : **A** · Sprint 1 — Cimientos\n2 sem
+n2 -[#B00020,bold]-> n3 : **B** · Sprint 2 — Catálogo y cupo\n2 sem
+n3 -[#B00020,bold]-> n4 : **C** · Sprint 3 — Billetera y compra\n2 sem
+n4 -[#B00020,bold]-> n5 : **D** · Sprint 4 — Retiro y auditoría\n2 sem
+n4 -[#B00020,bold]-> n6 : **E** · Sprint 5 — Integración (simulador)\n2 sem
+n5 -[#B00020,dashed]-> n7 : ficticia
+n6 -[#B00020,dashed]-> n7 : ficticia
+n7 -[#B00020,bold]-> n10 : **F** · Sprint 6 — Fidelidad y Super-Admin\n2 sem
+n1 --> n8 : **G** · Credenciales del ERP piloto (externa)\n8 sem · holgura 1
+n6 -[dashed]-> n8 : ficticia
+n8 --> n9 : **H** · Conexión al ERP real\n1 sem · holgura 1
+n9 -[dashed]-> n10 : ficticia
+n10 -[#B00020,bold]-> n11 : **J** · Pruebas de aceptación y estabilización\n2 sem
+n1 --> n11 : **I** · Firma del acta de conformidad (externa)\n3 sem · holgura 9
+n11 -[#B00020,bold]-> n12 : **K** · Cierre documental y entrega\n1 sem
+
+legend bottom
+  Los **nodos** son eventos (hitos), las **flechas** son actividades. Las flechas punteadas sin duración son
+  **actividades ficticias**: no consumen tiempo ni recursos, solo expresan una dependencia.
+  En **rojo y grueso, la ruta crítica** — trece semanas, sin holgura. Las dos ramas del sprint 4 y del sprint 5
+  son ambas críticas: corren en paralelo, duran lo mismo y el sprint 6 necesita las dos.
+endlegend
+
+@enduml

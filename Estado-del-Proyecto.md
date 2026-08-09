@@ -64,7 +64,7 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 | Estructura del documento (integrantes, TOC, índices) | 3 | 🟡 Casi | `Entregables/markdown/01-Especificacion-de-Requerimientos/00-Portada-e-Indices.md` — integrantes, roles y reparto ya están; falta que la portada sea una página propia |
 | Contenido de otras secciones | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/01-Introduccion-y-Contexto.md` · `04-Alcance-Trazabilidad-y-Decisiones.md` |
 | Documentación de riesgos | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` |
-| **Sprint backlogs y activity-on-arrow** | 3 | ❌ **No empezado** | `Entregables/markdown/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md` |
+| Sprint backlogs y activity-on-arrow | 3 | ✅ | `Entregables/markdown/01-Especificacion-de-Requerimientos/07-Sprint-Backlogs-y-Cronograma.md` |
 | Diagrama de clases (SOLID, patrones) | 6 | ✅ | `Entregables/uml/clases-*.puml` — una vista general y siete de detalle |
 | Casos de uso | 6 | ✅ | `Entregables/uml/casos-de-uso.puml` |
 | Diagramas de objetos | 3 | ✅ | 2 diagramas |
@@ -76,7 +76,7 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 | **Modelado de la base de datos** | 10 | ✅ | `Entregables/markdown/04-Modelo-de-Base-de-Datos/` |
 | *Extra: definición arquitectónica* | +4 | ✅ | `Hallazgos-…md` + `demo-odoo/` |
 
-**En números: quedan 6 puntos de rúbrica sin ganar** — sprint backlogs 3 y estructura del documento 3. Todo lo demás está hecho y al día.
+**En números: los 3 puntos de estructura del documento son los únicos que no están cerrados del todo.** Integrantes, roles, reparto, TOC e índices están; falta que la portada sea una página propia y que el acta llegue firmada. Todo el resto de la rúbrica está hecho y al día.
 
 ### Detalle de lo construido
 
@@ -132,7 +132,7 @@ Ordenado por lo que más mueve la aguja.
 
 **A. ~~Modelo de base de datos~~ — ✅ hecho el 9-ago-2026.** 24 tablas en PostgreSQL, con las reglas de negocio expresadas como restricciones declarativas en vez de confiarlas al código. El DDL se ejecutó de verdad contra PostgreSQL 16 y hay 10 pruebas que verifican que la base impide lo que dice impedir. Ver `Entregables/markdown/04-Modelo-de-Base-de-Datos/`.
 
-**B. Sprint backlogs y cronograma con diagramas activity-on-arrow** — 3 puntos. Forman parte del mismo entregable que los riesgos (01.g). `Entregables/markdown/01-Especificacion-de-Requerimientos/06-Gestion-de-Riesgos.md` cubre los riesgos, pero los sprint backlogs y el cronograma **no están ni empezados**.
+**B. ~~Sprint backlogs y cronograma~~ — ✅ hecho el 9-ago-2026.** Seis sprints de dos semanas con sus 57 ítems repartidos entre los tres integrantes (228 puntos de historia), y un cronograma activity-on-arrow de trece semanas con la ruta crítica calculada. Lo que el cálculo dejó ver: **las credenciales del ERP tienen una sola semana de holgura**, y RF-52 —operar contra un ERP simulado— es lo que evita que la ruta crítica pase por ellas; sin ese requerimiento el proyecto duraría dieciséis semanas y la fecha de entrega estaría en manos de un tercero.
 
 **C. Composición del PDF final** — 3 puntos. La lista de integrantes con sus roles, el reparto de responsabilidades por entregable, la tabla de contenido y los índices de tablas y de figuras **ya están** (`00-Portada-e-Indices.md`). Quedan dos cosas: que la portada sea **una página propia** —hoy el `<div style="text-align:center">` no hace nada, porque pandoc lo descarta al escribir typst, así que el título arranca debajo del índice sin centrar ni salto de página— y el apéndice del acta de conformidad **firmada**, que espera al cliente.
 

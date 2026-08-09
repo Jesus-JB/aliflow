@@ -34,7 +34,7 @@ Los mismos contenidos, separados por tema, para consultar un punto concreto sin 
 | [Contenido complementario](01h-Contenido-Complementario.pdf) | Introducción, glosario, actores, reglas de negocio, alcance excluido y trazabilidad |
 | [Evidencias de levantamiento](01d-Evidencias-de-Levantamiento.pdf) | Técnicas de elicitación empleadas y sus resultados |
 | [Gestión de riesgos](01g-Gestion-de-Riesgos.pdf) | Matriz de riesgos y plan de acción |
-| [Sprint backlogs y cronograma](01g-Sprint-Backlogs-y-Cronograma.pdf) | Organización de la construcción en sprints |
+| [Sprint backlogs y cronograma](01g-Sprint-Backlogs-y-Cronograma.pdf) | Seis sprints con sus backlogs, y el cronograma activity-on-arrow con la ruta crítica |
 | [Prototipo](01f-Prototipo.pdf) | Las 22 pantallas y su flujo de ventanas |
 | [Acta de conformidad](01e-Acta-de-Conformidad.pdf) | Conformidad del cliente con la especificación |
 

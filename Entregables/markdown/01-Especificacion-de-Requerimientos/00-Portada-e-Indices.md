@@ -76,7 +76,7 @@ Cada integrante asumió tres roles. El reparto sigue las dependencias del trabaj
 
 ## Convenciones de este documento
 
-**Identificadores.** `RF-nn` requerimiento funcional · `RNF-P-nn` no funcional de producto · `RNF-O-nn` organizacional · `RNF-E-nn` externo · `RN-nn` regla de negocio transversal · `UCnn` caso de uso · `R-nn` riesgo.
+**Identificadores.** `RF-nn` requerimiento funcional · `RNF-P-nn` no funcional de producto · `RNF-O-nn` organizacional · `RNF-E-nn` externo · `RN-nn` regla de negocio transversal · `UCnn` caso de uso · `R-nn` riesgo · `TT-nn` tarea técnica del backlog sin requerimiento propio.
 
 **Prioridad (MoSCoW).** *Debe* — sin esto no hay producto · *Debería* — importante pero el producto funciona sin ello · *Podría* — deseable, primer candidato a salir · *No en v1* — excluido con la razón declarada.
 
