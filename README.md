@@ -59,7 +59,7 @@ Por dónde empezar, en este orden:
 | **[Decisiones-Pendientes-Negocios.md](Decisiones-Pendientes-Negocios.md)** | Qué está decidido, qué sigue abierto y qué cambió en el diseño como consecuencia. **Es la fuente de verdad del estado del proyecto.** |
 | **[Hallazgos-Ingenieria-API-Generica.md](Hallazgos-Ingenieria-API-Generica.md)** | Investigación de la integración con ERPs: comparación, patrón Adapter y patrón Outbox. |
 | **[Gestion-de-Riesgos.md](Gestion-de-Riesgos.md)** | 23 riesgos. R-18 y R-19 se cerraron el 8-ago con la decisión de recarga por establecimiento; esa misma decisión abrió R-21 (saldo fragmentado), R-22 y R-23. |
-| **[Mockups-Prototipo.md](Mockups-Prototipo.md)** | Las 21 pantallas mapeadas a sus casos de uso. |
+| **[Mockups-Prototipo.md](Mockups-Prototipo.md)** | Las 22 pantallas mapeadas a sus casos de uso. |
 | **[uml/](uml/)** | Casos de uso, clases, objetos, componentes, despliegue, actividad, secuencia y estado. Cada `.puml` tiene su `.svg` y su documentación. |
 | **[demo-odoo/](demo-odoo/)** | Demo funcional en Docker con Odoo Community, adaptador en Python y pruebas reales de concurrencia. |
 
@@ -73,7 +73,7 @@ Por dónde empezar, en este orden:
 
 > ✅ **La decisión que bloqueaba el modelo de billetera se cerró el 8-ago-2026.** Había una contradicción entre el acta (el dinero va directo a cada proveedor, Aliflow no custodia fondos) y la decisión #4 (saldo único gastable en cualquier local): al recargar todavía no se sabía dónde se compraría. Negocios resolvió que **la recarga es por establecimiento**. Con eso el modelo de datos queda desbloqueado por completo. El costo es la fragmentación del saldo entre locales, registrada como riesgo R-21. Ver `Decisiones-Pendientes-Negocios.md`, punto 13.
 >
-> **Propagación:** el prototipo en vivo y el diagrama de clases ya están actualizados. **Los mockups de Figma todavía muestran el saldo único** y el canje como orden de $0.
+> **Propagado el 9-ago-2026** al diagrama de clases, al prototipo en vivo y a los mockups de Figma.
 
 ---
 

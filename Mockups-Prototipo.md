@@ -2,7 +2,7 @@
 
 **Preparado por:** Grupo de Ingeniería
 **Creado:** 28-jul-2026
-**Actualizado:** 30-jul-2026 — alineado con el acta de reunión: inventario reservado, horario de retiro configurable, tres estados del código y el cuarto rol
+**Actualizado:** 9-ago-2026 — saldo por establecimiento, canje como descuento del 100%, cuatro roles confirmados y menú sin cantidades
 **Entregable:** 01.f — prototipo de interfaz
 **Objetivo:** mostrar cómo se ven las decisiones ya cerradas con Negocios, y dejar visualmente marcado lo que sigue abierto.
 
@@ -17,11 +17,11 @@ Este documento no repite los casos de uso ni el modelo de datos — apunta al ca
 
 ## Alcance
 
-**21 pantallas, 4 roles.** Formato móvil 390×844.
+**22 pantallas, 4 roles.** Formato móvil 390×844.
 
 | Rol | Pantallas | Exportación |
 |---|---|---|
-| Estudiante | 8 | [`mockups/01-estudiante.png`](mockups/01-estudiante.png) |
+| Estudiante | 9 | [`mockups/01-estudiante.png`](mockups/01-estudiante.png) |
 | Proveedor | 5 | [`mockups/02-proveedor.png`](mockups/02-proveedor.png) |
 | Operador | 5 | [`mockups/03-operador.png`](mockups/03-operador.png) |
 | **Super-Admin** *(nuevo 30-jul)* | 3 | [`mockups/04-super-admin.png`](mockups/04-super-admin.png) |
@@ -44,13 +44,14 @@ Se usa la **misma convención que los diagramas UML**: el color amarillo con la 
 | # | Pantalla | Caso de uso | Qué decisión refleja |
 |---|---|---|---|
 | 01 | Login institucional | UC1, UC1a | Solo Google OAuth con dominio `@uees.edu.ec` |
-| 02 | Menú del día | UC3, UC3a | **Saldo único** rotulado explícitamente "único para todos los locales"; selector de local |
-| 03 | Detalle y confirmación de compra | UC4, UC4a | Revalidación de saldo y stock antes de descontar |
+| **01b** | **Elegir establecimiento** *(nueva)* | **UC1b**, RF-15 | Selección **obligatoria** antes de operar, con el saldo de cada local a la vista. Patrón que aportó el cliente: la app de Parqueo Positivo |
+| 02 | Menú del día | UC3, UC3a | **Saldo del establecimiento activo**, rotulado con su nombre · disponibilidad como **Disponible / Agotado**, sin cantidad (RN-15) |
+| 03 | Detalle y confirmación de compra | UC4, UC4a | Revalidación del saldo **de ese local** y del cupo antes de descontar |
 | 04 | **Compra confirmada y código** | UC5 | **6 dígitos, sin QR**, se dicta de viva voz · confirmación de compra con el **horario máximo de retiro** del local · estado `Válido` |
-| 05 | Recargar saldo | UC2, UC2a | **Recarga única** a un solo saldo |
-| 06 | Historial de órdenes | UC11 | Estados Comprado / Entregado / Expirado; incluye una orden de canje de $0.00 |
+| 05 | Recargar saldo | UC2, UC2a | **Recarga por establecimiento**: el dinero va directo a la cuenta de ese local y Aliflow no lo custodia |
+| 06 | Historial de órdenes | UC11 | Estados Comprado / Entregado / Expirado; el canje aparece como **descuento del 100%**, no como venta de $0 |
 | 07 | Mi cartilla de fidelidad | UC13 | Una cartilla **por local**; progreso de sellos |
-| 08 | Canjear premio | UC15 | El canje es una **orden real de $0.00**, no descuenta saldo pero sí inventario |
+| 08 | Canjear premio | UC15 | El canje es una **orden real con descuento del 100%** rotulado como premio: se ve el precio del plato, el descuento y el total en $0 |
 
 ### Proveedor
 
@@ -72,9 +73,9 @@ Se usa la **misma convención que los diagramas UML**: el color amarillo con la 
 | 04 | Código inválido o ya usado | UC5c | Uso único del código; se nombran los otros casos de fallo |
 | 05 | **Código vencido** *(nuevo)* | UC5c | Tercer estado del código: valía **solo el día de la compra**. Caso distinto de "inválido" y de "ya usado" |
 
-### Super-Admin de Aliflow *(rol nuevo, 30-jul-2026)*
+### Super-Admin de Aliflow
 
-> ⚠️ Acordado verbalmente en la reunión; **no consta en el acta**. Conviene incorporarlo formalmente.
+> ✅ Rol **confirmado por Negocios el 8-ago-2026**. El sistema tiene cuatro roles primarios.
 
 | # | Pantalla | Caso de uso | Qué decisión refleja |
 |---|---|---|---|
@@ -86,27 +87,22 @@ Se usa la **misma convención que los diagramas UML**: el color amarillo con la 
 
 ## Lo que el prototipo deja marcado como abierto
 
-> ⚠️ **Los PNG de esta carpeta están desactualizados.** El **prototipo web ya está al día** — es el que conviene mirar mientras tanto. Los mockups de Figma no reflejan todavía cuatro respuestas de Negocios, y una de ellas cambia el flujo principal:
->
-> | Qué respondió Negocios | Qué hay que rehacer |
-> |---|---|
-> | **La recarga es por establecimiento** — no hay saldo único (decisión #13) | Estudiante 02 (el saldo está rotulado "único para todos los locales", que ya es falso), Estudiante 05 (recarga), y un paso nuevo de selección de establecimiento por defecto con indicador de contexto permanente |
-> | **El premio se cobra como descuento del 100%** con nota identificable, no como venta de $0 | Estudiante 08 (canje) y Estudiante 06 (historial): deben mostrar precio original + descuento "Premio", no `$0.00` |
-> | **Los cuatro roles están confirmados**, Super-Admin incluido | Quitar la marca amarilla de Super-Admin 02 |
-> | **Al estudiante no se le muestra la cantidad disponible** (9-ago-2026), solo *Disponible* o *Agotado* | Estudiante 02 y 03: quitar el "N disp." y el "N disponibles" |
->
-> Las marcas amarillas de la tabla de abajo que correspondan a decisiones ya cerradas **siguen dibujadas en los PNG** porque las exportaciones no se han regenerado. Hasta que se rehagan, la tabla de abajo describe el estado del 30-jul, no el actual.
-
-Cada marca amarilla corresponde a una decisión abierta del documento de decisiones:
+Cada marca amarilla corresponde a una decisión que **sigue abierta**:
 
 | Dónde aparece | Decisión | Qué falta |
 |---|---|---|
-| Estudiante 05 — Recargar saldo | **#4** (punto fino) | Confirmar que acreditar el saldo por local **al momento de la compra** es la interpretación correcta |
-| Estudiante 07 / Proveedor 05 | **#9** Cartilla | Cuántos sellos y qué premio — por eso se modelaron como configuración |
-| Proveedor 02 — Panel de métricas | **#7** Modelo de cobro | No se muestra comisión ni cobro porque no está definido |
-| Estudiante 08 — Canjear premio | **#9** (derivada) | Cómo representar una venta de $0 en el ERP del local |
+| Estudiante 05 — Recargar saldo | **#12** Pasarela de pagos | Cuál se elige, y confirmar que cada local pueda abrir su propia cuenta de comercio (riesgo R-22) |
+| Estudiante 07 / Proveedor 05 | **#9** Cartilla | Cuántos sellos y qué premio — los dos únicos valores que quedan; por eso se modelaron como configuración |
+| Proveedor 02 — Panel de métricas | **#7** Modelo de cobro | No se muestra comisión ni cobro porque no está definido, y la decisión #13 lo volvió más restringido |
 | Operador 05 — Código vencido | *(sin número)* | El acta fijó **cuándo** vence el código, pero no qué pasa con el **dinero** de esa orden |
-| Super-Admin 02 — Locales | *(sin número)* | El rol se acordó verbalmente y **no consta en el acta** |
+
+**Marcas que se retiraron el 9-ago-2026**, porque sus decisiones quedaron cerradas:
+
+| Dónde estaba | Por qué se retiró |
+|---|---|
+| Estudiante 05 — "acreditar al comprar es interpretación de Ingeniería (#4)" | La decisión #4 fue **revertida** por la #13: no hay saldo único ni distribución interna que interpretar |
+| Estudiante 08 — "cómo se representa una venta de $0 en el ERP" | Resuelto: **descuento del 100%**, no venta de importe cero. Queda solo verificarlo contra la documentación de cada ERP, que es trabajo técnico y no una decisión de Negocios |
+| Super-Admin 02 — "el rol se acordó verbalmente" | El rol quedó **confirmado** el 8-ago-2026 |
 
 **Marca que se retiró el 30-jul:** la pantalla del código de retiro ya no lleva el aviso de expiración pendiente. El acta cerró la regla — el código vale solo el día de la compra — así que esa pantalla pasó a dibujarse como definitiva.
 
@@ -135,5 +131,4 @@ Conviene decirlas antes de que las pregunten:
 - **Las fotos de platos son marcadores de posición**, no imágenes reales.
 - **No hay pantallas para UC7** (configurar la integración ERP) ni **UC12** (gestionar usuarios del local). UC7 es trabajo técnico conjunto con Ingeniería, no una pantalla de autoservicio; UC12 quedó fuera de esta ronda.
 - **No hay pantallas de pasarela de pagos.** El acta abrió ese frente como investigación (comparar pasarelas, tokenización, webhooks), no como diseño. No se puede maquetar un flujo de pago sin saber si será modal, ventana integrada o página externa.
-- **El flujo de recarga no refleja aún la decisión #13** (custodia de fondos vs. saldo único), porque es una contradicción sin resolver entre el acta y la decisión #4.
 - **El archivo fuente vive en drafts de un equipo de Figma que no es institucional.** Las exportaciones de esta carpeta son la copia de referencia del repositorio.
