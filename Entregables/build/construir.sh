@@ -126,12 +126,41 @@ oficiales() {
   compilar "$OFICIAL/05-Mockups.pdf"                 "$MD/05-Mockups/Mockups.md"
 }
 
+# ─── Documentos firmados ────────────────────────────────────────────────────
+# Un PDF firmado no se puede regenerar: lleva tinta encima. Por eso vive con el
+# sufijo "-Firmada" — un nombre que este script nunca produce, así compilar no
+# puede pisarlo. Lo que sí hace falta es avisar cuando las fuentes cambiaron
+# después de la firma: ahí la firma cubre un texto que ya no es el que se
+# entrega, y ese es el modo en que una firma se vuelve inútil sin que se note.
+firmados() {
+  local hay=0 fuente_nueva
+  fuente_nueva=$(find "$MD" -name '*.md' -newer "$1" -print -quit 2>/dev/null)
+  [ -n "$fuente_nueva" ] && hay=1
+  if [ "$hay" -eq 1 ]; then
+    printf '  %-62s %s\n' "$1" "⚠️  FUENTES MÁS NUEVAS QUE LA FIRMA"
+    echo "      cambió después de firmar: $fuente_nueva"
+  else
+    printf '  %-62s %s\n' "$1" "firmado, al día"
+  fi
+}
+
+revisar_firmados() {
+  local encontrados=()
+  while IFS= read -r f; do encontrados+=("$f"); done < <(find . -name '*-Firmada.pdf' | sort)
+  [ ${#encontrados[@]} -eq 0 ] && return 0
+  echo
+  echo "Documentos firmados (no se regeneran; son los que se entregan):"
+  for f in "${encontrados[@]}"; do firmados "$f"; done
+}
+
 case "$QUE" in
   individuales) individuales ;;
   oficiales)    oficiales ;;
   todo)         individuales; echo; oficiales ;;
   *) echo "Uso: $0 [todo|individuales|oficiales]"; exit 1 ;;
 esac
+
+revisar_firmados
 
 cat <<'NOTA'
 

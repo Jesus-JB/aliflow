@@ -36,7 +36,8 @@ Los mismos contenidos, separados por tema, para consultar un punto concreto sin 
 | [Gestión de riesgos](01g-Gestion-de-Riesgos.pdf) | Matriz de riesgos y plan de acción |
 | [Sprint backlogs y cronograma](01g-Sprint-Backlogs-y-Cronograma.pdf) | Seis sprints con sus backlogs, y el cronograma activity-on-arrow con la ruta crítica |
 | [Prototipo](01f-Prototipo.pdf) | Las 22 pantallas y su flujo de ventanas |
-| [Acta de conformidad](01e-Acta-de-Conformidad.pdf) | Conformidad del cliente con la especificación |
+| [Acta de conformidad](01e-Acta-de-Conformidad.pdf) | Acta versión 1.2, generada desde el markdown |
+| **[Acta de conformidad — firmada](01e-Acta-de-Conformidad-Firmada.pdf)** | **La que se entrega.** Firmada por el equipo; pendiente la firma del cliente. No se regenera |
 
 ### Diagramas UML
 
@@ -76,3 +77,5 @@ Los PDF **no se editan a mano**: se generan desde `markdown/` con
 ```
 
 Requiere `pandoc` y `typst`.
+
+**La única excepción son los PDF con sufijo `-Firmada`.** Llevan firmas encima, así que no se pueden regenerar: son el original, no una salida. El script nunca produce ese nombre, de modo que compilar no puede pisarlos, y al terminar avisa si alguna fuente de `markdown/` cambió después de la firma — que es la forma en que una firma queda cubriendo un texto que ya no es el que se entrega.

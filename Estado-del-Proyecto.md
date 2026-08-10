@@ -76,7 +76,7 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 | **Modelado de la base de datos** | 10 | ✅ | `Entregables/markdown/04-Modelo-de-Base-de-Datos/` |
 | *Extra: definición arquitectónica* | +4 | ✅ | `Hallazgos-…md` + `demo-odoo/` |
 
-**En números: los 3 puntos de estructura del documento son los únicos que no están cerrados del todo.** Integrantes, roles, reparto, TOC e índices están; falta que la portada sea una página propia y que el acta llegue firmada. Todo el resto de la rúbrica está hecho y al día.
+**En números: los 3 puntos de estructura del documento son los únicos que no están cerrados del todo.** Integrantes, roles, reparto, TOC e índices están, y el acta 1.2 ya está firmada por los tres integrantes; falta que la portada sea una página propia y que firme el representante del cliente. Todo el resto de la rúbrica está hecho y al día.
 
 ### Detalle de lo construido
 
@@ -92,7 +92,7 @@ Mapeado contra la rúbrica de evaluación (que está en `Proyecto - entregables 
 
 Si no entendés estas diez, vas a romper algo sin darte cuenta.
 
-**1. Inventario reservado.** El proveedor aparta un **cupo exclusivo para Aliflow** (de 100 almuerzos: 75 a caja, 25 a Aliflow) y lo administra a mano desde su panel. **Aliflow valida la compra contra ese cupo, no contra el stock del ERP.** Elimina la sobreventa *por diseño* en vez de perseguir sincronización: convierte un problema de consistencia distribuida (difícil, sin solución completa cuando no controlás los dos sistemas) en uno de partición de recursos (trivial).
+**1. Inventario reservado, con doble control.** El proveedor aparta un **cupo exclusivo para Aliflow** (de 100 almuerzos: 75 a caja, 25 a Aliflow) y lo administra desde su panel. **La disponibilidad vendible es el mínimo entre ese cupo y el stock sincronizado del ERP**, y el descuento transaccional se aplica sobre el cupo, en la base de Aliflow. El cupo es la pieza que sostiene el diseño: convierte un problema de consistencia distribuida (difícil, sin solución completa cuando no controlás los dos sistemas) en uno de partición de recursos (trivial), y permite seguir vendiendo aunque el ERP no responda. El stock del ERP se suma como segunda cota — la pidió Negocios en la revisión del acta— pero no podría ocupar ese papel: leerlo con retraso no permite descontarlo con garantías. Si el dato está vencido más allá del umbral acordado, la validación cae al cupo.
 
 **2. Saldo por establecimiento.** El estudiante recarga **para un local** y ese saldo solo se gasta ahí. El dinero va directo a la cuenta del proveedor — **Aliflow no custodia fondos en ningún momento**. El modelo de referencia lo dio el cliente: la app de Parqueo Positivo, donde elegís un servicio por defecto y el saldo pertenece a ese servicio. *(Esto se decidió el 8-ago-2026 y revirtió una decisión anterior de "saldo único". Documentos anteriores a esa fecha describen el modelo viejo.)*
 
@@ -186,7 +186,7 @@ Ninguna de estas depende del equipo, y todas tienen tiempo de respuesta que no c
 | Qué | Por qué importa |
 |---|---|
 | **Credenciales de API de Contífico**, que Barú tiene que solicitar | Riesgo R-01: el único de impacto **catastrófico**. Sin ellas hay venta (gracias al inventario reservado) pero no registro contable ni factura |
-| **Acta de conformidad firmada** por el representante del cliente | Entregable 01.e, va como apéndice del PDF. De paso resuelve el respaldo documental del rol de Super-Admin, que se acordó verbalmente y nunca quedó escrito en un acta |
+| **Firma del representante del cliente en el acta 1.2** | Entregable 01.e. El acta ya está firmada por los tres integrantes (`Entregables/01e-Acta-de-Conformidad-Firmada.pdf` y el oficial 01 completo). Falta solo la contraparte. De paso resuelve el respaldo documental del rol de Super-Admin, que se acordó verbalmente y nunca quedó escrito |
 | **Confirmar que los locales pueden abrir cuenta de comercio** en una pasarela, ojalá la misma | Riesgo R-22. Si el dinero va directo a la cuenta de cada proveedor, cada local necesita la suya. Un local que no pueda abrirla **no puede vender por Aliflow** aunque su ERP esté integrado |
 
 ---
