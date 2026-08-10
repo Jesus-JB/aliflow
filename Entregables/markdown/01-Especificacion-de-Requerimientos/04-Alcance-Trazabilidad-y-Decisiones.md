@@ -14,12 +14,12 @@ Declarado explícitamente, con su razón. Lo que no está en este documento **no
 | **Entrega a domicilio o a un punto distinto del local** | No solicitado. La entrega es presencial en el punto de entrega del local. |
 | **Reservas sin pago** | La orden solo existe después de descontar el saldo (RF-19). |
 | **Recuperación de contraseña autoservicio para roles operativos** | Lo resuelve el Proveedor de cada local (RF-04) o el Super-Admin (RF-45). |
-
-: Alcance excluido de la versión 1
 | **Saldo único gastable en cualquier local** | El saldo pertenece al establecimiento y solo se gasta ahí (RN-13). |
 | **Transferir saldo de un establecimiento a otro** | Exigiría que Aliflow mueva dinero entre cuentas de terceros, algo que el sistema no hace (RN-14). Ver RF-12b. |
 | **Retiro del saldo en efectivo** | Mismo motivo: Aliflow no tiene el dinero, no puede devolverlo. |
 | **Reembolsos y devoluciones** | Fuera del alcance de la versión 1. El modelo de datos los admite como movimiento compensatorio cuando se definan. |
+
+: Alcance excluido de la versión 1
 
 ---
 

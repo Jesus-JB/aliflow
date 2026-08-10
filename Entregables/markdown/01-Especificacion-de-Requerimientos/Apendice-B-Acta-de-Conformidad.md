@@ -19,22 +19,35 @@ Dejar constancia de que el representante del cliente revisó la especificación 
 
 ### 2. Alcance sobre el que se declara conformidad
 
-| # | Punto | Referencia |
-|---|---|---|
-| 1 | El sistema opera con **cuatro roles primarios**: Estudiante, Operador, Proveedor y Super-Admin de Aliflow | §3 Actores |
-| 2 | El **Estudiante se autentica exclusivamente con su cuenta institucional**; Proveedor, Operador y Super-Admin lo hacen con credenciales propias de su rol | RF-01, RF-03 |
-| 3 | Un local puede tener **varias cuentas de Proveedor y varias de Operador** simultáneamente activas | RF-04 |
-| 4 | Cada Proveedor y cada Operador **solo ve y opera datos de su propio local**; únicamente el Super-Admin tiene visibilidad sobre todos | RN-07 |
-| 5 | Cada local aparta un **cupo reservado exclusivo para Aliflow**, y la venta se valida contra ese cupo y no contra el stock del ERP | RN-02 |
-| 6 | Al estudiante **no se le muestra la cantidad de unidades disponibles**, solo si el plato está disponible o agotado | RN-15 |
-| 7 | El **saldo es por establecimiento**: se recarga para un local y solo se gasta ahí, sin transferencias entre locales | RN-13 |
-| 8 | **Aliflow no recibe ni custodia fondos.** El dinero de cada recarga va de la pasarela directo a la cuenta del proveedor destino | RN-14 |
-| 9 | Como consecuencia de lo anterior, **cada local necesita su propia cuenta de comercio** en la pasarela. Un local que no pueda abrirla no puede vender por Aliflow | RN-14, R-22 |
-| 10 | El **código de retiro** es numérico de 6 dígitos, se dicta de viva voz y vale únicamente el día de la compra | RN-03, RN-04 |
-| 11 | Aliflow emite **comprobantes internos sin validez tributaria**; la factura fiscal la emite el ERP del local | RN-09 |
-| 12 | La **cartilla de fidelidad** es una tarjeta de sellos por local, con sello al retirar —máximo uno por día— y premio cobrado como descuento del 100% | RN-08, RN-12 |
-| 13 | Los **horarios, cupos, cantidad de sellos y premios son configuración de cada local**, no constantes del sistema | RN-05 |
-| 14 | El **alcance excluido** de la versión 1 es el declarado en la sección correspondiente | §7 Fuera del alcance de la versión 1 |
+| # | Ámbito | Punto | Referencia |
+|---|-----------|-------------------------------------------------------|------------|
+| 1 | Producto | Aliflow es una plataforma **multi-tenant**: cada local opera como un tenant independiente, con su propio menú, su propio personal y su propio sistema ERP | §1.2 |
+| 2 | Producto | **Aliflow no es** un ERP, ni un emisor de facturas electrónicas, ni un punto de venta. **No reemplaza la caja del local: convive con ella** | §1.2 |
+| 3 | Roles | El sistema opera con **cuatro roles primarios**: Estudiante, Operador, Proveedor y Super-Admin de Aliflow | §3 |
+| 4 | Roles | El **Estudiante se autentica exclusivamente con su cuenta institucional**; Proveedor, Operador y Super-Admin lo hacen con credenciales propias de su rol | RF-01, RF-03 |
+| 5 | Roles | Un local puede tener **varias cuentas de Proveedor y varias de Operador** simultáneamente activas | RF-04 |
+| 6 | Roles | Cada Proveedor y cada Operador **solo ve y opera datos de su propio local**; únicamente el Super-Admin tiene visibilidad sobre todos | RN-07 |
+| 7 | Roles | El **Super-Admin** da de alta locales nuevos, los activa o desactiva, brinda soporte y monitorea el estado de todas las integraciones | RF-43 a RF-46 |
+| 8 | Menú y cupo | Cada local aparta un **cupo reservado exclusivo para Aliflow**, y la venta se valida contra ese cupo y no contra el stock del ERP | RN-02 |
+| 9 | Menú y cupo | Al estudiante **no se le muestra la cantidad de unidades disponibles**, solo si el plato está disponible o agotado | RN-15 |
+| 10 | Menú y cupo | **Una orden pertenece a un solo local:** no se mezclan platos de establecimientos distintos en una misma compra | RN-01 |
+| 11 | Menú y cupo | En su panel, el **Proveedor** administra menú y cupo, y consulta métricas, estado de sincronización con su ERP y el detalle de cada venta para re-emitir la factura | RF-38 a RF-42 |
+| 12 | Dinero | El **saldo es por establecimiento**: se recarga para un local y solo se gasta ahí, sin transferencias entre locales | RN-13 |
+| 13 | Dinero | **Aliflow no recibe ni custodia fondos.** El dinero de cada recarga va de la pasarela directo a la cuenta del proveedor destino | RN-14 |
+| 14 | Dinero | Como consecuencia de lo anterior, **cada local necesita su propia cuenta de comercio** en la pasarela. Un local que no pueda abrirla no puede vender por Aliflow | RN-14, R-22 |
+| 15 | Dinero | Aliflow emite **comprobantes internos sin validez tributaria**; la factura fiscal la emite el ERP del local | RN-09 |
+| 16 | Dinero | Aliflow **nunca almacena el número completo de una tarjeta** ni su código de seguridad | RN-06 |
+| 17 | Retiro | El **código de retiro** es numérico de 6 dígitos, se dicta de viva voz y vale únicamente el día de la compra | RN-03, RN-04 |
+| 18 | Retiro | El **Operador valida el código y marca la entrega física** en el punto de entrega del local. La orden no retirada ese día queda expirada | RF-25, RF-26, RF-29 |
+| 19 | Fidelidad | La **cartilla** es una tarjeta de sellos por local, con sello al retirar —máximo uno por día— y premio cobrado como descuento del 100% | RN-08, RN-12 |
+| 20 | Fidelidad | Los **horarios, cupos, cantidad de sellos y premios son configuración de cada local**, no constantes del sistema | RN-05 |
+| 21 | ERP | Aliflow se integra con el ERP de cada local por una **interfaz única y bidireccional**: lee menú e inventario, y le devuelve las ventas y los pagos | RF-47, RF-49, RF-50 |
+| 22 | ERP | Incorporar un local con un ERP distinto es **agregar un adaptador**, sin cambios al resto del sistema. El piloto integra dos locales | RF-48, RNF-O-12 |
+| 23 | ERP | La integración se construye y se demuestra **contra un ERP simulado**, de modo que no queda supeditada a que un tercero entregue credenciales | RF-52 |
+| 24 | Auditoría | Toda operación que **mueve dinero o cambia el estado de una orden queda registrada** con actor, acción y marca de tiempo, y el histórico no se borra | RN-10, RF-56 |
+| 25 | Documento | Los **requerimientos no funcionales** son los declarados en §6, clasificados según Sommerville y con su criterio de validación | §6 |
+| 26 | Documento | El **prototipo de alta fidelidad** del Apéndice A es el que se validó con el cliente y refleja el alcance aprobado | Apéndice A |
+| 27 | Documento | El **alcance excluido** de la versión 1 es el declarado en §7, y lo que no está en el documento no forma parte del sistema | §7 |
 
 : Alcance sobre el que se declara conformidad
 
@@ -57,7 +70,13 @@ Ninguno de estos puntos impide construir lo aprobado en la sección 2: los cuatr
 3. El **equipo de desarrollo** declara que el documento refleja los requerimientos levantados y validados con el cliente, y que la construcción se realizará contra esa especificación.
 4. Ambas partes acuerdan que **toda modificación posterior del alcance se tramita por control de cambios**, quedando registrada en el repositorio del proyecto junto con su motivo y su impacto. Esta acta ampara la versión del documento identificada en el encabezado y ninguna otra.
 
+```{=typst}
+#pagebreak(weak: true)
+```
+
 ### 5. Firmas
+
+Las firmas de ambas partes van en esta misma página. Una hoja de firmas separada del documento no acredita nada.
 
 ```{=typst}
 #v(1.2em)
