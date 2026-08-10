@@ -6,7 +6,7 @@
 |---|---|
 | **Proyecto** | Aliflow — plataforma web multi-tenant para pedido anticipado, pago, operación, retiro y fidelización de almuerzos dentro del campus de la UEES, integrada con los sistemas de cada proveedor |
 | **Documento sobre el que se declara conformidad** | *Documento de Especificación de Requerimientos del Sistema de Software*, con las precisiones y condiciones de aceptación establecidas en esta acta |
-| **Versión** | 1.2 — respuesta del equipo de desarrollo a la revisión 1.1 propuesta por el cliente sobre la versión 1.0 |
+| **Versión** | 1.3 — incorpora el tratamiento de fechas y de retrasos por terceros propuesto por el cliente sobre la versión 1.2 |
 | **Ejemplar de referencia** | https://github.com/Jesus-JB/aliflow — carpeta `Entregables/Documento Oficial/`. Al momento de la firma se consigna el commit exacto: `________________________` |
 
 : Identificación del documento sobre el que se declara conformidad
@@ -74,17 +74,21 @@ Referencia de esfuerzo: la construcción de la línea base se planifica en seis 
 
 ### 4. Compromisos del cliente y aceptación de las integraciones
 
-La aceptación de cada integración con un ERP requiere insumos que el equipo de desarrollo no puede producir. Ambas partes acuerdan lo siguiente.
+La aceptación de cada integración con un ERP requiere insumos que el equipo de desarrollo no puede producir, y cuya disponibilidad depende en parte de terceros. Ambas partes distinguen por eso entre lo que el cliente controla, que lleva fecha firme, y lo que depende de un tercero, que no.
 
-1. **Anexo técnico.** Antes del inicio del sprint de integración, el cliente entrega un anexo que identifica los dos locales y ERP del piloto, el mapeo de datos de cada uno, el intervalo de sincronización acordado por ERP con su umbral de antigüedad, y las credenciales o el ambiente de prueba correspondiente.
+1. **Identificación del piloto — compromiso del cliente, con fecha firme.** El cliente identifica los dos locales y sus ERP, designa una contraparte por local, y deja constancia escrita de haber solicitado formalmente a cada proveedor de ERP las credenciales, la documentación y el ambiente de prueba. Estas tres acciones dependen únicamente del cliente.
 
-   Fecha comprometida de entrega del anexo: `________________________`
+   Fecha comprometida: `________________________`
 
-2. **Aceptación con ambiente real.** Cuando el ERP disponga de ambiente real o de prueba en la fecha comprometida, la aceptación de ese adaptador se realiza contra él, de extremo a extremo.
+2. **Anexo técnico — se elabora con los insumos que se vayan obteniendo.** Ambas partes elaboran el anexo con el mapeo de datos de cada ERP, el intervalo de sincronización y el umbral de antigüedad acordados para cada uno, y los criterios de aceptación de cada adaptador. Su fecha se acuerda por escrito entre ambas partes cuando los insumos estén disponibles.
 
-3. **Aceptación en ausencia del ambiente.** Si en la fecha comprometida no se dispone del ambiente por causa ajena al equipo de desarrollo, la aceptación de **ese adaptador** se realiza contra el ERP simulado, se deja constancia del pendiente, y **no se bloquea la aceptación del resto del sistema**. La integración real queda como hito posterior, sin cargo de incumplimiento para ninguna de las partes.
+3. **Retrasos atribuibles a terceros.** Los retrasos derivados de la falta de disponibilidad de información, credenciales, ambientes de prueba, documentación o colaboración de los proveedores de ERP u otros terceros **no constituyen incumplimiento imputable a ninguna de las partes**, siempre que el cliente haya realizado las gestiones razonables para su obtención, acreditadas conforme al punto 1.
 
-4. **Alpwin.** Se deja constancia de que Alpwin **no dispone de API pública ni de ambiente de prueba oficial**. Su integración se realiza por la vía alternativa que se acuerde en el anexo técnico, y sus criterios de aceptación se definen allí.
+4. **Aceptación cuando hay ambiente.** Si al inicio del sprint de integración se dispone del ambiente real o de prueba de un ERP, la aceptación de ese adaptador se realiza contra él, de extremo a extremo.
+
+5. **Aceptación cuando no lo hay.** Si al inicio del sprint de integración no se dispone del ambiente, la aceptación de **ese adaptador** se realiza contra el ERP simulado, se deja constancia del pendiente y **no se bloquea la aceptación del resto del sistema**. La integración real queda como hito posterior. **Mientras no exista una fecha de disponibilidad acordada por escrito, la planificación asume este escenario**, de modo que la ausencia de esa fecha no detiene la construcción ni desplaza la entrega.
+
+6. **Alpwin.** Se deja constancia de que Alpwin **no dispone de API pública ni de ambiente de prueba oficial**. Su integración se realiza por la vía alternativa que se acuerde en el anexo técnico, y sus criterios de aceptación se definen allí.
 
 ### 5. Puntos que quedan abiertos
 
@@ -97,7 +101,7 @@ El cliente reconoce que las siguientes decisiones siguen sin resolverse. Su defi
 | 3 | **Selección de la pasarela de pagos.** Integrar una pasarela aprobada forma parte de la línea base; elegir cuál no constituye ampliación | Antes del sprint de pagos |
 | 4 | **Parámetros de fidelidad:** cantidad de sellos, vigencia y premio. Se resuelven como configuración por local dentro de la funcionalidad ya aprobada | Antes de la puesta en operación |
 | 5 | **Carga de la hora pico.** Se mantiene como piso el criterio del punto 17. Si el levantamiento de la hora pico de la UEES arroja una cifra mayor, se ajusta el criterio | Antes de la prueba de carga |
-| 6 | **Locales y ERP del piloto.** Se cierran con el anexo técnico de la sección 4 | Según la fecha de la sección 4 |
+| 6 | **Locales y ERP del piloto.** Se identifican conforme al punto 1 de la sección 4; el detalle técnico se completa en el anexo | Fecha firme del punto 1 de la sección 4 |
 
 : Puntos abiertos y su hito de cierre
 
