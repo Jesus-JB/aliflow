@@ -21,8 +21,8 @@ Dejar constancia de que el representante del cliente revisó la especificación 
 
 | # | Ámbito | Punto | Referencia |
 |---|-----------|-------------------------------------------------------|------------|
-| 1 | Producto | Aliflow es una plataforma **multi-tenant**: cada local opera como un tenant independiente, con su menú, su personal y su propio ERP. **No es** un ERP, ni un emisor de facturas electrónicas, ni un punto de venta: **no reemplaza la caja del local, convive con ella** | §1.2 |
-| 2 | Roles | El sistema opera con **cuatro roles primarios** —Estudiante, Operador, Proveedor y Super-Admin—. El **Estudiante entra con su cuenta institucional**; los demás, con credenciales propias de su rol | §3, RF-01, RF-03 |
+| 1 | Producto | Aliflow es una plataforma **multi-tenant**: cada local opera como un tenant independiente, con su menú, su personal y su propio ERP. **No es** un ERP, ni un emisor de facturas electrónicas, ni un punto de venta: **no reemplaza la caja del local, convive con ella** | Sección 1.2 |
+| 2 | Roles | El sistema opera con **cuatro roles primarios** —Estudiante, Operador, Proveedor y Super-Admin—. El **Estudiante entra con su cuenta institucional**; los demás, con credenciales propias de su rol | Sección 3, RF-01, RF-03 |
 | 3 | Roles | Un local puede tener **varias cuentas de Proveedor y de Operador**, y cada una **solo ve datos de su propio local**. Únicamente el Super-Admin tiene visibilidad sobre todos, da de alta locales y brinda soporte | RF-04, RN-07, RF-43 a RF-46 |
 | 4 | Menú y cupo | Cada local aparta un **cupo reservado exclusivo para Aliflow** y la venta se valida contra ese cupo, **no contra el stock del ERP**. Al estudiante no se le muestra la cantidad, solo si el plato está disponible o agotado | RN-02, RN-15 |
 | 5 | Menú y cupo | **Una orden pertenece a un solo local:** no se mezclan platos de establecimientos distintos en una misma compra | RN-01 |
@@ -35,7 +35,7 @@ Dejar constancia de que el representante del cliente revisó la especificación 
 | 12 | ERP | Aliflow se integra con el ERP de cada local por una **interfaz única y bidireccional**: lee menú e inventario y le devuelve las ventas y los pagos. Incorporar un ERP distinto es **agregar un adaptador**; el piloto integra dos locales | RF-47 a RF-50, RNF-O-12 |
 | 13 | ERP | La integración se construye y se demuestra **contra un ERP simulado**, de modo que no queda supeditada a que un tercero entregue credenciales | RF-52 |
 | 14 | Auditoría | Toda operación que **mueve dinero o cambia el estado de una orden queda registrada** con actor, acción y marca de tiempo, y el histórico no se borra | RN-10, RF-56 |
-| 15 | Documento | Los **requerimientos no funcionales** son los de §6, clasificados según Sommerville y con criterio de validación; el **prototipo** del Apéndice A es el que se validó; y el **alcance excluido** es el de §7 — lo que no está en el documento no forma parte del sistema | §6, §7, Apéndice A |
+| 15 | Documento | Los **requerimientos no funcionales** son los de la sección 6, clasificados según Sommerville y con criterio de validación; el **prototipo** del Apéndice A es el que se validó; y el **alcance excluido** es el de la sección 7 — lo que no está en el documento no forma parte del sistema | Secciones 6 y 7, Apéndice A |
 
 : Alcance sobre el que se declara conformidad
 

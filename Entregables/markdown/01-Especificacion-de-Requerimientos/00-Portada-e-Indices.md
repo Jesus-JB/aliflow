@@ -78,6 +78,8 @@ Cada integrante asumió tres roles. El reparto sigue las dependencias del trabaj
 
 **Identificadores.** `RF-nn` requerimiento funcional · `RNF-P-nn` no funcional de producto · `RNF-O-nn` organizacional · `RNF-E-nn` externo · `RN-nn` regla de negocio transversal · `UCnn` caso de uso · `R-nn` riesgo · `TT-nn` tarea técnica del backlog sin requerimiento propio.
 
+**Referencias a secciones.** El signo **`§`** significa "sección": `§7` remite a la sección 7 de este mismo documento, y `§1.2` a su subsección 1.2. Cuando va precedido de un nombre de archivo, remite a la sección de *ese* archivo.
+
 **Prioridad (MoSCoW).** *Debe* — sin esto no hay producto · *Debería* — importante pero el producto funciona sin ello · *Podría* — deseable, primer candidato a salir · *No en v1* — excluido con la razón declarada.
 
 ---
