@@ -33,6 +33,7 @@ class Plato {
   - descripcion: String
   - precio: Money
   - stockDisponible: int
+  - stockSincronizadoEn: DateTime
   - version: int
   - activo: boolean
   + hayStock(cantidad: int): boolean
@@ -57,9 +58,11 @@ class ProgramaFidelidad <<contexto>>
 
 note bottom of InventarioReservado
   Cupo **exclusivo para Aliflow** que el proveedor aparta de su producción
-  (de 100 almuerzos: 75 caja, 25 Aliflow). La compra se valida contra
-  `disponible()`, **no** contra `Plato.stockDisponible`, que queda como espejo
-  informativo del ERP. `version` habilita el bloqueo optimista sobre el cupo.
+  (de 100 almuerzos: 75 caja, 25 Aliflow). La disponibilidad vendible es el
+  **mínimo entre `disponible()` y `Plato.stockDisponible`** sincronizado del ERP:
+  doble control. El **descuento transaccional se aplica sobre el cupo**, con
+  `version` como bloqueo optimista; si el stock del ERP está vencido, se valida
+  solo contra el cupo y la venta no se interrumpe.
 end note
 
 Proveedor "1" *-- "1..*" Administrador : gerencia el local

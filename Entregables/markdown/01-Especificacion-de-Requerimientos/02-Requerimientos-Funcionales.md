@@ -152,7 +152,7 @@ El Proveedor debe poder definir el menú de su local —plato, descripción, pre
 El estudiante debe poder consultar el menú del día de cada local, con plato, precio y disponibilidad para Aliflow.
 
 **Criterios de aceptación**
-1. El menú muestra la disponibilidad derivada del **cupo reservado** (RN-02), no del stock del ERP.
+1. El menú muestra la disponibilidad derivada del **mínimo entre el cupo reservado y el stock sincronizado del ERP** (RN-02).
 2. La disponibilidad se presenta como **estado binario — "Disponible" o "Agotado" —, nunca como cantidad numérica.** El estudiante no ve cuántas unidades quedan (RN-15).
 3. Un plato con cupo agotado se muestra explícitamente como agotado, no se oculta.
 4. El menú se puede consultar aunque el ERP del local esté caído. *(Consecuencia directa del inventario reservado.)*
@@ -217,7 +217,7 @@ El estudiante debe poder comprar uno o más platos de un mismo local, descontand
 La validación de saldo y cupo debe repetirse dentro de la transacción de confirmación, no solo al mostrar la pantalla de compra.
 
 **Criterios de aceptación**
-1. Si el cupo se agota entre que el estudiante abre la pantalla y confirma, la compra falla con el mensaje correspondiente.
+1. Si el cupo o el stock sincronizado se agotan entre que el estudiante abre la pantalla y confirma, la compra falla con el mensaje correspondiente.
 2. El tiempo transcurrido en la pantalla no afecta la corrección del resultado.
 
 #### RF-21 · Impedir la sobreventa bajo concurrencia
@@ -529,15 +529,17 @@ El sistema debe poder devolver al ERP del local la información de pago asociada
 **Criterios de aceptación**
 1. El evento de pago sigue el mismo mecanismo de cola y reintentos que el de venta.
 
-#### RF-51 · Sincronizar el catálogo desde el ERP por consulta periódica
-**Prioridad:** Debería · **Origen:** UC3a, `../../Hallazgos-Ingenieria-API-Generica.md` §3
+#### RF-51 · Sincronizar menú y stock desde el ERP
+**Prioridad:** Debe · **Origen:** UC3a, `../../Hallazgos-Ingenieria-API-Generica.md` §3
 
-El sistema debe poder obtener menú y stock del ERP de cada local mediante consulta periódica.
+El sistema debe obtener menú y stock del ERP de cada local, y usar ese stock como **cota superior** de la disponibilidad vendible, junto con el cupo reservado (RN-02).
 
 **Criterios de aceptación**
-1. La sincronización usa **consulta periódica (polling)**, porque **ningún ERP del alcance ofrece webhooks**.
-2. El stock traído del ERP se guarda como dato **informativo** y **no** condiciona la venta (RN-02).
-3. Un fallo de sincronización no interrumpe la operación de venta de Aliflow.
+1. La sincronización usa **consulta periódica (polling)**, con el intervalo acordado para cada ERP. Ningún ERP del alcance actual ofrece webhooks: Contífico expone REST sin notificación inversa y Alpwin no tiene API pública.
+2. Queda implementado el **punto de entrada para notificación por eventos**, sin uso en la versión 1, de modo que un ERP que documente webhooks pueda usarlo sin rediseño.
+3. La disponibilidad vendible es el **mínimo entre el stock sincronizado y el cupo remanente**. El descuento transaccional se aplica sobre el cupo, en la base de datos de Aliflow (RF-21).
+4. Si el stock sincronizado supera el **umbral de antigüedad** acordado, la validación se hace solo contra el cupo. Un fallo de sincronización **no interrumpe la venta**.
+5. El panel del Proveedor muestra la marca de tiempo de la última sincronización exitosa y señala el estado degradado.
 
 #### RF-52 · Operar contra un ERP simulado
 **Prioridad:** Debe

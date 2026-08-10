@@ -96,7 +96,7 @@ Restricciones que aplican a varios requerimientos a la vez. Se enuncian una sola
 | ID | Regla |
 |---|---|
 | **RN-01** | **Una orden pertenece a un solo local.** Todos los ítems de una orden deben ser platos del mismo `Proveedor`. |
-| **RN-02** | **La disponibilidad de venta se valida contra el cupo reservado**, nunca contra el stock del ERP. Si el cupo está en cero, Aliflow no vende aunque el ERP reporte unidades libres. |
+| **RN-02** | **La disponibilidad de venta es el mínimo entre el cupo reservado remanente y el stock sincronizado del ERP.** Si cualquiera de los dos está en cero, Aliflow no vende. El **descuento transaccional se realiza sobre el cupo**, en la base de datos de Aliflow. Si el stock sincronizado supera el umbral de antigüedad acordado para ese ERP, la validación se hace **solo contra el cupo**: un fallo de integración no interrumpe la venta. |
 | **RN-03** | **El código de retiro vale únicamente el día de la compra**, y como máximo hasta la hora máxima de retiro del local. Tres estados: `VÁLIDO` / `UTILIZADO` / `VENCIDO`. |
 | **RN-04** | **El código de retiro es de un solo uso.** Su invalidación es atómica y condicional; una segunda redención debe fallar, no completarse. |
 | **RN-05** | **Toda hora, cupo, cantidad de sellos y premio es configuración por local**, nunca constante del sistema. |

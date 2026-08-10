@@ -67,7 +67,7 @@ Las dos claves foráneas comparten la columna `proveedor_id`. Un plato de otro l
 CONSTRAINT cupo_no_sobrevendido CHECK (cupo_consumido <= cupo_asignado)
 ```
 
-Aliflow vende contra `inventario_reservado`, nunca contra `plato.stock_erp`, que queda como espejo informativo del ERP. Con esta restricción, sobrevender requeriría violar la base de datos.
+Aliflow descuenta sobre `inventario_reservado`, y `plato.stock_erp` —el stock sincronizado— actúa como cota superior de lo vendible. Con esta restricción, sobrevender el cupo requeriría violar la base de datos.
 
 `inventario_reservado` y `plato` llevan campo `version` para bloqueo optimista. **Ese control vive acá y no en el ERP**: se verificó empíricamente que delegarlo a un ERP externo por RPC falla bajo concurrencia real.
 
@@ -100,7 +100,7 @@ Así el local puede ver cuánto le costaron los premios (RF-38), dato que con un
 | Regla | Cómo la impide la base de datos |
 |---|---|
 | **RN-01** Una orden, un solo local | FK compuestas que comparten `proveedor_id` |
-| **RN-02** Se vende contra el cupo, no contra el ERP | `CHECK cupo_consumido <= cupo_asignado` |
+| **RN-02** Doble control: cupo y stock sincronizado | `CHECK cupo_consumido <= cupo_asignado` *(la cota del stock del ERP la aplica el backend con el dato sincronizado y su marca de tiempo)* |
 | **RN-03** El código vale solo el día de la compra | `fecha_expiracion` + enum de estado *(la transición la hace una tarea programada)* |
 | **RN-04** Código de un solo uso | Enum de estado + índice parcial sobre los vigentes |
 | **RN-05** Horarios y premios son configuración | Columnas en `proveedor` y `programa_fidelidad`, sin constantes |
