@@ -85,7 +85,7 @@ Las firmas de ambas partes van en esta misma página. Una hoja de firmas separad
       text(size: 8.5pt)[Diseño de experiencia y datos],
     )
     #v(1.2em)
-    #text(size: 8.5pt, style: "italic")[Lugar y fecha: #box(width: 6cm, line(length: 100%, stroke: 0.4pt))]
+    #text(size: 9pt)[Samborondón, Guayas, 9 de agosto de 2026]
 
     #v(1.8em)
     #text(weight: "bold", size: 10pt)[Por el cliente]
