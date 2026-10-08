@@ -5,6 +5,7 @@
 #   ./construir.sh              → todo
 #   ./construir.sh individuales → solo los PDF sueltos de Entregables/
 #   ./construir.sh oficiales    → solo los 5 de "Documento Oficial/"
+#   ./construir.sh talleres     → los talleres de Talleres/, en PDF y en Word
 #
 # Requiere: pandoc y typst.
 #
@@ -126,6 +127,24 @@ oficiales() {
   compilar "$OFICIAL/05-Mockups.pdf"                 "$MD/05-Mockups/Mockups.md"
 }
 
+# ─── Talleres ──────────────────────────────────────────────────────────────
+# Cada taller sale en PDF (el que se entrega) y en Word (para editarlo). Las
+# fuentes viven en Talleres/markdown/, fuera de markdown/, para que un taller
+# nuevo no dispare el aviso de "fuentes más nuevas que la firma" del acta.
+talleres() {
+  # Sin tex_math_dollars: los montos en dólares ($3.50 … $20.00) se leerían como fórmulas.
+  echo "Talleres:"
+  local T="Talleres"
+  for f in "$T"/markdown/*.md; do
+    local base; base=$(basename "$f" .md)
+    verificar_fuentes "$f"
+    pandoc "$f" -f markdown-tex_math_dollars -o "$T/$base.pdf" --pdf-engine=typst --include-in-header="$ESTILO"
+    pandoc "$f" -f markdown-tex_math_dollars -o "$T/$base.docx" --reference-doc=build/referencia-taller.docx
+    printf '  %-62s %s\n' "$T/$base.pdf" "$(pdfinfo "$T/$base.pdf" 2>/dev/null | awk '/^Pages/{print $2" págs"}')"
+    printf '  %-62s %s\n' "$T/$base.docx" "Word editable"
+  done
+}
+
 # ─── Documentos firmados ────────────────────────────────────────────────────
 # Un PDF firmado no se puede regenerar: lleva tinta encima. Por eso vive con el
 # sufijo "-Firmada" — un nombre que este script nunca produce, así compilar no
@@ -156,8 +175,9 @@ revisar_firmados() {
 case "$QUE" in
   individuales) individuales ;;
   oficiales)    oficiales ;;
-  todo)         individuales; echo; oficiales ;;
-  *) echo "Uso: $0 [todo|individuales|oficiales]"; exit 1 ;;
+  talleres)     talleres ;;
+  todo)         individuales; echo; oficiales; echo; talleres ;;
+  *) echo "Uso: $0 [todo|individuales|oficiales|talleres]"; exit 1 ;;
 esac
 
 revisar_firmados

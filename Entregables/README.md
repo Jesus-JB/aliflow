@@ -61,11 +61,22 @@ Los mismos contenidos, separados por tema, para consultar un punto concreto sin 
 
 ---
 
+## Talleres — Ingeniería de Software II
+
+Talleres de la materia aplicados a Aliflow. Cada uno está en PDF y en Word editable.
+
+| # | Taller | PDF | Word |
+|---|---|---|---|
+| 07 | Análisis del valor límite — casos de prueba de la compra, la recarga y el código de retiro | [PDF](Talleres/07-Analisis-de-Valor-Limite.pdf) | [Word](Talleres/07-Analisis-de-Valor-Limite.docx) |
+
+---
+
 ## Fuentes
 
 | Qué | Dónde |
 |---|---|
 | Texto de los documentos | [`markdown/`](markdown/) — organizado por entregable |
+| Texto de los talleres | [`Talleres/markdown/`](Talleres/markdown/) — se compilan con `./build/construir.sh talleres` |
 | Diagramas UML | [`uml/`](uml/) — fuentes `.puml` y sus `.svg` |
 | Mockups y prototipo | [`mockups/`](mockups/) — exportaciones, marca y código |
 | Esquema de base de datos | [`markdown/04-Modelo-de-Base-de-Datos/`](markdown/04-Modelo-de-Base-de-Datos/) — `esquema.sql` y sus pruebas |
