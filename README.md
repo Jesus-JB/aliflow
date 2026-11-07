@@ -6,6 +6,10 @@ Proyecto de **Ingeniería de Software I** — UEES.
 
 ---
 
+## 🚧 Aplicación en construcción
+
+El producto real vive en [`app/`](app/): API en FastAPI, web en Next.js y PostgreSQL. Se construye por sprints contra la especificación de `Entregables/`. **Sprint 1 terminado**: autenticación de los cuatro roles, cuentas del local, aislamiento entre locales y auditoría. Cómo levantarlo y el estado de cada ítem: [`app/README.md`](app/README.md).
+
 ## ▶️ Prototipo interactivo
 
 **https://jesus-jb.github.io/aliflow/**

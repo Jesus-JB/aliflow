@@ -1,0 +1,44 @@
+[project]
+name = "aliflow-api"
+version = "0.1.0"
+description = "API de Aliflow: pedido anticipado y pago de almuerzos en el campus de la UEES"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0.36,<2.1",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "pydantic-settings>=2.6",
+    "argon2-cffi>=23.1",
+    "google-auth>=2.36",
+    "requests>=2.32",
+    "email-validator>=2.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "httpx>=0.28",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["aliflow*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+# B008: Depends() en los argumentos es el idioma de FastAPI, no un error.
+ignore = ["B008"]

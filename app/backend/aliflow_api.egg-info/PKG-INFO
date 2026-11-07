@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: aliflow-api
+Version: 0.1.0
+Summary: API de Aliflow: pedido anticipado y pago de almuerzos en el campus de la UEES
+Requires-Python: >=3.12
+Requires-Dist: fastapi<1.0,>=0.115
+Requires-Dist: uvicorn[standard]>=0.32
+Requires-Dist: sqlalchemy<2.1,>=2.0.36
+Requires-Dist: psycopg[binary]>=3.2
+Requires-Dist: alembic>=1.14
+Requires-Dist: pydantic-settings>=2.6
+Requires-Dist: argon2-cffi>=23.1
+Requires-Dist: google-auth>=2.36
+Requires-Dist: requests>=2.32
+Requires-Dist: email-validator>=2.2
+Provides-Extra: dev
+Requires-Dist: pytest>=8.3; extra == "dev"
+Requires-Dist: httpx>=0.28; extra == "dev"
+Requires-Dist: ruff>=0.8; extra == "dev"

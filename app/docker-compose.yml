@@ -1,0 +1,38 @@
+# Ambiente local completo: base de datos, API y web.
+#   docker compose up --build
+# Web en http://localhost:3000 · API en http://localhost:8000/docs
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: aliflow
+      POSTGRES_PASSWORD: aliflow
+      POSTGRES_DB: aliflow
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aliflow"]
+      interval: 2s
+      retries: 15
+
+  api:
+    build: ./backend
+    environment:
+      ALIFLOW_DATABASE_URL: postgresql+psycopg://aliflow:aliflow@db:5432/aliflow
+      ALIFLOW_GOOGLE_CLIENT_ID: ${ALIFLOW_GOOGLE_CLIENT_ID:-}
+    ports: ["8000:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${ALIFLOW_GOOGLE_CLIENT_ID:-}
+    environment:
+      ALIFLOW_API_URL: http://api:8000
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes:
+  pgdata:
