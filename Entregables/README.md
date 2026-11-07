@@ -36,8 +36,8 @@ Los mismos contenidos, separados por tema, para consultar un punto concreto sin 
 | [Gestión de riesgos](01g-Gestion-de-Riesgos.pdf) | Matriz de riesgos y plan de acción |
 | [Sprint backlogs y cronograma](01g-Sprint-Backlogs-y-Cronograma.pdf) | Seis sprints con sus backlogs, y el cronograma activity-on-arrow con la ruta crítica |
 | [Prototipo](01f-Prototipo.pdf) | Las 22 pantallas y su flujo de ventanas |
-| [Acta de conformidad](01e-Acta-de-Conformidad.pdf) | Acta versión 1.2, generada desde el markdown |
-| **[Acta de conformidad — firmada](01e-Acta-de-Conformidad-Firmada.pdf)** | **La que se entrega.** Firmada por el equipo; pendiente la firma del cliente. No se regenera |
+| [Acta de conformidad](01e-Acta-de-Conformidad.pdf) | Acta versión 1.3, generada desde el markdown |
+| **[Acta de conformidad — firmada](01e-Acta-de-Conformidad-Firmada.pdf)** | **La que se entrega.** Versión 1.3 firmada por el representante del cliente el 13-ago-2026; pendiente la firma del equipo sobre esta versión. No se regenera |
 
 ### Diagramas UML
 
