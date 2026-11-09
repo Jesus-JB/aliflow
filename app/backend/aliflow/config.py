@@ -6,14 +6,25 @@ client ID de Google, URL de la base y tiempos de expiración de sesión.
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="ALIFLOW_", extra="ignore")
 
-    entorno: str = "desarrollo"  # desarrollo | pruebas | produccion
+    entorno: str = "desarrollo"  # desarrollo | pruebas | demo | produccion
     database_url: str = "postgresql+psycopg://aliflow@localhost:5432/aliflow"
+
+    @field_validator("database_url")
+    @classmethod
+    def _con_driver_psycopg(cls, url: str) -> str:
+        # Los proveedores (Neon, Vercel, Render) entregan postgres:// o postgresql://;
+        # SQLAlchemy necesita que se le diga el driver.
+        for prefijo in ("postgres://", "postgresql://"):
+            if url.startswith(prefijo):
+                return "postgresql+psycopg://" + url[len(prefijo) :]
+        return url
 
     # RF-01: solo correos de este dominio pueden entrar como Estudiante.
     dominio_institucional: str = "uees.edu.ec"

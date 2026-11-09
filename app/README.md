@@ -67,6 +67,38 @@ cada push que toque `app/`.
 
 ---
 
+## Ambiente de demostración
+
+Para que Negocios y el cliente la vean funcionando. **No es producción**: los
+datos son de prueba y la web lo dice en una franja arriba.
+
+| Parte | Dónde | Plan |
+|---|---|---|
+| Web | https://aliflow-uees.vercel.app — proyecto Vercel `aliflow`, raíz `app/frontend` | Hobby (gratis) |
+| API | https://aliflow-api.vercel.app — proyecto Vercel `aliflow-api`, raíz `app/backend`, entrada `index.py` | Hobby (gratis) |
+| Base de datos | Neon (PostgreSQL 18, `us-east-1`), creada desde el Marketplace de Vercel | Free |
+
+La web llama a la API por la misma reescritura `/api/*` que en desarrollo
+(`ALIFLOW_API_URL` apunta a la API). Variables configuradas en Vercel:
+
+- **API:** `ALIFLOW_DATABASE_URL` (la pone Neon), `ALIFLOW_ENTORNO=demo`, `ALIFLOW_COOKIE_SEGURA=true`.
+- **Web:** `ALIFLOW_API_URL`, `NEXT_PUBLIC_ALIFLOW_DEMO=1`, `NEXT_PUBLIC_DOMINIO_INSTITUCIONAL`.
+
+Cada push a `main` redespliega el proyecto cuya carpeta cambió. **Las migraciones
+no corren solas** (Vercel no tiene dónde correrlas antes de levantar la API): si
+un sprint agrega una, hay que aplicarla a mano contra la URL sin pooler
+(`ALIFLOW_DATABASE_URL_UNPOOLED`, se obtiene con `vercel env pull`):
+
+```bash
+cd app/backend
+ALIFLOW_DATABASE_URL='<url sin pooler>' .venv/bin/alembic upgrade head
+```
+
+Las cuentas de prueba se sembraron con `sembrar-demo --password <clave>`; la
+clave se comparte por fuera del repositorio.
+
+---
+
 ## Configurar el ingreso con Google (RF-01)
 
 Sin esto el botón de estudiante muestra un aviso y solo funciona el ingreso del
