@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 
 from aliflow.config import get_settings
@@ -21,7 +23,8 @@ def crear_app() -> FastAPI:
 
     @app.get("/salud", tags=["operación"])
     def salud() -> dict[str, str]:
-        return {"estado": "ok"}
+        # El commit desplegado, para saber qué versión está corriendo (Vercel lo inyecta).
+        return {"estado": "ok", "version": os.environ.get("VERCEL_GIT_COMMIT_SHA", "local")[:7]}
 
     return app
 
