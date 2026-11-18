@@ -122,6 +122,30 @@ def login_google(
     return UsuarioOut.de(usuario)
 
 
+# Cuenta fija del estudiante de demostración. La crea `sembrar-demo`.
+EMAIL_ESTUDIANTE_DEMO = "estudiante@demo.aliflow"
+
+
+@router.post("/estudiante-demo", response_model=UsuarioOut)
+def login_estudiante_demo(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+    s: Settings = Depends(get_settings),
+) -> UsuarioOut:
+    """Entrar como el estudiante de demostración, sin Google. Solo existe fuera
+    de producción: sirve para mostrar el recorrido completo mientras TI de la
+    UEES no autoriza el ingreso institucional."""
+    if not s.permite_demo:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not Found")
+    usuario = db.scalar(select(Usuario).where(Usuario.email == EMAIL_ESTUDIANTE_DEMO))
+    if usuario is None or usuario.rol is not Rol.ESTUDIANTE:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No hay estudiante de demostración")
+    abrir_sesion(db, usuario, request, response, s)
+    auditar(db, usuario, "INICIO_SESION", "usuario", usuario.id, via="demo")
+    return UsuarioOut.de(usuario)
+
+
 @router.post("/login", response_model=UsuarioOut)
 def login_credenciales(
     datos: LoginCredencialesIn,

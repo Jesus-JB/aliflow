@@ -1,58 +1,67 @@
 /**
- * Tokens de color de Aliflow — fuente única para los cuatro roles.
+ * Tokens de color de Aliflow, según la propuesta de marca de Negocios
+ * (noviembre de 2026). Fuente única para los cuatro roles.
  *
- * Derivados del logo (mockups/marca/logo-aliflow.svg):
- *   verde #74AB68 · azul #7AB7D3
+ * Paleta de la marca:
+ *   Flow Green #5BA150 · Campus Navy #1F4A5F (colores clave)
+ *   Fresh Mint #DCEDD3 · Sky Blue #8EC3DC · Ready Amber #F2A93B
  *
- * Dos decisiones que conviene conocer antes de tocar esto:
- *
- * 1. El verde del logo NO se usa para botones con texto blanco. Da 2.6:1 de
- *    contraste, muy por debajo del 4.5:1 que exige WCAG AA. Por eso `brand`
- *    (acciones) es un verde más profundo y `brandLight` es el verde del logo,
- *    reservado para superficies grandes, la marca y elementos decorativos.
- *
- * 2. `success` dejó de ser verde y pasó a ser teal. Con una marca verde, un
- *    badge verde de "Entregado" deja de leerse como señal de estado y se
- *    confunde con el color de la aplicación.
+ * Una regla al usarla, por accesibilidad (WCAG AA pide 4.5:1 para texto):
+ * el texto blanco sobre Flow Green da 3.2:1, sobre Amber 2.0:1 y sobre Sky
+ * 1.9:1. Por eso:
+ *   - las acciones principales van en Campus Navy (9.5:1);
+ *   - un botón verde usa `greenAction`, un tono más profundo del mismo verde (5.0:1);
+ *   - Flow Green queda para el logo, íconos y superficies grandes;
+ *   - Amber y Sky se usan como fondo, siempre con texto oscuro encima.
  */
 export const C = {
   // ── Marca ────────────────────────────────────────────────────────────────
-  /** Acciones primarias. Contraste 4.6:1 sobre blanco. */
-  brand: "#46833B",
-  /** El verde exacto del logo. Superficies grandes y la marca. */
-  brandLight: "#74AB68",
-  /** Énfasis en texto sobre fondo claro. */
+  navy: "#1F4A5F",
+  navyDeep: "#163847",
+  green: "#5BA150",
+  /** Verde para botones con texto blanco. 5.0:1 */
+  greenAction: "#3D7D34",
+  /** Verde para texto sobre blanco o mint. 6.5:1 */
+  greenText: "#2F6B2A",
+  mint: "#DCEDD3",
+  sky: "#8EC3DC",
+  amber: "#F2A93B",
+
+  /** Acciones primarias: Campus Navy. */
+  brand: "#1F4A5F",
+  /** El verde exacto del logo. */
+  brandLight: "#5BA150",
+  /** Énfasis verde en texto. */
   brandDeep: "#2F6B2A",
-  /** Fondo suave de marca. */
-  brandBg: "#E9F3E6",
-  /** El azul exacto del logo. Decorativo. */
-  accent: "#7AB7D3",
+  /** Fondo suave de marca: Fresh Mint. */
+  brandBg: "#DCEDD3",
+  /** Las líneas de movimiento del logo: Sky Blue. */
+  accent: "#8EC3DC",
 
   // ── Texto y superficies ──────────────────────────────────────────────────
-  text: "#14161A",
-  textSec: "#5A6472",
-  textMuted: "#98A1AE",
-  pageBg: "#F5F6F8",
+  text: "#14232B",
+  textSec: "#52626B",
+  textMuted: "#8B99A1",
+  pageBg: "#F4F7F3",
   card: "#FFFFFF",
-  sunken: "#EDEFF3",
-  border: "#E4E7EC",
-  borderStrong: "#C6CCD6",
+  sunken: "#ECF1EA",
+  border: "#E1E8DE",
+  borderStrong: "#C3CEC0",
 
   // ── Estados ──────────────────────────────────────────────────────────────
-  /** Teal, no verde: tiene que distinguirse de la marca. 5.2:1 */
-  successText: "#0F7B62",
-  successBg: "#DCF2EC",
-  warnText: "#9A5B00",
-  warnBg: "#FDF0DC",
-  errorText: "#C4321F",
+  successText: "#2F6B2A",
+  successBg: "#DCEDD3",
+  /** Texto oscuro sobre Ready Amber suave. 5.4:1 */
+  warnText: "#8A5300",
+  warnBg: "#FCEBCF",
+  errorText: "#B42E1D",
   errorBg: "#FCE6E2",
-  /** Azul legible, de la misma familia que el azul del logo. 5.2:1 */
-  infoText: "#2A7295",
-  infoBg: "#E4F1F8",
+  infoText: "#1F4A5F",
+  infoBg: "#E2F0F7",
 
   // ── Super-Admin ──────────────────────────────────────────────────────────
-  /** Azul profundo de la familia del logo. Distingue el rol de plataforma
-   *  sin salirse de la paleta. 7:1 sobre blanco. */
-  admin: "#2C5F73",
-  adminBg: "#E3EDF2",
+  admin: "#1F4A5F",
+  adminBg: "#E2F0F7",
 } as const;
+
+export const FUENTE_TITULOS = "var(--font-poppins), system-ui, sans-serif";

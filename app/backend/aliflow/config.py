@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     inactividad_operador_min: int = 60 * 2
     inactividad_superadmin_min: int = 60
 
+    # RN-03 y RN-05: "hoy" y la hora máxima de retiro son de Ecuador.
+    zona_horaria: str = "America/Guayaquil"
+
     cookie_sesion: str = "aliflow_sesion"
     # En producción la cookie solo viaja por HTTPS (RNF de seguridad).
     cookie_segura: bool = False
@@ -43,6 +46,12 @@ class Settings(BaseSettings):
     @property
     def es_produccion(self) -> bool:
         return self.entorno == "produccion"
+
+    @property
+    def permite_demo(self) -> bool:
+        """Pasarela simulada y estudiante de demostración. Nunca en producción:
+        ahí la recarga pasa por la pasarela real y el estudiante entra con Google."""
+        return self.entorno in ("desarrollo", "pruebas", "demo")
 
 
 @lru_cache

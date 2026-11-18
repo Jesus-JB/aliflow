@@ -14,6 +14,8 @@ dependencies = [
     "google-auth>=2.36",
     "requests>=2.32",
     "email-validator>=2.2",
+    # La imagen slim y las funciones de Vercel no traen la base de zonas horarias.
+    "tzdata>=2024.1",
 ]
 
 [project.optional-dependencies]

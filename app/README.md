@@ -116,7 +116,7 @@ cuenta personal de Gmail registrada con un correo institucional.
 
 ---
 
-## Decisiones técnicas del Sprint 1
+## Decisiones técnicas
 
 **Sesiones opacas del lado del servidor, no JWT.** RF-05 exige que, tras
 cerrar sesión, el token deje de aceptarse, y RF-04 que revocar una cuenta corte
@@ -139,23 +139,64 @@ autogeneran: el autogenerador no sabe producir CHECK, FK compuestas ni triggers.
 **Contraseñas con Argon2id**, verificando siempre aunque el correo no exista,
 para que el tiempo de respuesta no revele qué cuentas hay.
 
+**La hora es la de Ecuador, no la del servidor.** "Hoy" y la hora máxima de
+retiro se calculan en `America/Guayaquil` (`aliflow/tiempo.py`); un servidor en
+UTC cambiaría de día a las 19:00.
+
+**El cupo se descuenta con una actualización condicional** (`cupo_consumido +
+n <= cupo_asignado`), respaldada por la restricción `cupo_no_sobrevendido`. Hay
+una prueba con cinco compras simultáneas de la última unidad: se vende una.
+
+**La entrega invalida el código con una actualización condicional**: dos
+operadores con el mismo código a la vez dan una sola entrega (también probado).
+
+**Lo vencido se marca al consultar.** No hace falta una tarea programada para
+que el estado que se ve sea el correcto; al consultar, lo no retirado después
+de la hora máxima pasa a EXPIRADO.
+
+**El estudiante de demostración y la pasarela simulada** solo existen con
+`ALIFLOW_ENTORNO` en `desarrollo`, `pruebas` o `demo`. En producción esas rutas
+responden 404 y 503.
+
 ---
 
-## Estado del Sprint 1
+## Estado de la construcción
 
-| Ítem | Estado | Notas |
+Los sprints 1 a 5 están construidos de punta a punta y se pueden probar en el
+ambiente de demostración. El piloto es **solo con Barú**.
+
+| Módulo | Estado | Qué se puede hacer |
 |---|---|---|
-| TT-01 Esquema con restricciones | ✅ | Migraciones 0001 y 0002; las 10 pruebas de restricciones pasan sobre la base migrada |
-| TT-02 Armazón, entornos e integración continua | ✅ | Docker Compose, CI en GitHub Actions |
-| RF-01 Ingreso institucional | ✅ en código · ⏳ sin probar con Google real | Las pruebas cubren la decisión de dominio; falta un client ID para probar el flujo de punta a punta |
-| RF-02 Perfil en el primer ingreso | ✅ | Idempotente aun con dos ingresos simultáneos |
-| RF-03 Ingreso operativo por rol | ✅ | Probado en el navegador |
-| RF-04 Cuentas del propio local | ✅ | Pantalla del Proveedor: crear, revocar, restablecer. Probado en el navegador |
-| RF-05 Cierre y expiración de sesión | ✅ | Plazo por rol, configurable por variable de entorno |
-| RF-06 Ámbito por rol | ✅ | Consulta cruzada del Super-Admin auditada |
+| Ingreso y cuentas (RF-01 a RF-06) | ✅ | Personal con contraseña; estudiante con Google (falta el client ID) o con la cuenta de demostración |
+| Menú y cupo reservado (RF-13 a RF-18) | ✅ | El gerente carga platos y ajusta el cupo de hoy; el estudiante ve Disponible o Agotado, nunca la cantidad |
+| Saldo por local y recarga (RF-07 a RF-10) | ✅ con pasarela simulada | La recarga va a un local y solo se gasta ahí. **Falta elegir la pasarela real** |
+| Compra (RF-19 a RF-24) | ✅ | Compra con saldo, código de 6 dígitos, hora máxima de retiro del local, historial |
+| Retiro (RF-25 a RF-29) | ✅ | El Operador teclea el código; inexistente, ya usado y vencido se distinguen |
+| Tarjeta de sellos (RF-32 a RF-36) | ✅ | Sello al entregar, tope diario, canje como descuento del 100% |
+| Panel en vivo del local | ✅ | Ventas, pedidos por hora, cupo por plato con alertas y ventas perdidas por agotado; se actualiza cada 10 s |
+| Integración con ERP (Contífico) | ⏳ | Esperando credenciales |
+| Consola del Super-Admin | ⏳ | Sprint 6 |
+
+La marca es la de la propuesta de Negocios de noviembre de 2026 (paleta,
+Poppins e Inter, logo y "Pide antes. Sin filas."). Los colores viven en
+`frontend/src/lib/tokens.ts`, con la regla de contraste explicada ahí.
+
+### Datos de la demo
+
+`python -m aliflow.cli sembrar-demo --reiniciar --password <clave>` deja la base
+con Barú, cinco platos (el Bowl de quinua sin cupo, para mostrar un agotado),
+cupo para un mes, la tarjeta de sellos (8 sellos, un almuerzo gratis) y la
+estudiante de demostración con 6 de 8 sellos y saldo. `sembrar-ventas-hoy`
+agrega compras del día para que el panel del local no arranque vacío; conviene
+correrlo la mañana de una presentación.
+
+La hora máxima de retiro de la demo es 21:00, para que funcione también en una
+presentación por la tarde. El gerente la cambia en *Horario*.
 
 ### Pendientes conocidos
 
-- **`npm run dev` recarga la página cada segundo** en algunos navegadores: la conexión de recarga en caliente de Next 16 se reconecta en bucle. `npm run build && npm start` funciona bien. Hay que investigarlo antes de que el equipo desarrolle a diario sobre el frontend.
-- **Límite de intentos de login.** No está en el alcance del Sprint 1; los intentos fallidos ya quedan auditados.
-- **La contraseña temporal no obliga a cambiarse en el primer ingreso.** La especificación no lo pide; conviene agregarlo.
+- **`npm run dev` recarga la página cada segundo** en algunos navegadores. `npm run build && npm start` funciona bien.
+- **Límites de recarga** ($1 a $100) son provisionales: los define Negocios.
+- **Límite de intentos de validación (RF-31).** Los intentos fallidos ya quedan auditados; falta el bloqueo temporal.
+- **La contraseña temporal no obliga a cambiarse en el primer ingreso.**
+- **Los gestores de contraseñas de algunos navegadores** bloquean el formulario en `http://localhost`. En el ambiente de demostración (HTTPS) no pasa.

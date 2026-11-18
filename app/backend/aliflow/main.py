@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 
 from aliflow.config import get_settings
-from aliflow.routers import admin, auth, cuentas
+from aliflow.routers import admin, auth, cuentas, estudiante, local, operador
 
 
 def crear_app() -> FastAPI:
@@ -20,6 +20,9 @@ def crear_app() -> FastAPI:
     app.include_router(cuentas.router)
     app.include_router(cuentas.puntos_router)
     app.include_router(admin.router)
+    app.include_router(estudiante.router)
+    app.include_router(operador.router)
+    app.include_router(local.router)
 
     @app.get("/salud", tags=["operación"])
     def salud() -> dict[str, str]:
