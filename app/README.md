@@ -107,7 +107,15 @@ personal.
 1. En [Google Cloud Console](https://console.cloud.google.com/) → *APIs y servicios* → *Credenciales* → **Crear ID de cliente de OAuth**, tipo *Aplicación web*.
 2. En *Orígenes autorizados de JavaScript* agregar `http://localhost:3000` y el dominio de producción.
 3. Copiar el client ID en `ALIFLOW_GOOGLE_CLIENT_ID` (backend) y `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (frontend).
-4. **Para producción hace falta que TI de la UEES autorice la aplicación** en el Google Workspace de la universidad. Sin eso, los estudiantes pueden ver una pantalla de "app no verificada" o un bloqueo, según la política del dominio.
+4. Publicar la app (*Audience → Publish app*). Con solo `openid`, `email` y `profile`, Google no exige verificarla. No subir logo en *Branding*: eso sí dispara una revisión de marca.
+
+El ambiente de demostración usa un client creado en una cuenta de Google del
+equipo, fuera de la organización de la UEES (las cuentas institucionales no
+pueden crear proyectos en Google Cloud). Las cuentas @uees.edu.ec entran sin
+bloqueo (probado el 19-nov-2026). **Para producción conviene que TI de la UEES
+cree el client dentro de su organización** o, al menos, apruebe la aplicación:
+hoy entra porque el Workspace no bloquea apps externas, y esa política la
+puede cambiar TI en cualquier momento.
 
 El backend acepta a un estudiante solo si se cumplen tres condiciones: el correo
 está verificado, termina en `@uees.edu.ec` y la cuenta pertenece al Workspace de
@@ -167,7 +175,7 @@ ambiente de demostración. El piloto es **solo con Barú**.
 
 | Módulo | Estado | Qué se puede hacer |
 |---|---|---|
-| Ingreso y cuentas (RF-01 a RF-06) | ✅ | Personal con contraseña; estudiante con Google (falta el client ID) o con la cuenta de demostración |
+| Ingreso y cuentas (RF-01 a RF-06) | ✅ | Personal con contraseña; estudiante con su cuenta Google de la UEES o con la cuenta de demostración |
 | Menú y cupo reservado (RF-13 a RF-18) | ✅ | El gerente carga platos y ajusta el cupo de hoy; el estudiante ve Disponible o Agotado, nunca la cantidad |
 | Saldo por local y recarga (RF-07 a RF-10) | ✅ con pasarela simulada | La recarga va a un local y solo se gasta ahí. **Falta elegir la pasarela real** |
 | Compra (RF-19 a RF-24) | ✅ | Compra con saldo, código de 6 dígitos, hora máxima de retiro del local, historial |
