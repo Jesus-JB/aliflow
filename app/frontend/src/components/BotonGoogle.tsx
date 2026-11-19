@@ -66,9 +66,13 @@ export function BotonGoogle({ onToken }: { onToken: (idToken: string) => void })
   return (
     <>
       <Script src="https://accounts.google.com/gsi/client" onReady={iniciar} />
-      <div ref={contenedor} className="flex min-h-11 justify-center">
-        {!cargado && <span style={{ color: C.textMuted }}>Cargando Google…</span>}
-      </div>
+      {!cargado && (
+        <p className="text-center text-sm" style={{ color: C.textMuted }}>
+          Cargando Google…
+        </p>
+      )}
+      {/* Google reemplaza el contenido de este div: React no debe poner nada adentro. */}
+      <div ref={contenedor} className="flex min-h-11 justify-center" />
     </>
   );
 }
